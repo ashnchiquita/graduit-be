@@ -26,7 +26,7 @@ import { PengujiSidang } from './entities/pengujiSidang.entity';
   imports: [
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: '128.199.122.190',
+      host: 'localhost',
       port: 5432,
       username: 'ppl',
       password: 'ppl',
