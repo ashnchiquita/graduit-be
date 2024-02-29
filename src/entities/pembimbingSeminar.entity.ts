@@ -1,10 +1,10 @@
-import { Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { Seminar } from './seminar.entity';
-import { Pengguna } from './pengguna.entity';
+import { Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Seminar } from "./seminar.entity";
+import { Pengguna } from "./pengguna.entity";
 
 @Entity()
 export class PembimbingSeminar {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   @ManyToOne(() => Seminar, (seminar) => seminar.id)
