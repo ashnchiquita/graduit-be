@@ -21,6 +21,7 @@ import { Tugas } from "./entities/tugas.entity";
 import { PembimbingSeminar } from "./entities/pembimbingSeminar.entity";
 import { PembimbingSidang } from "./entities/pembimbingSidang.entity";
 import { PengujiSidang } from "./entities/pengujiSidang.entity";
+import { RegistrasiTesisModule } from "./registrasi-tesis/registrasi-tesis.module";
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { PengujiSidang } from "./entities/pengujiSidang.entity";
       // autoLoadEntities: true,
       synchronize: true,
     }),
+    RegistrasiTesisModule,
   ],
   controllers: [AppController],
   providers: [AppService],
