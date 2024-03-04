@@ -1,5 +1,5 @@
-import { NotFoundException } from '@nestjs/common';
-import { validate as uuidValidate } from 'uuid';
+import { NotFoundException } from "@nestjs/common";
+import { validate as uuidValidate } from "uuid";
 
 interface ID {
   id: string;
