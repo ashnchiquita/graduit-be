@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Get } from '@nestjs/common';
+import { Body, Controller, Post, Get, Param } from '@nestjs/common';
 import { RegistrasiTesisService } from './registrasi-tesis.service';
 import { RegistrasiTopikDto } from 'src/dto/registrasi-topik';
 
@@ -10,9 +10,9 @@ export class RegistrasiTesisController {
 
   // TODO: Protect using roles and guards
 
-  @Get()
-  async getTopicRegistrationsByMahasiswaId(@Body() id: string) {
-    return this.registrasiTesisService.findTopicRegistrationsByMahasiswaId(id);
+  @Get('/mahasiswa/:mahasiswaId')
+  findByUserId(@Param() params: { mahasiswaId: string }) {
+    return this.registrasiTesisService.findByUserId(params.mahasiswaId);
   }
 
   @Post()

@@ -70,11 +70,12 @@ export class RegistrasiTesisService {
     return createdRegistration;
   }
 
-  async findTopicRegistrationsByMahasiswaId(
-    userId: string,
-  ): Promise<PengajuanPengambilanTopik[]> {
-    return this.pengajuanPengambilanTopikRepository.find({
-      where: { idMahasiswa: userId },
-    });
+  async findByUserId(mahasiswaId: string) {
+    return await this.pengajuanPengambilanTopikRepository
+      .createQueryBuilder('pengajuanPengambilanTopik')
+      .where('pengajuanPengambilanTopik.mahasiswa = :mahasiswaId', {
+        mahasiswaId,
+      })
+      .getMany();
   }
 }
