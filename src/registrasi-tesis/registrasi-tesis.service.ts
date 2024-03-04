@@ -1,12 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { ModuleRef } from '@nestjs/core';
-import { getEntityManagerToken } from '@nestjs/typeorm';
-import { Repository, EntityManager } from 'typeorm';
-import { PengajuanPengambilanTopik } from 'src/entities/pengajuanPengambilanTopik.entity';
-import { RegistrasiTopikDto } from 'src/dto/registrasi-topik';
-import { Pengguna } from 'src/entities/pengguna.entity';
-import { DosenBimbingan } from 'src/entities/dosenBimbingan.entity';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { ModuleRef } from "@nestjs/core";
+import { getEntityManagerToken } from "@nestjs/typeorm";
+import { Repository, EntityManager } from "typeorm";
+import { PengajuanPengambilanTopik } from "src/entities/pengajuanPengambilanTopik.entity";
+import { RegistrasiTopikDto } from "src/dto/registrasi-topik";
+import { Pengguna } from "src/entities/pengguna.entity";
+import { DosenBimbingan } from "src/entities/dosenBimbingan.entity";
 
 @Injectable()
 export class RegistrasiTesisService {
@@ -21,7 +21,7 @@ export class RegistrasiTesisService {
   ) {
     try {
       const connection: EntityManager = this.moduleRef.get(
-        getEntityManagerToken(''),
+        getEntityManagerToken(""),
         {
           strict: false,
         },
@@ -45,7 +45,7 @@ export class RegistrasiTesisService {
     });
 
     if (!user) {
-      throw new NotFoundException('User not found.');
+      throw new NotFoundException("User not found.");
     }
 
     // Validate supervisor id
@@ -54,7 +54,7 @@ export class RegistrasiTesisService {
     });
 
     if (!supervisor) {
-      throw new NotFoundException('Supervisor not found.');
+      throw new NotFoundException("Supervisor not found.");
     }
 
     // Create new registration
@@ -72,8 +72,8 @@ export class RegistrasiTesisService {
 
   async findByUserId(mahasiswaId: string) {
     return await this.pengajuanPengambilanTopikRepository
-      .createQueryBuilder('pengajuanPengambilanTopik')
-      .where('pengajuanPengambilanTopik.mahasiswa = :mahasiswaId', {
+      .createQueryBuilder("pengajuanPengambilanTopik")
+      .where("pengajuanPengambilanTopik.mahasiswa = :mahasiswaId", {
         mahasiswaId,
       })
       .getMany();
