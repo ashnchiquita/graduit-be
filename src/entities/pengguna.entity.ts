@@ -7,4 +7,13 @@ export class Pengguna {
 
   @Column()
   nama: string;
+
+  @Column()
+  email: string;
+
+  @Column()
+  status: string;
+
+  @Column("simple-array")
+  roles: string[];
 }
