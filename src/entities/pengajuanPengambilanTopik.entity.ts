@@ -26,8 +26,11 @@ export class PengajuanPengambilanTopik {
   waktuPenolakan: Date;
 
   @ManyToOne(() => Topik, (topik) => topik.id)
-  topik: string;
+  judulTopik: string;
 
   @ManyToOne(() => Pengguna, (pengguna) => pengguna.id)
-  mahasiswa: string;
+  idMahasiswa: string;
+
+  @ManyToOne(() => Pengguna, (pengguna) => pengguna.id)
+  idPembimbing: string;
 }
