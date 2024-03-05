@@ -10,6 +10,12 @@ export class PengajuanPengambilanTopik {
   @Column({ nullable: true })
   disahkan: boolean;
 
+  @Column({ nullable: true })
+  deskripsi: string;
+
+  @Column()
+  jalurPilihan: string;
+
   @Column({ type: "timestamptz" })
   waktuPengiriman: Date;
 
@@ -26,11 +32,11 @@ export class PengajuanPengambilanTopik {
   waktuPenolakan: Date;
 
   @ManyToOne(() => Topik, (topik) => topik.id)
-  judulTopik: string;
+  topik: Topik;
 
   @ManyToOne(() => Pengguna, (pengguna) => pengguna.id)
-  idMahasiswa: string;
+  mahasiswa: Pengguna;
 
   @ManyToOne(() => Pengguna, (pengguna) => pengguna.id)
-  idPembimbing: string;
+  pembimbing: Pengguna;
 }
