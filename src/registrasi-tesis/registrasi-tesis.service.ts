@@ -68,11 +68,9 @@ export class RegistrasiTesisService {
   }
 
   async findByUserId(mahasiswaId: string) {
-    return await this.pengajuanPengambilanTopikRepository
-      .createQueryBuilder("pengajuanPengambilanTopik")
-      .where("pengajuanPengambilanTopik.mahasiswa = :mahasiswaId", {
-        mahasiswaId,
-      })
-      .getMany();
+    return await this.pengajuanPengambilanTopikRepository.find({
+      relations: ["topik", "pembimbing"],
+      where: { mahasiswa: { id: mahasiswaId } },
+    });
   }
 }
