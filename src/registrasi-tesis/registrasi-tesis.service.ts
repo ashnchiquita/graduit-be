@@ -5,6 +5,7 @@ import { PengajuanPengambilanTopik } from "src/entities/pengajuanPengambilanTopi
 import { RegistrasiTopikDto } from "src/dto/registrasi-topik";
 import { Pengguna } from "src/entities/pengguna.entity";
 import { validateId } from "src/helper/validation";
+import { Topik } from "src/entities/topik.entity";
 
 @Injectable()
 export class RegistrasiTesisService {
@@ -13,6 +14,8 @@ export class RegistrasiTesisService {
     private pengajuanPengambilanTopikRepository: Repository<PengajuanPengambilanTopik>,
     @InjectRepository(Pengguna)
     private penggunaRepository: Repository<Pengguna>,
+    @InjectRepository(Topik)
+    private topicRepostitory: Repository<Topik>,
   ) {}
 
   async createTopicRegistration(
@@ -27,29 +30,35 @@ export class RegistrasiTesisService {
       { id: topicRegistrationDto.idPembimbing, object: "Pembimbing" },
     ]);
 
-    // Validate user id
-    const user = await this.penggunaRepository.findOne({
-      where: { id: userId },
-    });
+    // Validate user id, supervisor id
+    const [user, supervisor, topic] = await Promise.all([
+      this.penggunaRepository.findOne({
+        where: { id: userId },
+      }),
+      this.penggunaRepository.findOne({
+        where: { id: topicRegistrationDto.idPembimbing },
+      }),
+      this.topicRepostitory.findOne({
+        where: { judul: topicRegistrationDto.judulTopik },
+      }),
+    ]);
 
     if (!user) {
       throw new NotFoundException("User not found.");
-    }
-
-    // Validate supervisor id
-    const supervisor = await this.penggunaRepository.findOne({
-      where: { id: topicRegistrationDto.idPembimbing },
-    });
-
-    if (!supervisor) {
+    } else if (!supervisor) {
       throw new NotFoundException("Supervisor not found.");
+    } else if (!topic) {
+      throw new NotFoundException("Topic not found.");
     }
 
     // Create new registration
     const createdRegistration = this.pengajuanPengambilanTopikRepository.create(
       {
         ...topicRegistrationDto,
+        waktuPengiriman: new Date(),
         mahasiswa: user,
+        pembimbing: supervisor,
+        topik: topic,
       },
     );
 

@@ -1,4 +1,4 @@
-import { Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Topik } from "./topik.entity";
 import { Pengguna } from "./pengguna.entity";
 
@@ -6,6 +6,12 @@ import { Pengguna } from "./pengguna.entity";
 export class PengambilanTopik {
   @PrimaryGeneratedColumn("uuid")
   id: string;
+
+  @Column()
+  deskripsi: string;
+
+  @Column()
+  jalurPilihan: string;
 
   @ManyToOne(() => Topik, (topik) => topik.id)
   topik: Topik;

@@ -10,6 +10,12 @@ export class PengajuanPengambilanTopik {
   @Column({ nullable: true })
   disahkan: boolean;
 
+  @Column({ nullable: true })
+  deskripsi: string;
+
+  @Column()
+  jalurPilihan: string;
+
   @Column({ type: "timestamptz" })
   waktuPengiriman: Date;
 
