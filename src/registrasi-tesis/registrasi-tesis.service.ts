@@ -1,12 +1,10 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { ModuleRef } from "@nestjs/core";
-import { getEntityManagerToken } from "@nestjs/typeorm";
-import { Repository, EntityManager } from "typeorm";
+import { Repository } from "typeorm";
 import { PengajuanPengambilanTopik } from "src/entities/pengajuanPengambilanTopik.entity";
 import { RegistrasiTopikDto } from "src/dto/registrasi-topik";
 import { Pengguna } from "src/entities/pengguna.entity";
-import { DosenBimbingan } from "src/entities/dosenBimbingan.entity";
+import { validateId } from "src/helper/validation";
 
 @Injectable()
 export class RegistrasiTesisService {
@@ -15,29 +13,19 @@ export class RegistrasiTesisService {
     private pengajuanPengambilanTopikRepository: Repository<PengajuanPengambilanTopik>,
     @InjectRepository(Pengguna)
     private penggunaRepository: Repository<Pengguna>,
-    @InjectRepository(DosenBimbingan)
-    private dosenBimbinganRepository: Repository<DosenBimbingan>,
-    private readonly moduleRef: ModuleRef,
-  ) {
-    try {
-      const connection: EntityManager = this.moduleRef.get(
-        getEntityManagerToken(""),
-        {
-          strict: false,
-        },
-      );
-
-      connection;
-    } catch (error: any) {
-      // Handle request scope
-    }
-  }
+  ) {}
 
   async createTopicRegistration(
     userId: string,
     topicRegistrationDto: RegistrasiTopikDto,
   ): Promise<PengajuanPengambilanTopik> {
     // TODO: Proper validations
+
+    // Validate id
+    validateId([
+      { id: userId, object: "Pengguna" },
+      { id: topicRegistrationDto.idPembimbing, object: "Pembimbing" },
+    ]);
 
     // Validate user id
     const user = await this.penggunaRepository.findOne({
@@ -49,8 +37,8 @@ export class RegistrasiTesisService {
     }
 
     // Validate supervisor id
-    const supervisor = await this.dosenBimbinganRepository.findOne({
-      where: { dosen: topicRegistrationDto.idPembimbing },
+    const supervisor = await this.penggunaRepository.findOne({
+      where: { id: topicRegistrationDto.idPembimbing },
     });
 
     if (!supervisor) {

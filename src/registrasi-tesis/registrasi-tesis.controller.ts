@@ -20,7 +20,7 @@ export class RegistrasiTesisController {
     @Body() topicRegistrationDto: RegistrasiTopikDto,
   ) {
     return this.registrasiTesisService.createTopicRegistration(
-      "test_id", // TODO: Get user id from request
+      "1dceb29c-1e95-4dc6-895e-1321972e27d3", // TODO: Get user id from request, for now use generated UUID
       topicRegistrationDto,
     );
   }
