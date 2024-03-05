@@ -7,5 +7,5 @@ export class AuditLog {
   id: string;
 
   @ManyToOne(() => Pengguna, (pengguna) => pengguna.id)
-  pengguna: string;
+  pengguna: Pengguna;
 }

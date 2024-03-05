@@ -49,7 +49,7 @@ export class RegistrasiTesisService {
     const createdRegistration = this.pengajuanPengambilanTopikRepository.create(
       {
         ...topicRegistrationDto,
-        idMahasiswa: userId,
+        mahasiswa: user,
       },
     );
 

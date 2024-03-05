@@ -8,11 +8,11 @@ export class PengambilanTopik {
   id: string;
 
   @ManyToOne(() => Topik, (topik) => topik.id)
-  judulTopik: string;
+  topik: Topik;
 
   @ManyToOne(() => Pengguna, (pengguna) => pengguna.id)
-  idMahasiswa: string;
+  mahasiswa: Pengguna;
 
   @ManyToOne(() => Pengguna, (pengguna) => pengguna.id)
-  idPembimbing: string;
+  pembimbing: Pengguna;
 }
