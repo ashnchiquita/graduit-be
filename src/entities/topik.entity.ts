@@ -9,6 +9,9 @@ export class Topik {
   @Column()
   judul: string;
 
+  @Column({ type: "text" })
+  deskripsi: string;
+
   @ManyToOne(() => Pengguna, (pengguna) => pengguna.id)
-  dosen: string;
+  pengaju: string;
 }
