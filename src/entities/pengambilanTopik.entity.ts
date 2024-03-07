@@ -1,15 +1,24 @@
-import { Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { Topik } from './topik.entity';
-import { Pengguna } from './pengguna.entity';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Topik } from "./topik.entity";
+import { Pengguna } from "./pengguna.entity";
 
 @Entity()
 export class PengambilanTopik {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
+  @Column()
+  deskripsi: string;
+
+  @Column()
+  jalurPilihan: string;
+
   @ManyToOne(() => Topik, (topik) => topik.id)
-  topik: string;
+  topik: Topik;
 
   @ManyToOne(() => Pengguna, (pengguna) => pengguna.id)
-  mahasiswa: string;
+  mahasiswa: Pengguna;
+
+  @ManyToOne(() => Pengguna, (pengguna) => pengguna.id)
+  pembimbing: Pengguna;
 }

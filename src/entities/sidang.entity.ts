@@ -1,22 +1,22 @@
-import { Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { Pengguna } from './pengguna.entity';
-import { RangeJadwalSidang } from './rangeJadwalSidang.entity';
-import { Ruangan } from './ruangan.entity';
+import { Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Pengguna } from "./pengguna.entity";
+import { RangeJadwalSidang } from "./rangeJadwalSidang.entity";
+import { Ruangan } from "./ruangan.entity";
 
 @Entity()
 export class Sidang {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   @ManyToOne(() => Pengguna, (pengguna) => pengguna.id)
-  mahasiswa: string;
+  mahasiswa: Pengguna;
 
   @ManyToOne(
     () => RangeJadwalSidang,
     (rangeJadwalSidang) => rangeJadwalSidang.id,
   )
-  rangeJadwal: string;
+  rangeJadwal: RangeJadwalSidang;
 
   @ManyToOne(() => Ruangan, (ruangan) => ruangan.id)
-  ruangan: string;
+  ruangan: Ruangan;
 }
