@@ -8,8 +8,8 @@ export class MahasiswaKelas {
   id: string;
 
   @ManyToOne(() => Kelas, (kelas) => kelas.id)
-  kelas: string;
+  kelas: Kelas;
 
   @ManyToOne(() => Pengguna, (pengguna) => pengguna.id)
-  mahasiswa: string;
+  mahasiswa: Pengguna;
 }

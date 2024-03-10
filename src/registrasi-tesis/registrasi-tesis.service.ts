@@ -1,15 +1,15 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { ModuleRef } from "@nestjs/core";
-import { getEntityManagerToken } from "@nestjs/typeorm";
-import { Repository, EntityManager, Like } from "typeorm";
+import { Like } from "typeorm";
 import {
   PengajuanPengambilanTopik,
   RegStatus,
 } from "src/entities/pengajuanPengambilanTopik.entity";
+import { Repository } from "typeorm";
 import { RegistrasiTopikDto } from "src/dto/registrasi-topik";
 import { Pengguna } from "src/entities/pengguna.entity";
-import { DosenBimbingan } from "src/entities/dosenBimbingan.entity";
+import { validateId } from "src/helper/validation";
+import { Topik } from "src/entities/topik.entity";
 
 @Injectable()
 export class RegistrasiTesisService {
@@ -18,23 +18,9 @@ export class RegistrasiTesisService {
     private pengajuanPengambilanTopikRepository: Repository<PengajuanPengambilanTopik>,
     @InjectRepository(Pengguna)
     private penggunaRepository: Repository<Pengguna>,
-    @InjectRepository(DosenBimbingan)
-    private dosenBimbinganRepository: Repository<DosenBimbingan>,
-    private readonly moduleRef: ModuleRef,
-  ) {
-    try {
-      const connection: EntityManager = this.moduleRef.get(
-        getEntityManagerToken(""),
-        {
-          strict: false,
-        },
-      );
-
-      connection;
-    } catch (error: any) {
-      // Handle request scope
-    }
-  }
+    @InjectRepository(Topik)
+    private topicRepostitory: Repository<Topik>,
+  ) {}
 
   async createTopicRegistration(
     userId: string,
@@ -42,29 +28,41 @@ export class RegistrasiTesisService {
   ): Promise<PengajuanPengambilanTopik> {
     // TODO: Proper validations
 
-    // Validate user id
-    const user = await this.penggunaRepository.findOne({
-      where: { id: userId },
-    });
+    // Validate id
+    validateId([
+      { id: userId, object: "Pengguna" },
+      { id: topicRegistrationDto.idPembimbing, object: "Pembimbing" },
+    ]);
+
+    // Validate user id, supervisor id
+    const [user, supervisor, topic] = await Promise.all([
+      this.penggunaRepository.findOne({
+        where: { id: userId },
+      }),
+      this.penggunaRepository.findOne({
+        where: { id: topicRegistrationDto.idPembimbing },
+      }),
+      this.topicRepostitory.findOne({
+        where: { judul: topicRegistrationDto.judulTopik },
+      }),
+    ]);
 
     if (!user) {
       throw new NotFoundException("User not found.");
-    }
-
-    // Validate supervisor id
-    const supervisor = await this.dosenBimbinganRepository.findOne({
-      where: { dosen: topicRegistrationDto.idPembimbing },
-    });
-
-    if (!supervisor) {
+    } else if (!supervisor) {
       throw new NotFoundException("Supervisor not found.");
+    } else if (!topic) {
+      throw new NotFoundException("Topic not found.");
     }
 
     // Create new registration
     const createdRegistration = this.pengajuanPengambilanTopikRepository.create(
       {
         ...topicRegistrationDto,
-        idMahasiswa: userId,
+        waktuPengiriman: new Date(),
+        mahasiswa: user,
+        pembimbing: supervisor,
+        topik: topic,
       },
     );
 
@@ -74,12 +72,10 @@ export class RegistrasiTesisService {
   }
 
   async findByUserId(mahasiswaId: string) {
-    return await this.pengajuanPengambilanTopikRepository
-      .createQueryBuilder("pengajuanPengambilanTopik")
-      .where("pengajuanPengambilanTopik.mahasiswa = :mahasiswaId", {
-        mahasiswaId,
-      })
-      .getMany();
+    return await this.pengajuanPengambilanTopikRepository.find({
+      relations: ["topik", "pembimbing"],
+      where: { mahasiswa: { id: mahasiswaId } },
+    });
   }
 
   async findAllRegByDosbim(

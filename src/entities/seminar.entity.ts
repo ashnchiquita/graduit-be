@@ -9,14 +9,14 @@ export class Seminar {
   id: string;
 
   @ManyToOne(() => Pengguna, (pengguna) => pengguna.id)
-  mahasiswa: string;
+  mahasiswa: Pengguna;
 
   @ManyToOne(
     () => RangeJadwalSeminar,
     (rangeJadwalSeminar) => rangeJadwalSeminar.id,
   )
-  rangeJadwal: string;
+  rangeJadwal: RangeJadwalSeminar;
 
   @ManyToOne(() => Ruangan, (ruangan) => ruangan.id)
-  ruangan: string;
+  ruangan: Ruangan;
 }

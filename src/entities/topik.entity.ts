@@ -13,5 +13,5 @@ export class Topik {
   deskripsi: string;
 
   @ManyToOne(() => Pengguna, (pengguna) => pengguna.id)
-  pengaju: string;
+  pengaju: Pengguna;
 }
