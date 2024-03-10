@@ -59,7 +59,6 @@ export class RegistrasiTesisService {
     const createdRegistration = this.pengajuanPengambilanTopikRepository.create(
       {
         ...topicRegistrationDto,
-        waktuPengiriman: new Date(),
         mahasiswa: user,
         pembimbing: supervisor,
         topik: topic,
@@ -94,8 +93,10 @@ export class RegistrasiTesisService {
         mahasiswa: true,
       },
       where: {
-        idPembimbing,
         status,
+        pembimbing: {
+          id: idPembimbing,
+        },
         mahasiswa: {
           nama: Like(`%${search || ""}%`),
         },
