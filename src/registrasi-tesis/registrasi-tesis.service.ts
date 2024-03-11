@@ -1,7 +1,11 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { Like } from "typeorm";
+import {
+  PengajuanPengambilanTopik,
+  RegStatus,
+} from "src/entities/pengajuanPengambilanTopik.entity";
 import { Repository } from "typeorm";
-import { PengajuanPengambilanTopik } from "src/entities/pengajuanPengambilanTopik.entity";
 import { RegistrasiTopikDto } from "./registrasi-tesis.dto";
 import { Pengguna } from "src/entities/pengguna.entity";
 import { validateId } from "src/helper/validation";
@@ -55,7 +59,6 @@ export class RegistrasiTesisService {
     const createdRegistration = this.pengajuanPengambilanTopikRepository.create(
       {
         ...topicRegistrationDto,
-        waktuPengiriman: new Date(),
         mahasiswa: user,
         pembimbing: supervisor,
         topik: topic,
@@ -71,6 +74,85 @@ export class RegistrasiTesisService {
     return await this.pengajuanPengambilanTopikRepository.find({
       relations: ["topik", "pembimbing"],
       where: { mahasiswa: { id: mahasiswaId } },
+    });
+  }
+
+  async findAllReg(options: {
+    status?: RegStatus;
+    page: number;
+    limit?: number;
+    idPembimbing?: string;
+    search?: string;
+    sort?: "ASC" | "DESC";
+  }) {
+    return await this.pengajuanPengambilanTopikRepository.find({
+      select: {
+        id: true,
+        waktuPengiriman: true,
+        jadwalInterview: true,
+        waktuKeputusan: true,
+        jalurPilihan: true,
+        status: true,
+        pembimbing: {
+          id: true,
+          nama: true,
+          email: true,
+        },
+        mahasiswa: {
+          id: true,
+          nama: true,
+          email: true,
+        },
+      },
+      relations: {
+        mahasiswa: true,
+        pembimbing: true,
+      },
+      where: {
+        status: options.status || undefined,
+        pembimbing: {
+          id: options.idPembimbing || undefined,
+        },
+        mahasiswa: {
+          nama: Like(`%${options.search || ""}%`),
+        },
+      },
+      order: {
+        waktuPengiriman: options.sort || "ASC",
+      },
+      take: options.limit || undefined,
+      skip: options.limit ? (options.page - 1) * options.limit : 0,
+    });
+  }
+
+  async findRegById(id: string) {
+    return await this.pengajuanPengambilanTopikRepository.findOne({
+      select: {
+        id: true,
+        waktuPengiriman: true,
+        jadwalInterview: true,
+        waktuKeputusan: true,
+        status: true,
+        jalurPilihan: true,
+        pembimbing: {
+          id: true,
+          nama: true,
+          email: true,
+        },
+        mahasiswa: {
+          id: true,
+          nama: true,
+          email: true,
+        },
+      },
+      where: {
+        id,
+      },
+      relations: {
+        pembimbing: true,
+        topik: true,
+        mahasiswa: true,
+      },
     });
   }
 }

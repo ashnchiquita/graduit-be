@@ -2,34 +2,44 @@ import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Topik } from "./topik.entity";
 import { Pengguna } from "./pengguna.entity";
 
+export enum RegStatus {
+  NOT_ASSIGNED = "NOT_ASSIGNED",
+  INTERVIEW = "INTERVIEW",
+  APPROVED = "APPROVED",
+  REJECTED = "REJECTED",
+}
+
+export enum JalurEnum {
+  CS = "CS",
+  SEI = "SEI",
+  IS = "IS",
+  IT = "IT",
+  INTS = "INTS",
+  MMT = "MMT",
+  CC = "CC",
+  DSAI = "DSAI",
+  CSEC = "CSEC",
+}
+
 @Entity()
 export class PengajuanPengambilanTopik {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column({ nullable: true })
-  disahkan: boolean;
+  @Column({ type: "enum", enum: JalurEnum })
+  jalurPilihan: JalurEnum;
 
-  @Column({ nullable: true })
-  deskripsi: string;
-
-  @Column()
-  jalurPilihan: string;
-
-  @Column({ type: "timestamptz" })
+  @Column({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
   waktuPengiriman: Date;
-
-  @Column({ type: "timestamptz", nullable: true })
-  waktuPersetujuan: Date;
 
   @Column({ type: "timestamptz", nullable: true })
   jadwalInterview: Date;
 
   @Column({ type: "timestamptz", nullable: true })
-  waktuPengesahan: Date;
+  waktuKeputusan: Date;
 
-  @Column({ type: "timestamptz", nullable: true })
-  waktuPenolakan: Date;
+  @Column({ type: "enum", enum: RegStatus, default: RegStatus.NOT_ASSIGNED })
+  status: RegStatus;
 
   @ManyToOne(() => Topik, (topik) => topik.id)
   topik: Topik;
