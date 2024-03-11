@@ -1,6 +1,6 @@
 import { Body, Controller, Post, Get, Param } from "@nestjs/common";
 import { RegistrasiTesisService } from "./registrasi-tesis.service";
-import { RegistrasiTopikDto } from "src/dto/registrasi-topik";
+import { RegistrasiTopikDto } from "./registrasi-tesis.dto";
 
 @Controller("registrasi-tesis")
 export class RegistrasiTesisController {

@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { PengajuanPengambilanTopik } from "src/entities/pengajuanPengambilanTopik.entity";
-import { RegistrasiTopikDto } from "src/dto/registrasi-topik";
+import { RegistrasiTopikDto } from "./registrasi-tesis.dto";
 import { Pengguna } from "src/entities/pengguna.entity";
 import { validateId } from "src/helper/validation";
 import { Topik } from "src/entities/topik.entity";
