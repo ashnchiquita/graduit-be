@@ -5,17 +5,25 @@ import {
   Get,
   Param,
   NotFoundException,
-  UnauthorizedException,
   Query,
+  Req,
+  UseGuards,
+  ForbiddenException,
 } from "@nestjs/common";
 import { RegistrasiTesisService } from "./registrasi-tesis.service";
 import { RegStatus } from "src/entities/pengajuanPengambilanTopik.entity";
 import { RegistrasiTopikDto } from "./registrasi-tesis.dto";
+import { Request } from "express";
+import { AuthDto } from "src/auth/auth.dto";
+import { CustomAuthGuard } from "src/middlewares/custom-auth.guard";
+import { RolesGuard } from "src/middlewares/roles.guard";
+import { RoleEnum } from "src/entities/pengguna.entity";
+import { Roles } from "src/middlewares/roles.decorator";
 
 @Controller("registrasi-tesis")
 export class RegistrasiTesisController {
   constructor(
-    private readonly registrasiTesisService: RegistrasiTesisService
+    private readonly registrasiTesisService: RegistrasiTesisService,
   ) {}
 
   // TODO: Protect using roles and guards
@@ -27,14 +35,16 @@ export class RegistrasiTesisController {
 
   @Post()
   async createTopicRegistration(
-    @Body() topicRegistrationDto: RegistrasiTopikDto
+    @Body() topicRegistrationDto: RegistrasiTopikDto,
   ) {
     return this.registrasiTesisService.createTopicRegistration(
       "ae9697b9-590f-4820-826b-948f5e746ca7", // TODO: Get user id from request, for now use generated UUID
-      topicRegistrationDto
+      topicRegistrationDto,
     );
   }
 
+  @UseGuards(CustomAuthGuard, RolesGuard)
+  @Roles(RoleEnum.S2_PEMBIMBING)
   @Get()
   findAll(
     @Query()
@@ -43,33 +53,29 @@ export class RegistrasiTesisController {
       status: RegStatus;
       page: number;
       limit: number;
-    }
+    },
+    @Req() req: Request,
   ) {
-    // TODO: get id from session
-    const idPembimbing = "5f8869cf-fff0-4c71-ada2-83ddf5d8277d";
+    const { id: idPembimbing } = req.user as AuthDto;
 
-    return this.registrasiTesisService.findAllRegByDosbim(
-      query.status,
-      query.page,
-      query.limit,
+    return this.registrasiTesisService.findAllReg({
+      ...query,
       idPembimbing,
-      query.search
-    );
+    });
   }
 
+  @UseGuards(CustomAuthGuard, RolesGuard)
+  @Roles(RoleEnum.S2_PEMBIMBING)
   @Get("/:id")
-  async findById(@Param() params: { id: string }) {
+  async findById(@Req() req: Request, @Param() params: { id: string }) {
     const res = await this.registrasiTesisService.findRegById(params.id);
     if (!res) {
-      throw new NotFoundException("Registration not found.");
+      throw new NotFoundException();
     }
 
-    // TODO: get id from session
-    const idPembimbing = "5f8869cf-fff0-4c71-ada2-83ddf5d8277d";
+    const { id: idPembimbing } = req.user as AuthDto;
     if (res.pembimbing.id !== idPembimbing) {
-      throw new UnauthorizedException(
-        "You are not authorized to access this registration."
-      );
+      throw new ForbiddenException();
     }
 
     return res;

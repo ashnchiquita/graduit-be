@@ -19,12 +19,12 @@ export class RegistrasiTesisService {
     @InjectRepository(Pengguna)
     private penggunaRepository: Repository<Pengguna>,
     @InjectRepository(Topik)
-    private topicRepostitory: Repository<Topik>
+    private topicRepostitory: Repository<Topik>,
   ) {}
 
   async createTopicRegistration(
     userId: string,
-    topicRegistrationDto: RegistrasiTopikDto
+    topicRegistrationDto: RegistrasiTopikDto,
   ): Promise<PengajuanPengambilanTopik> {
     // TODO: Proper validations
 
@@ -62,7 +62,7 @@ export class RegistrasiTesisService {
         mahasiswa: user,
         pembimbing: supervisor,
         topik: topic,
-      }
+      },
     );
 
     await this.pengajuanPengambilanTopikRepository.save(createdRegistration);
@@ -77,35 +77,43 @@ export class RegistrasiTesisService {
     });
   }
 
-  async findAllRegByDosbim(
-    status: RegStatus,
-    page: number,
-    limit: number,
-    idPembimbing: string,
-    search?: string
-  ) {
+  async findAllReg(options: {
+    status: RegStatus;
+    page: number;
+    limit: number;
+    idPembimbing?: string;
+    search?: string;
+  }) {
     return await this.pengajuanPengambilanTopikRepository.find({
       select: {
         id: true,
         waktuPengiriman: true,
+        jadwalInterview: true,
+        waktuKeputusan: true,
+        jalurPilihan: true,
+        mahasiswa: {
+          id: true,
+          nama: true,
+          email: true,
+        },
       },
       relations: {
         mahasiswa: true,
       },
       where: {
-        status,
+        status: options.status,
         pembimbing: {
-          id: idPembimbing,
+          id: options.idPembimbing || undefined,
         },
         mahasiswa: {
-          nama: Like(`%${search || ""}%`),
+          nama: Like(`%${options.search || ""}%`),
         },
       },
       order: {
         waktuPengiriman: "DESC",
       },
-      take: limit,
-      skip: (page - 1) * limit,
+      take: options.limit,
+      skip: (options.page - 1) * options.limit,
     });
   }
 
@@ -117,6 +125,17 @@ export class RegistrasiTesisService {
         jadwalInterview: true,
         waktuKeputusan: true,
         status: true,
+        jalurPilihan: true,
+        pembimbing: {
+          id: true,
+          nama: true,
+          email: true,
+        },
+        mahasiswa: {
+          id: true,
+          nama: true,
+          email: true,
+        },
       },
       where: {
         id,

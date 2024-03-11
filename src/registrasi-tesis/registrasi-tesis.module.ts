@@ -6,6 +6,8 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { RegistrasiTesisController } from "./registrasi-tesis.controller";
 import { RegistrasiTesisService } from "./registrasi-tesis.service";
 import { Topik } from "src/entities/topik.entity";
+import { CustomStrategy } from "src/middlewares/custom.strategy";
+import { AuthModule } from "src/auth/auth.module";
 
 @Module({
   imports: [
@@ -15,8 +17,9 @@ import { Topik } from "src/entities/topik.entity";
       PengajuanPengambilanTopik,
       Topik,
     ]),
+    AuthModule,
   ],
   controllers: [RegistrasiTesisController],
-  providers: [RegistrasiTesisService],
+  providers: [RegistrasiTesisService, CustomStrategy],
 })
 export class RegistrasiTesisModule {}
