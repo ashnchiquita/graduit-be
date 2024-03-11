@@ -6,7 +6,7 @@ import {
   RegStatus,
 } from "src/entities/pengajuanPengambilanTopik.entity";
 import { Repository } from "typeorm";
-import { RegistrasiTopikDto } from "src/dto/registrasi-topik";
+import { RegistrasiTopikDto } from "./registrasi-tesis.dto";
 import { Pengguna } from "src/entities/pengguna.entity";
 import { validateId } from "src/helper/validation";
 import { Topik } from "src/entities/topik.entity";
@@ -19,12 +19,12 @@ export class RegistrasiTesisService {
     @InjectRepository(Pengguna)
     private penggunaRepository: Repository<Pengguna>,
     @InjectRepository(Topik)
-    private topicRepostitory: Repository<Topik>,
+    private topicRepostitory: Repository<Topik>
   ) {}
 
   async createTopicRegistration(
     userId: string,
-    topicRegistrationDto: RegistrasiTopikDto,
+    topicRegistrationDto: RegistrasiTopikDto
   ): Promise<PengajuanPengambilanTopik> {
     // TODO: Proper validations
 
@@ -62,7 +62,7 @@ export class RegistrasiTesisService {
         mahasiswa: user,
         pembimbing: supervisor,
         topik: topic,
-      },
+      }
     );
 
     await this.pengajuanPengambilanTopikRepository.save(createdRegistration);
@@ -82,7 +82,7 @@ export class RegistrasiTesisService {
     page: number,
     limit: number,
     idPembimbing: string,
-    search?: string,
+    search?: string
   ) {
     return await this.pengajuanPengambilanTopikRepository.find({
       select: {

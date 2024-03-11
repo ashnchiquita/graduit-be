@@ -9,13 +9,13 @@ import {
   Query,
 } from "@nestjs/common";
 import { RegistrasiTesisService } from "./registrasi-tesis.service";
-import { RegistrasiTopikDto } from "src/dto/registrasi-topik";
 import { RegStatus } from "src/entities/pengajuanPengambilanTopik.entity";
+import { RegistrasiTopikDto } from "./registrasi-tesis.dto";
 
 @Controller("registrasi-tesis")
 export class RegistrasiTesisController {
   constructor(
-    private readonly registrasiTesisService: RegistrasiTesisService,
+    private readonly registrasiTesisService: RegistrasiTesisService
   ) {}
 
   // TODO: Protect using roles and guards
@@ -27,11 +27,11 @@ export class RegistrasiTesisController {
 
   @Post()
   async createTopicRegistration(
-    @Body() topicRegistrationDto: RegistrasiTopikDto,
+    @Body() topicRegistrationDto: RegistrasiTopikDto
   ) {
     return this.registrasiTesisService.createTopicRegistration(
       "ae9697b9-590f-4820-826b-948f5e746ca7", // TODO: Get user id from request, for now use generated UUID
-      topicRegistrationDto,
+      topicRegistrationDto
     );
   }
 
@@ -43,7 +43,7 @@ export class RegistrasiTesisController {
       status: RegStatus;
       page: number;
       limit: number;
-    },
+    }
   ) {
     // TODO: get id from session
     const idPembimbing = "5f8869cf-fff0-4c71-ada2-83ddf5d8277d";
@@ -53,7 +53,7 @@ export class RegistrasiTesisController {
       query.page,
       query.limit,
       idPembimbing,
-      query.search,
+      query.search
     );
   }
 
@@ -68,7 +68,7 @@ export class RegistrasiTesisController {
     const idPembimbing = "5f8869cf-fff0-4c71-ada2-83ddf5d8277d";
     if (res.pembimbing.id !== idPembimbing) {
       throw new UnauthorizedException(
-        "You are not authorized to access this registration.",
+        "You are not authorized to access this registration."
       );
     }
 
