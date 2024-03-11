@@ -78,11 +78,12 @@ export class RegistrasiTesisService {
   }
 
   async findAllReg(options: {
-    status: RegStatus;
+    status?: RegStatus;
     page: number;
-    limit: number;
+    limit?: number;
     idPembimbing?: string;
     search?: string;
+    sort?: "ASC" | "DESC";
   }) {
     return await this.pengajuanPengambilanTopikRepository.find({
       select: {
@@ -91,6 +92,12 @@ export class RegistrasiTesisService {
         jadwalInterview: true,
         waktuKeputusan: true,
         jalurPilihan: true,
+        status: true,
+        pembimbing: {
+          id: true,
+          nama: true,
+          email: true,
+        },
         mahasiswa: {
           id: true,
           nama: true,
@@ -99,9 +106,10 @@ export class RegistrasiTesisService {
       },
       relations: {
         mahasiswa: true,
+        pembimbing: true,
       },
       where: {
-        status: options.status,
+        status: options.status || undefined,
         pembimbing: {
           id: options.idPembimbing || undefined,
         },
@@ -110,10 +118,10 @@ export class RegistrasiTesisService {
         },
       },
       order: {
-        waktuPengiriman: "DESC",
+        waktuPengiriman: options.sort || "ASC",
       },
-      take: options.limit,
-      skip: (options.page - 1) * options.limit,
+      take: options.limit || undefined,
+      skip: options.limit ? (options.page - 1) * options.limit : 0,
     });
   }
 
