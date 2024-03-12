@@ -24,6 +24,7 @@ import { PengujiSidang } from "./entities/pengujiSidang.entity";
 import { RegistrasiTesisModule } from "./registrasi-tesis/registrasi-tesis.module";
 import { ConfigModule } from "@nestjs/config";
 import { AuthModule } from "./auth/auth.module";
+import { AlokasiTopikModule } from "./alokasi-topik/alokasi-topik.module";
 
 @Module({
   imports: [
@@ -62,6 +63,7 @@ import { AuthModule } from "./auth/auth.module";
     }),
     RegistrasiTesisModule,
     AuthModule,
+    AlokasiTopikModule,
   ],
   controllers: [AppController],
   providers: [AppService],
