@@ -1,4 +1,10 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from "typeorm";
 import { Pengguna } from "./pengguna.entity";
 
 @Entity()
@@ -13,5 +19,9 @@ export class Topik {
   deskripsi: string;
 
   @ManyToOne(() => Pengguna, (pengguna) => pengguna.id)
+  @JoinColumn({ name: "idPengaju" })
   pengaju: Pengguna;
+
+  @Column({ nullable: true })
+  idPengaju: string;
 }
