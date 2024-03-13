@@ -14,6 +14,7 @@ import {
 } from "src/entities/pendaftaranTesis.entity";
 import { RoleEnum } from "src/entities/pengguna.entity";
 import { Konfigurasi } from "src/entities/konfigurasi.entity";
+import { DosenBimbingan } from "src/entities/dosenBimbingan.entity";
 
 @Injectable()
 export class BimbinganService {
@@ -24,6 +25,8 @@ export class BimbinganService {
     private pendaftaranTesisRepository: Repository<PendaftaranTesis>,
     @InjectRepository(Konfigurasi)
     private konfigurasiRepository: Repository<Konfigurasi>,
+    @InjectRepository(DosenBimbingan)
+    private dosenBimbinganRepository: Repository<DosenBimbingan>,
   ) {}
 
   async getByMahasiswaId(
@@ -58,8 +61,12 @@ export class BimbinganService {
       !user.roles.includes(RoleEnum.ADMIN) &&
       !user.roles.includes(RoleEnum.S2_TIM_TESIS)
     ) {
-      // TODO: handle for multiple dosbim
-      if (pendaftaran.penerima.id !== user.id) {
+      const dosbim = await this.dosenBimbinganRepository.find({
+        where: { pendaftaran: { id: pendaftaran.id } },
+        relations: { dosen: true },
+      });
+
+      if (!dosbim.map((d) => d.dosen.id).includes(user.id)) {
         throw new ForbiddenException();
       }
     }
