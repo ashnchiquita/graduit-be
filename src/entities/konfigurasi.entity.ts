@@ -1,11 +1,8 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, PrimaryColumn } from "typeorm";
 
 @Entity()
 export class Konfigurasi {
-  @PrimaryGeneratedColumn("uuid")
-  id: string;
-
-  @Column({ type: "text", unique: true })
+  @PrimaryColumn({ type: "text" })
   key: string;
 
   @Column({ type: "text" })
