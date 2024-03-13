@@ -1,8 +1,8 @@
-import { JalurEnum } from "src/entities/pengajuanPengambilanTopik.entity";
+import { JalurEnum } from "src/entities/pendaftaranTesis.entity";
 
 export class RegistrasiTopikDto {
   idMahasiswa: string;
-  idPembimbing: string;
+  idPenerima: string;
   judulTopik: string;
   deskripsi: string;
   jalurPilihan: JalurEnum;

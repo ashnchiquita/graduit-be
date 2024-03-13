@@ -5,9 +5,9 @@ import { Repository } from "typeorm";
 import { GetByMahasiswaIdResDto } from "./bimbingan.dto";
 import { AuthDto } from "src/auth/auth.dto";
 import {
-  PengajuanPengambilanTopik,
+  PendaftaranTesis,
   RegStatus,
-} from "src/entities/pengajuanPengambilanTopik.entity";
+} from "src/entities/pendaftaranTesis.entity";
 import { RoleEnum } from "src/entities/pengguna.entity";
 
 @Injectable()
@@ -15,8 +15,8 @@ export class BimbinganService {
   constructor(
     @InjectRepository(Bimbingan)
     private bimbinganRepository: Repository<Bimbingan>,
-    @InjectRepository(PengajuanPengambilanTopik)
-    private pengajuanPengambilanTopikRepository: Repository<PengajuanPengambilanTopik>,
+    @InjectRepository(PendaftaranTesis)
+    private pendaftaranTesisRepository: Repository<PendaftaranTesis>,
   ) {}
 
   async getByMahasiswaId(
@@ -31,11 +31,11 @@ export class BimbinganService {
       !user.roles.includes(RoleEnum.S2_TIM_TESIS)
     ) {
       // TODO: handle for multiple dosbim
-      const pengajuan = await this.pengajuanPengambilanTopikRepository.findOne({
+      const pengajuan = await this.pendaftaranTesisRepository.findOne({
         where: { mahasiswa: { id: mahasiswaId }, status: RegStatus.APPROVED },
-        relations: ["pembimbing"],
+        relations: ["penerima"],
       });
-      if (pengajuan.pembimbing.id !== user.id) {
+      if (pengajuan.penerima.id !== user.id) {
         throw new ForbiddenException();
       }
     }
@@ -46,7 +46,7 @@ export class BimbinganService {
         relations: ["topik"],
       }),
       // TODO: possibly needs a schema change to add unique constraint for findOne
-      this.pengajuanPengambilanTopikRepository.find({
+      this.pendaftaranTesisRepository.find({
         select: {
           mahasiswa: {
             id: true,

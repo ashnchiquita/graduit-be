@@ -22,7 +22,7 @@ export enum JalurEnum {
 }
 
 @Entity()
-export class PengajuanPengambilanTopik {
+export class PendaftaranTesis {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
@@ -48,5 +48,5 @@ export class PengajuanPengambilanTopik {
   mahasiswa: Pengguna;
 
   @ManyToOne(() => Pengguna, (pengguna) => pengguna.id)
-  pembimbing: Pengguna;
+  penerima: Pengguna;
 }

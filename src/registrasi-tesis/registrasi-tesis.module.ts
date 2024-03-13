@@ -1,5 +1,5 @@
 import { Module } from "@nestjs/common";
-import { PengajuanPengambilanTopik } from "src/entities/pengajuanPengambilanTopik.entity";
+import { PendaftaranTesis } from "src/entities/pendaftaranTesis.entity";
 import { Pengguna } from "src/entities/pengguna.entity";
 import { DosenBimbingan } from "src/entities/dosenBimbingan.entity";
 import { TypeOrmModule } from "@nestjs/typeorm";
@@ -14,7 +14,7 @@ import { AuthModule } from "src/auth/auth.module";
     TypeOrmModule.forFeature([
       Pengguna,
       DosenBimbingan,
-      PengajuanPengambilanTopik,
+      PendaftaranTesis,
       Topik,
     ]),
     AuthModule,

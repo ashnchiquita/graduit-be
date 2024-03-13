@@ -12,8 +12,7 @@ import { DosenBimbingan } from "./entities/dosenBimbingan.entity";
 import { Kelas } from "./entities/kelas.entity";
 import { MahasiswaKelas } from "./entities/mahasiswaKelas";
 import { PengajarKelas } from "./entities/pengajarKelas.entity";
-import { PengajuanPengambilanTopik } from "./entities/pengajuanPengambilanTopik.entity";
-import { PengambilanTopik } from "./entities/pengambilanTopik.entity";
+import { PendaftaranTesis } from "./entities/pendaftaranTesis.entity";
 import { RangeJadwalSidang } from "./entities/rangeJadwalSidang.entity";
 import { Ruangan } from "./entities/ruangan.entity";
 import { Sidang } from "./entities/sidang.entity";
@@ -49,8 +48,7 @@ import { BimbinganModule } from "./bimbingan/bimbingan.module";
         Kelas,
         MahasiswaKelas,
         PengajarKelas,
-        PengajuanPengambilanTopik,
-        PengambilanTopik,
+        PendaftaranTesis,
         RangeJadwalSidang,
         Ruangan,
         Sidang,
