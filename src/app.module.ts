@@ -25,6 +25,7 @@ import { ConfigModule } from "@nestjs/config";
 import { AuthModule } from "./auth/auth.module";
 import { DashboardModule } from "./dashboard/dashboard.module";
 import { BimbinganModule } from "./bimbingan/bimbingan.module";
+import { Konfigurasi } from "./entities/konfigurasi.entity";
 
 @Module({
   imports: [
@@ -56,8 +57,8 @@ import { BimbinganModule } from "./bimbingan/bimbingan.module";
         PembimbingSeminar,
         PembimbingSidang,
         PengujiSidang,
+        Konfigurasi,
       ],
-      // autoLoadEntities: true,
       synchronize: true,
     }),
     RegistrasiTesisModule,

@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable } from "@nestjs/common";
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Bimbingan } from "src/entities/bimbingan.entity";
 import { Repository } from "typeorm";
@@ -9,6 +13,7 @@ import {
   RegStatus,
 } from "src/entities/pendaftaranTesis.entity";
 import { RoleEnum } from "src/entities/pengguna.entity";
+import { Konfigurasi } from "src/entities/konfigurasi.entity";
 
 @Injectable()
 export class BimbinganService {
@@ -17,13 +22,36 @@ export class BimbinganService {
     private bimbinganRepository: Repository<Bimbingan>,
     @InjectRepository(PendaftaranTesis)
     private pendaftaranTesisRepository: Repository<PendaftaranTesis>,
+    @InjectRepository(Konfigurasi)
+    private konfigurasiRepository: Repository<Konfigurasi>,
   ) {}
 
   async getByMahasiswaId(
     mahasiswaId: string,
     user: AuthDto,
   ): Promise<GetByMahasiswaIdResDto> {
-    // TODO: match with current periode
+    const currentPeriode = await this.konfigurasiRepository.findOne({
+      where: { key: "PERIODE" },
+    });
+
+    const pendaftaran = await this.pendaftaranTesisRepository.findOne({
+      where: {
+        mahasiswa: { id: mahasiswaId },
+        status: RegStatus.APPROVED,
+        periode: currentPeriode.value,
+      },
+      relations: {
+        mahasiswa: true,
+        topik: true,
+        penerima: true,
+      },
+    });
+
+    if (!pendaftaran) {
+      throw new NotFoundException(
+        "Tidak ada pendaftaran yang disetujui pada periode ini",
+      );
+    }
 
     // Validate bimbingan data by its dosbim
     if (
@@ -31,41 +59,28 @@ export class BimbinganService {
       !user.roles.includes(RoleEnum.S2_TIM_TESIS)
     ) {
       // TODO: handle for multiple dosbim
-      const pengajuan = await this.pendaftaranTesisRepository.findOne({
-        where: { mahasiswa: { id: mahasiswaId }, status: RegStatus.APPROVED },
-        relations: ["penerima"],
-      });
-      if (pengajuan.penerima.id !== user.id) {
+      if (pendaftaran.penerima.id !== user.id) {
         throw new ForbiddenException();
       }
     }
 
-    const [bimbingan, pengajuan] = await Promise.all([
-      this.bimbinganRepository.find({
-        where: { mahasiswa: { id: mahasiswaId } },
-        relations: ["topik"],
-      }),
-      // TODO: possibly needs a schema change to add unique constraint for findOne
-      this.pendaftaranTesisRepository.find({
-        select: {
-          mahasiswa: {
-            id: true,
-            nama: true,
-            email: true,
-          },
-          jalurPilihan: true,
+    const bimbingan = await this.bimbinganRepository.find({
+      where: {
+        pendaftaran: {
+          id: pendaftaran.id,
         },
-        relations: ["mahasiswa"],
-        where: { mahasiswa: { id: mahasiswaId } },
-      }),
-    ]);
+      },
+    });
 
     return {
       bimbingan,
       mahasiswa: {
-        ...pengajuan[0].mahasiswa,
-        jalurPilihan: pengajuan[0].jalurPilihan,
+        ...pendaftaran.mahasiswa,
+        password: undefined,
+        roles: undefined,
+        jalurPilihan: pendaftaran.jalurPilihan,
       },
+      topik: pendaftaran.topik,
     };
   }
 }

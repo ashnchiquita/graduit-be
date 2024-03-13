@@ -1,6 +1,5 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { Topik } from "./topik.entity";
-import { Pengguna } from "./pengguna.entity";
+import { PendaftaranTesis } from "./pendaftaranTesis.entity";
 
 @Entity()
 export class Bimbingan {
@@ -22,9 +21,6 @@ export class Bimbingan {
   @Column({ type: "simple-array" })
   berkasLinks: string[];
 
-  @ManyToOne(() => Topik, (topik) => topik.id)
-  topik: Topik;
-
-  @ManyToOne(() => Pengguna, (pengguna) => pengguna.id)
-  mahasiswa: Pengguna;
+  @ManyToOne(() => PendaftaranTesis, (pendaftaranTesis) => pendaftaranTesis.id)
+  pendaftaran: PendaftaranTesis;
 }
