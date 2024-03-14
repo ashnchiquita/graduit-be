@@ -1,15 +1,26 @@
-import { Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { Topik } from "./topik.entity";
-import { Pengguna } from "./pengguna.entity";
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { PendaftaranTesis } from "./pendaftaranTesis.entity";
 
 @Entity()
 export class Bimbingan {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @ManyToOne(() => Topik, (topik) => topik.id)
-  topik: Topik;
+  @Column({ type: "date" })
+  waktuBimbingan: string;
 
-  @ManyToOne(() => Pengguna, (pengguna) => pengguna.id)
-  mahasiswa: Pengguna;
+  @Column({ type: "text" })
+  laporanKemajuan: string;
+
+  @Column({ type: "text" })
+  todo: string;
+
+  @Column({ type: "date", nullable: true })
+  bimbinganBerikutnya: string;
+
+  @Column({ type: "simple-array" })
+  berkasLinks: string[];
+
+  @ManyToOne(() => PendaftaranTesis, (pendaftaranTesis) => pendaftaranTesis.id)
+  pendaftaran: PendaftaranTesis;
 }
