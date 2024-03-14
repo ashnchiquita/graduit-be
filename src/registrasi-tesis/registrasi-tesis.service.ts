@@ -85,7 +85,7 @@ export class RegistrasiTesisService {
     search?: string;
     sort?: "ASC" | "DESC";
   }) {
-    return await this.pengajuanPengambilanTopikRepository.find({
+    const dataQuery = this.pengajuanPengambilanTopikRepository.find({
       select: {
         id: true,
         waktuPengiriman: true,
@@ -123,6 +123,51 @@ export class RegistrasiTesisService {
       take: options.limit || undefined,
       skip: options.limit ? (options.page - 1) * options.limit : 0,
     });
+
+    if (options.limit) {
+      let countQuery = this.pengajuanPengambilanTopikRepository
+        .createQueryBuilder("pengajuanPengambilanTopik")
+        .select("pengajuanPengambilanTopik.id")
+        .innerJoinAndSelect(
+          "pengajuanPengambilanTopik.pembimbing",
+          "pembimbing",
+        )
+        .innerJoinAndSelect("pengajuanPengambilanTopik.mahasiswa", "mahasiswa")
+        .where("mahasiswa.nama LIKE :search", {
+          search: `%${options.search || ""}%`,
+        });
+
+      if (options.status) {
+        countQuery = countQuery.andWhere(
+          "pengajuanPengambilanTopik.status = :status",
+          {
+            status: options.status,
+          },
+        );
+      }
+
+      if (options.idPembimbing) {
+        countQuery = countQuery.andWhere("pembimbing.id = :idPembimbing", {
+          idPembimbing: options.idPembimbing,
+        });
+      }
+
+      const [count, data] = await Promise.all([
+        countQuery.getCount(),
+        dataQuery,
+      ]);
+
+      return {
+        data,
+        maxPage: Math.floor(count / options.limit),
+      };
+    } else {
+      const data = await dataQuery;
+      return {
+        data,
+        maxPage: data.length ? 1 : 0,
+      };
+    }
   }
 
   async findRegById(id: string) {

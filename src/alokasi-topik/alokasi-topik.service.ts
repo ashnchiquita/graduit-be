@@ -104,7 +104,7 @@ export class AlokasiTopikService {
     } else {
       const data = await dataQuery;
       return {
-        maxPage: 1,
+        maxPage: data.length ? 1 : 0,
         data,
       };
     }
