@@ -58,7 +58,7 @@ export class RegistrasiTesisController {
     },
     @Req() req: Request,
   ) {
-    const { id: idPembimbing, roles } = req.user as AuthDto;
+    const { id: idPenerima, roles } = req.user as AuthDto;
 
     if (!roles.includes(query.view)) {
       throw new ForbiddenException();
@@ -68,7 +68,7 @@ export class RegistrasiTesisController {
       ...query,
       page: query.page || 1,
       idPenerima:
-        query.view === RoleEnum.S2_PEMBIMBING ? idPembimbing : undefined,
+        query.view === RoleEnum.S2_PEMBIMBING ? idPenerima : undefined,
     });
   }
 
@@ -83,7 +83,7 @@ export class RegistrasiTesisController {
       view: RoleEnum.S2_PEMBIMBING | RoleEnum.ADMIN | RoleEnum.S2_TIM_TESIS;
     },
   ) {
-    const { id: idPembimbing, roles } = req.user as AuthDto;
+    const { id: idPenerima, roles } = req.user as AuthDto;
 
     if (!roles.includes(query.view)) {
       throw new ForbiddenException();
@@ -96,7 +96,7 @@ export class RegistrasiTesisController {
 
     if (
       query.view === RoleEnum.S2_PEMBIMBING &&
-      res.penerima.id !== idPembimbing
+      res.penerima.id !== idPenerima
     ) {
       throw new ForbiddenException();
     }
