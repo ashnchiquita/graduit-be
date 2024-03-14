@@ -11,7 +11,7 @@ import {
   ForbiddenException,
 } from "@nestjs/common";
 import { RegistrasiTesisService } from "./registrasi-tesis.service";
-import { RegStatus } from "src/entities/pengajuanPengambilanTopik.entity";
+import { RegStatus } from "src/entities/pendaftaranTesis.entity";
 import { RegistrasiTopikDto } from "./registrasi-tesis.dto";
 import { Request } from "express";
 import { AuthDto } from "src/auth/auth.dto";
@@ -38,7 +38,7 @@ export class RegistrasiTesisController {
     @Body() topicRegistrationDto: RegistrasiTopikDto,
   ) {
     return this.registrasiTesisService.createTopicRegistration(
-      "ae9697b9-590f-4820-826b-948f5e746ca7", // TODO: Get user id from request, for now use generated UUID
+      "91e9312b-947d-4f34-b05d-c350e6b2d6f7", // TODO: Get user id from request, for now use generated UUID
       topicRegistrationDto,
     );
   }
@@ -58,7 +58,7 @@ export class RegistrasiTesisController {
     },
     @Req() req: Request,
   ) {
-    const { id: idPembimbing, roles } = req.user as AuthDto;
+    const { id: idPenerima, roles } = req.user as AuthDto;
 
     if (!roles.includes(query.view)) {
       throw new ForbiddenException();
@@ -67,8 +67,8 @@ export class RegistrasiTesisController {
     return this.registrasiTesisService.findAllReg({
       ...query,
       page: query.page || 1,
-      idPembimbing:
-        query.view === RoleEnum.S2_PEMBIMBING ? idPembimbing : undefined,
+      idPenerima:
+        query.view === RoleEnum.S2_PEMBIMBING ? idPenerima : undefined,
     });
   }
 
@@ -83,7 +83,7 @@ export class RegistrasiTesisController {
       view: RoleEnum.S2_PEMBIMBING | RoleEnum.ADMIN | RoleEnum.S2_TIM_TESIS;
     },
   ) {
-    const { id: idPembimbing, roles } = req.user as AuthDto;
+    const { id: idPenerima, roles } = req.user as AuthDto;
 
     if (!roles.includes(query.view)) {
       throw new ForbiddenException();
@@ -96,7 +96,7 @@ export class RegistrasiTesisController {
 
     if (
       query.view === RoleEnum.S2_PEMBIMBING &&
-      res.pembimbing.id !== idPembimbing
+      res.penerima.id !== idPenerima
     ) {
       throw new ForbiddenException();
     }

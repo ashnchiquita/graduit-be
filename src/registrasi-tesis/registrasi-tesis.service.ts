@@ -2,9 +2,9 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Like } from "typeorm";
 import {
-  PengajuanPengambilanTopik,
+  PendaftaranTesis,
   RegStatus,
-} from "src/entities/pengajuanPengambilanTopik.entity";
+} from "src/entities/pendaftaranTesis.entity";
 import { Repository } from "typeorm";
 import { RegistrasiTopikDto } from "./registrasi-tesis.dto";
 import { Pengguna } from "src/entities/pengguna.entity";
@@ -14,8 +14,8 @@ import { Topik } from "src/entities/topik.entity";
 @Injectable()
 export class RegistrasiTesisService {
   constructor(
-    @InjectRepository(PengajuanPengambilanTopik)
-    private pengajuanPengambilanTopikRepository: Repository<PengajuanPengambilanTopik>,
+    @InjectRepository(PendaftaranTesis)
+    private pendaftaranTesisRepository: Repository<PendaftaranTesis>,
     @InjectRepository(Pengguna)
     private penggunaRepository: Repository<Pengguna>,
     @InjectRepository(Topik)
@@ -25,13 +25,13 @@ export class RegistrasiTesisService {
   async createTopicRegistration(
     userId: string,
     topicRegistrationDto: RegistrasiTopikDto,
-  ): Promise<PengajuanPengambilanTopik> {
+  ): Promise<PendaftaranTesis> {
     // TODO: Proper validations
 
     // Validate id
     validateId([
       { id: userId, object: "Pengguna" },
-      { id: topicRegistrationDto.idPembimbing, object: "Pembimbing" },
+      { id: topicRegistrationDto.idPenerima, object: "Pembimbing" },
     ]);
 
     // Validate user id, supervisor id
@@ -40,7 +40,7 @@ export class RegistrasiTesisService {
         where: { id: userId },
       }),
       this.penggunaRepository.findOne({
-        where: { id: topicRegistrationDto.idPembimbing },
+        where: { id: topicRegistrationDto.idPenerima },
       }),
       this.topicRepostitory.findOne({
         where: { judul: topicRegistrationDto.judulTopik },
@@ -56,23 +56,21 @@ export class RegistrasiTesisService {
     }
 
     // Create new registration
-    const createdRegistration = this.pengajuanPengambilanTopikRepository.create(
-      {
-        ...topicRegistrationDto,
-        mahasiswa: user,
-        pembimbing: supervisor,
-        topik: topic,
-      },
-    );
+    const createdRegistration = this.pendaftaranTesisRepository.create({
+      ...topicRegistrationDto,
+      mahasiswa: user,
+      penerima: supervisor,
+      topik: topic,
+    });
 
-    await this.pengajuanPengambilanTopikRepository.save(createdRegistration);
+    await this.pendaftaranTesisRepository.save(createdRegistration);
 
     return createdRegistration;
   }
 
   async findByUserId(mahasiswaId: string) {
-    return await this.pengajuanPengambilanTopikRepository.find({
-      relations: ["topik", "pembimbing"],
+    return await this.pendaftaranTesisRepository.find({
+      relations: ["topik", "penerima"],
       where: { mahasiswa: { id: mahasiswaId } },
     });
   }
@@ -81,11 +79,11 @@ export class RegistrasiTesisService {
     status?: RegStatus;
     page: number;
     limit?: number;
-    idPembimbing?: string;
+    idPenerima?: string;
     search?: string;
     sort?: "ASC" | "DESC";
   }) {
-    const dataQuery = this.pengajuanPengambilanTopikRepository.find({
+    const dataQuery = this.pendaftaranTesisRepository.find({
       select: {
         id: true,
         waktuPengiriman: true,
@@ -93,7 +91,7 @@ export class RegistrasiTesisService {
         waktuKeputusan: true,
         jalurPilihan: true,
         status: true,
-        pembimbing: {
+        penerima: {
           id: true,
           nama: true,
           email: true,
@@ -106,12 +104,12 @@ export class RegistrasiTesisService {
       },
       relations: {
         mahasiswa: true,
-        pembimbing: true,
+        penerima: true,
       },
       where: {
         status: options.status || undefined,
-        pembimbing: {
-          id: options.idPembimbing || undefined,
+        penerima: {
+          id: options.idPenerima || undefined,
         },
         mahasiswa: {
           nama: Like(`%${options.search || ""}%`),
@@ -125,30 +123,24 @@ export class RegistrasiTesisService {
     });
 
     if (options.limit) {
-      let countQuery = this.pengajuanPengambilanTopikRepository
-        .createQueryBuilder("pengajuanPengambilanTopik")
-        .select("pengajuanPengambilanTopik.id")
-        .innerJoinAndSelect(
-          "pengajuanPengambilanTopik.pembimbing",
-          "pembimbing",
-        )
-        .innerJoinAndSelect("pengajuanPengambilanTopik.mahasiswa", "mahasiswa")
+      let countQuery = this.pendaftaranTesisRepository
+        .createQueryBuilder("pendaftaranTesis")
+        .select("pendaftaranTesis.id")
+        .innerJoinAndSelect("pendaftaranTesis.penerima", "penerima")
+        .innerJoinAndSelect("pendaftaranTesis.mahasiswa", "mahasiswa")
         .where("mahasiswa.nama LIKE :search", {
           search: `%${options.search || ""}%`,
         });
 
       if (options.status) {
-        countQuery = countQuery.andWhere(
-          "pengajuanPengambilanTopik.status = :status",
-          {
-            status: options.status,
-          },
-        );
+        countQuery = countQuery.andWhere("pendaftaranTesis.status = :status", {
+          status: options.status,
+        });
       }
 
-      if (options.idPembimbing) {
-        countQuery = countQuery.andWhere("pembimbing.id = :idPembimbing", {
-          idPembimbing: options.idPembimbing,
+      if (options.idPenerima) {
+        countQuery = countQuery.andWhere("penerima.id = :idPenerima", {
+          idPenerima: options.idPenerima,
         });
       }
 
@@ -171,7 +163,7 @@ export class RegistrasiTesisService {
   }
 
   async findRegById(id: string) {
-    return await this.pengajuanPengambilanTopikRepository.findOne({
+    return await this.pendaftaranTesisRepository.findOne({
       select: {
         id: true,
         waktuPengiriman: true,
@@ -179,7 +171,7 @@ export class RegistrasiTesisService {
         waktuKeputusan: true,
         status: true,
         jalurPilihan: true,
-        pembimbing: {
+        penerima: {
           id: true,
           nama: true,
           email: true,
@@ -194,7 +186,7 @@ export class RegistrasiTesisService {
         id,
       },
       relations: {
-        pembimbing: true,
+        penerima: true,
         topik: true,
         mahasiswa: true,
       },

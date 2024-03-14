@@ -12,8 +12,7 @@ import { DosenBimbingan } from "./entities/dosenBimbingan.entity";
 import { Kelas } from "./entities/kelas.entity";
 import { MahasiswaKelas } from "./entities/mahasiswaKelas";
 import { PengajarKelas } from "./entities/pengajarKelas.entity";
-import { PengajuanPengambilanTopik } from "./entities/pengajuanPengambilanTopik.entity";
-import { PengambilanTopik } from "./entities/pengambilanTopik.entity";
+import { PendaftaranTesis } from "./entities/pendaftaranTesis.entity";
 import { RangeJadwalSidang } from "./entities/rangeJadwalSidang.entity";
 import { Ruangan } from "./entities/ruangan.entity";
 import { Sidang } from "./entities/sidang.entity";
@@ -25,6 +24,9 @@ import { RegistrasiTesisModule } from "./registrasi-tesis/registrasi-tesis.modul
 import { ConfigModule } from "@nestjs/config";
 import { AuthModule } from "./auth/auth.module";
 import { AlokasiTopikModule } from "./alokasi-topik/alokasi-topik.module";
+import { DashboardModule } from "./dashboard/dashboard.module";
+import { BimbinganModule } from "./bimbingan/bimbingan.module";
+import { Konfigurasi } from "./entities/konfigurasi.entity";
 
 @Module({
   imports: [
@@ -48,8 +50,7 @@ import { AlokasiTopikModule } from "./alokasi-topik/alokasi-topik.module";
         Kelas,
         MahasiswaKelas,
         PengajarKelas,
-        PengajuanPengambilanTopik,
-        PengambilanTopik,
+        PendaftaranTesis,
         RangeJadwalSidang,
         Ruangan,
         Sidang,
@@ -57,13 +58,15 @@ import { AlokasiTopikModule } from "./alokasi-topik/alokasi-topik.module";
         PembimbingSeminar,
         PembimbingSidang,
         PengujiSidang,
+        Konfigurasi,
       ],
-      // autoLoadEntities: true,
       synchronize: true,
     }),
     RegistrasiTesisModule,
     AuthModule,
     AlokasiTopikModule,
+    DashboardModule,
+    BimbinganModule,
   ],
   controllers: [AppController],
   providers: [AppService],
