@@ -41,7 +41,7 @@ export class AlokasiTopikService {
     search?: string;
     idPembimbing?: string;
   }) {
-    return await this.topikRepo.find({
+    const dataQuery = this.topikRepo.find({
       select: {
         id: true,
         judul: true,
@@ -72,6 +72,42 @@ export class AlokasiTopikService {
       take: options.limit || undefined,
       skip: options.limit ? (options.page - 1) * options.limit : 0,
     });
+
+    if (options.limit) {
+      let countQuery = this.topikRepo
+        .createQueryBuilder("topik")
+        .select("topik.id")
+        .innerJoinAndSelect("topik.pengaju", "pengaju")
+        .where("pengaju.roles @> :role", {
+          role: [RoleEnum.S2_PEMBIMBING],
+        });
+
+      if (options.idPembimbing) {
+        countQuery = countQuery.andWhere("pengaju.id = :id", {
+          id: options.idPembimbing || undefined,
+        });
+      }
+
+      const [count, data] = await Promise.all([
+        countQuery
+          .andWhere("topik.judul LIKE :search", {
+            search: `%${options.search || ""}%`,
+          })
+          .getCount(),
+        dataQuery,
+      ]);
+
+      return {
+        maxPage: Math.floor(count / options.limit),
+        data,
+      };
+    } else {
+      const data = await dataQuery;
+      return {
+        maxPage: 1,
+        data,
+      };
+    }
   }
 
   async update(id: string, updateDto: UpdateTopikDto) {
