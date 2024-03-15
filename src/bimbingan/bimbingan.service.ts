@@ -34,7 +34,7 @@ export class BimbinganService {
     user: AuthDto,
   ): Promise<GetByMahasiswaIdResDto> {
     const currentPeriode = await this.konfigurasiRepository.findOne({
-      where: { key: "PERIODE" },
+      where: { key: process.env.KONF_PERIODE_KEY },
     });
 
     const pendaftaran = await this.pendaftaranTesisRepository.findOne({

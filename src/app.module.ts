@@ -27,6 +27,7 @@ import { AlokasiTopikModule } from "./alokasi-topik/alokasi-topik.module";
 import { DashboardModule } from "./dashboard/dashboard.module";
 import { BimbinganModule } from "./bimbingan/bimbingan.module";
 import { Konfigurasi } from "./entities/konfigurasi.entity";
+import { KonfigurasiModule } from "./konfigurasi/konfigurasi.module";
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { Konfigurasi } from "./entities/konfigurasi.entity";
     AlokasiTopikModule,
     DashboardModule,
     BimbinganModule,
+    KonfigurasiModule,
   ],
   controllers: [AppController],
   providers: [AppService],
