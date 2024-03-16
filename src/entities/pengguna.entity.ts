@@ -24,6 +24,9 @@ export class Pengguna {
   @Column({ type: "text", nullable: true })
   password: string;
 
+  @Column({ type: "varchar", length: 8, nullable: true })
+  nim: string;
+
   @Column({
     type: "enum",
     enum: RoleEnum,

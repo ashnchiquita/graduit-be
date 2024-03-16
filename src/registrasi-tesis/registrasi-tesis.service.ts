@@ -100,6 +100,7 @@ export class RegistrasiTesisService {
           id: true,
           nama: true,
           email: true,
+          nim: true,
         },
       },
       relations: {
@@ -180,6 +181,7 @@ export class RegistrasiTesisService {
           id: true,
           nama: true,
           email: true,
+          nim: true,
         },
       },
       where: {
