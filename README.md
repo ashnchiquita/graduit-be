@@ -51,24 +51,24 @@ src
 Folder menggunakan sistem modul NestJS yang bisa dilihat di https://docs.nestjs.com/modules.
 Berikut merupakan penjelasan dasar dari setiap folder.
 
-- `src/entities`  
-   a. Berisi entity typeORM sesuai ERD yang ada di https://app.eraser.io/workspace/z0dwTFLk5F4reT6CYK7E.  
-   b. Atribut entity (ex: title, description) bebas ditambahkan. Jika ada atribut yang diubah
-  atau dihapus, infokan ke yang lain karena mungkin berpengaruh ke pengerjaan sebelumnya.  
-   c. Jika ingin menambahkan tabel atau relasi, diskusikan dengan yang lain.  
-   d. Jika mengubah atribut atau tabel, update ERD agar sesuai.
-- `src/helper`  
-   a. Berisi fungsi utility atau helper.
-- `src/middlewares`  
-   a. Berisi midddleware aplikasi, bisa berupa guard atau interceptor.
-- `src/<nama-modul>/.module.ts`  
-   a. Berisi konfigurasi dasar dari sebuah modul.
-- `src/<nama-modul>/.controller.ts`  
-   a. Berisi controller yang akan melakukan mapping antara endpoint dengan handler-nya.
-- `src/<nama-modul>/.service.ts`  
-   a. Berisi service yang akan menerima request dan menghasilkan response.
-- `src/<nama-modul>/.dto.ts`  
-   a. Berisi data transfer object yang mendefinisikan struktur request ataupun response.
+- `src/entities`
+  a. Berisi entity typeORM sesuai ERD yang ada di https://app.eraser.io/workspace/z0dwTFLk5F4reT6CYK7E.
+  b. Atribut entity (ex: title, description) bebas ditambahkan. Jika ada atribut yang diubah
+  atau dihapus, infokan ke yang lain karena mungkin berpengaruh ke pengerjaan sebelumnya.
+  c. Jika ingin menambahkan tabel atau relasi, diskusikan dengan yang lain.
+  d. Jika mengubah atribut atau tabel, update ERD agar sesuai.
+- `src/helper`
+  a. Berisi fungsi utility atau helper.
+- `src/middlewares`
+  a. Berisi midddleware aplikasi, bisa berupa guard atau interceptor.
+- `src/<nama-modul>/.module.ts`
+  a. Berisi konfigurasi dasar dari sebuah modul.
+- `src/<nama-modul>/.controller.ts`
+  a. Berisi controller yang akan melakukan mapping antara endpoint dengan handler-nya.
+- `src/<nama-modul>/.service.ts`
+  a. Berisi service yang akan menerima request dan menghasilkan response.
+- `src/<nama-modul>/.dto.ts`
+  a. Berisi data transfer object yang mendefinisikan struktur request ataupun response.
 
 ## Semantic Commit Message
 
@@ -106,3 +106,10 @@ https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a
 2. Install dependencies `npm install`
 3. Sesuaikan env dengan file .env.example
 4. Jalankan local dev derver `npm run start:dev`
+
+## Schema Validation
+
+Lakukan schema validation untuk **data yang masuk dari luar saat runtime (request body, params, dll)**. Tulis validasi di kelas DTO (buat kelas yang pendek boleh langsung pipe di controller). Dokumentasi:
+
+- [NestJS Validation](https://docs.nestjs.com/techniques/validation)
+- [Class Validator](https://www.npmjs.com/package/@nestjs/class-validator/v/0.13.1)
