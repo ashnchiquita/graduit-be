@@ -151,7 +151,7 @@ export class RegistrasiTesisService {
 
       return {
         data,
-        maxPage: Math.floor(count / options.limit),
+        maxPage: Math.ceil(count / options.limit),
       };
     } else {
       const data = await dataQuery;

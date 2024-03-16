@@ -98,7 +98,7 @@ export class AlokasiTopikService {
       ]);
 
       return {
-        maxPage: Math.floor(count / options.limit),
+        maxPage: Math.ceil(count / options.limit),
         data,
       };
     } else {
