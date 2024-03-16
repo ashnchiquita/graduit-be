@@ -10,7 +10,12 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
-import { CreateTopikDto, UpdateTopikDto } from "./alokasi-topik.dto";
+import {
+  CreateTopikDto,
+  TopikParamDto,
+  TopikQueryDto,
+  UpdateTopikDto,
+} from "./alokasi-topik.dto";
 import { AlokasiTopikService } from "./alokasi-topik.service";
 import { CustomAuthGuard } from "src/middlewares/custom-auth.guard";
 import { RolesGuard } from "src/middlewares/roles.guard";
@@ -30,7 +35,7 @@ export class AlokasiTopikController {
 
   @Roles(RoleEnum.S2_TIM_TESIS)
   @Get("/:id")
-  async getById(@Param() params: { id: string }) {
+  async getById(@Param() params: TopikParamDto) {
     const res = await this.alokasiTopikService.findById(params.id);
     if (!res) throw new NotFoundException();
     return res;
@@ -40,12 +45,7 @@ export class AlokasiTopikController {
   @Get()
   async getAll(
     @Query()
-    query: {
-      page?: number;
-      limit?: number;
-      search?: string;
-      idPembimbing?: string;
-    },
+    query: TopikQueryDto,
   ) {
     return await this.alokasiTopikService.findAllCreatedByPembimbing({
       page: query.page || 1,
@@ -56,7 +56,7 @@ export class AlokasiTopikController {
   @Roles(RoleEnum.S2_TIM_TESIS)
   @Put("/:id")
   async update(
-    @Param() params: { id: string },
+    @Param() params: TopikParamDto,
     @Body() updateDto: UpdateTopikDto,
   ) {
     const res = await this.alokasiTopikService.update(params.id, updateDto);
@@ -66,7 +66,7 @@ export class AlokasiTopikController {
 
   @Roles(RoleEnum.S2_TIM_TESIS)
   @Delete("/:id")
-  async delete(@Param() params: { id: string }) {
+  async delete(@Param() params: TopikParamDto) {
     const res = await this.alokasiTopikService.remove(params.id);
     if (!res.affected) throw new NotFoundException();
     return res;
