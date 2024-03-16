@@ -11,8 +11,13 @@ import {
   ForbiddenException,
 } from "@nestjs/common";
 import { RegistrasiTesisService } from "./registrasi-tesis.service";
-import { RegStatus } from "src/entities/pendaftaranTesis.entity";
-import { RegistrasiTopikDto } from "./registrasi-tesis.dto";
+import {
+  RegByMhsParamDto,
+  RegParamDto,
+  RegQueryDto,
+  RegDto,
+  ViewQueryDto,
+} from "./registrasi-tesis.dto";
 import { Request } from "express";
 import { AuthDto } from "src/auth/auth.dto";
 import { CustomAuthGuard } from "src/middlewares/custom-auth.guard";
@@ -29,14 +34,12 @@ export class RegistrasiTesisController {
   // TODO: Protect using roles and guards
 
   @Get("/mahasiswa/:mahasiswaId")
-  findByUserId(@Param() params: { mahasiswaId: string }) {
+  findByUserId(@Param() params: RegByMhsParamDto) {
     return this.registrasiTesisService.findByUserId(params.mahasiswaId);
   }
 
   @Post()
-  async createTopicRegistration(
-    @Body() topicRegistrationDto: RegistrasiTopikDto,
-  ) {
+  async createTopicRegistration(@Body() topicRegistrationDto: RegDto) {
     return this.registrasiTesisService.createTopicRegistration(
       "91e9312b-947d-4f34-b05d-c350e6b2d6f7", // TODO: Get user id from request, for now use generated UUID
       topicRegistrationDto,
@@ -48,14 +51,7 @@ export class RegistrasiTesisController {
   @Get()
   findAll(
     @Query()
-    query: {
-      search?: string;
-      status?: RegStatus;
-      page?: number;
-      limit?: number;
-      sort?: "ASC" | "DESC";
-      view: RoleEnum.S2_PEMBIMBING | RoleEnum.ADMIN | RoleEnum.S2_TIM_TESIS;
-    },
+    query: RegQueryDto,
     @Req() req: Request,
   ) {
     const { id: idPenerima, roles } = req.user as AuthDto;
@@ -77,11 +73,9 @@ export class RegistrasiTesisController {
   @Get("/:id")
   async findById(
     @Req() req: Request,
-    @Param() params: { id: string },
+    @Param() params: RegParamDto,
     @Query()
-    query: {
-      view: RoleEnum.S2_PEMBIMBING | RoleEnum.ADMIN | RoleEnum.S2_TIM_TESIS;
-    },
+    query: ViewQueryDto,
   ) {
     const { id: idPenerima, roles } = req.user as AuthDto;
 

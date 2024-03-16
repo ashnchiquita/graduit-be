@@ -6,7 +6,7 @@ import {
   RegStatus,
 } from "src/entities/pendaftaranTesis.entity";
 import { Repository } from "typeorm";
-import { RegistrasiTopikDto } from "./registrasi-tesis.dto";
+import { RegDto } from "./registrasi-tesis.dto";
 import { Pengguna } from "src/entities/pengguna.entity";
 import { validateId } from "src/helper/validation";
 import { Topik } from "src/entities/topik.entity";
@@ -24,7 +24,7 @@ export class RegistrasiTesisService {
 
   async createTopicRegistration(
     userId: string,
-    topicRegistrationDto: RegistrasiTopikDto,
+    topicRegistrationDto: RegDto,
   ): Promise<PendaftaranTesis> {
     // TODO: Proper validations
 
@@ -100,6 +100,7 @@ export class RegistrasiTesisService {
           id: true,
           nama: true,
           email: true,
+          nim: true,
         },
       },
       relations: {
@@ -151,7 +152,7 @@ export class RegistrasiTesisService {
 
       return {
         data,
-        maxPage: Math.floor(count / options.limit),
+        maxPage: Math.ceil(count / options.limit),
       };
     } else {
       const data = await dataQuery;
@@ -180,6 +181,7 @@ export class RegistrasiTesisService {
           id: true,
           nama: true,
           email: true,
+          nim: true,
         },
       },
       where: {
