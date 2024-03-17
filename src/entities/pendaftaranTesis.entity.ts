@@ -41,9 +41,6 @@ export class PendaftaranTesis {
   @Column({ type: "enum", enum: RegStatus, default: RegStatus.NOT_ASSIGNED })
   status: RegStatus;
 
-  @Column({ type: "text" })
-  periode: string;
-
   @ManyToOne(() => Topik, (topik) => topik.id)
   topik: Topik;
 

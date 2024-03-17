@@ -8,5 +8,6 @@ import { Konfigurasi } from "src/entities/konfigurasi.entity";
   imports: [TypeOrmModule.forFeature([Konfigurasi])],
   controllers: [KonfigurasiController],
   providers: [KonfigurasiService],
+  exports: [KonfigurasiService],
 })
 export class KonfigurasiModule {}
