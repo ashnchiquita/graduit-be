@@ -82,6 +82,7 @@ export class RegistrasiTesisService {
     idPenerima?: string;
     search?: string;
     sort?: "ASC" | "DESC";
+    periode: string;
   }) {
     const dataQuery = this.pendaftaranTesisRepository.find({
       select: {
@@ -108,6 +109,9 @@ export class RegistrasiTesisService {
         penerima: true,
       },
       where: {
+        topik: {
+          periode: options.periode,
+        },
         status: options.status || undefined,
         penerima: {
           id: options.idPenerima || undefined,
@@ -127,11 +131,10 @@ export class RegistrasiTesisService {
       let countQuery = this.pendaftaranTesisRepository
         .createQueryBuilder("pendaftaranTesis")
         .select("pendaftaranTesis.id")
+        .innerJoinAndSelect("pendaftaranTesis.topik", "topik")
         .innerJoinAndSelect("pendaftaranTesis.penerima", "penerima")
         .innerJoinAndSelect("pendaftaranTesis.mahasiswa", "mahasiswa")
-        .where("mahasiswa.nama LIKE :search", {
-          search: `%${options.search || ""}%`,
-        });
+        .where("topik.periode = :periode", { periode: options.periode });
 
       if (options.status) {
         countQuery = countQuery.andWhere("pendaftaranTesis.status = :status", {
@@ -142,6 +145,12 @@ export class RegistrasiTesisService {
       if (options.idPenerima) {
         countQuery = countQuery.andWhere("penerima.id = :idPenerima", {
           idPenerima: options.idPenerima,
+        });
+      }
+
+      if (options.search) {
+        countQuery = countQuery.andWhere("mahasiswa.nama LIKE :search", {
+          search: `%${options.search || ""}%`,
         });
       }
 
@@ -164,6 +173,7 @@ export class RegistrasiTesisService {
   }
 
   async findRegById(id: string) {
+    // not periode-protected
     return await this.pendaftaranTesisRepository.findOne({
       select: {
         id: true,

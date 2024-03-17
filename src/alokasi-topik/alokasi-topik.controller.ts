@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -21,19 +22,29 @@ import { CustomAuthGuard } from "src/middlewares/custom-auth.guard";
 import { RolesGuard } from "src/middlewares/roles.guard";
 import { Roles } from "src/middlewares/roles.decorator";
 import { RoleEnum } from "src/entities/pengguna.entity";
+import { KonfigurasiService } from "src/konfigurasi/konfigurasi.service";
 
 @Controller("alokasi-topik")
 @UseGuards(CustomAuthGuard, RolesGuard)
 export class AlokasiTopikController {
-  constructor(private alokasiTopikService: AlokasiTopikService) {}
+  constructor(
+    private alokasiTopikService: AlokasiTopikService,
+    private konfService: KonfigurasiService,
+  ) {}
 
-  @Roles(RoleEnum.S2_TIM_TESIS)
+  @Roles(RoleEnum.S2_TIM_TESIS, RoleEnum.ADMIN)
   @Post()
   async create(@Body() createDto: CreateTopikDto) {
-    return await this.alokasiTopikService.create(createDto);
+    const periode = await this.konfService.getKonfigurasiByKey(
+      process.env.KONF_PERIODE_KEY,
+    );
+
+    if (!periode) throw new BadRequestException("Periode belum dikonfigurasi.");
+
+    return await this.alokasiTopikService.create({ ...createDto, periode });
   }
 
-  @Roles(RoleEnum.S2_TIM_TESIS)
+  @Roles(RoleEnum.S2_TIM_TESIS, RoleEnum.ADMIN)
   @Get("/:id")
   async getById(@Param() params: TopikParamDto) {
     const res = await this.alokasiTopikService.findById(params.id);
@@ -41,19 +52,26 @@ export class AlokasiTopikController {
     return res;
   }
 
-  @Roles(RoleEnum.S2_TIM_TESIS)
+  @Roles(RoleEnum.S2_TIM_TESIS, RoleEnum.ADMIN)
   @Get()
   async getAll(
     @Query()
     query: TopikQueryDto,
   ) {
+    const periode = await this.konfService.getKonfigurasiByKey(
+      process.env.KONF_PERIODE_KEY,
+    );
+
+    if (!periode) throw new BadRequestException("Periode belum dikonfigurasi.");
+
     return await this.alokasiTopikService.findAllCreatedByPembimbing({
       page: query.page || 1,
       ...query,
+      periode,
     });
   }
 
-  @Roles(RoleEnum.S2_TIM_TESIS)
+  @Roles(RoleEnum.S2_TIM_TESIS, RoleEnum.ADMIN)
   @Put("/:id")
   async update(
     @Param() params: TopikParamDto,
@@ -64,7 +82,7 @@ export class AlokasiTopikController {
     return res;
   }
 
-  @Roles(RoleEnum.S2_TIM_TESIS)
+  @Roles(RoleEnum.S2_TIM_TESIS, RoleEnum.ADMIN)
   @Delete("/:id")
   async delete(@Param() params: TopikParamDto) {
     const res = await this.alokasiTopikService.remove(params.id);

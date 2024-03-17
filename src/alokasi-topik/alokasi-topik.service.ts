@@ -9,16 +9,18 @@ import { CreateTopikDto, UpdateTopikDto } from "./alokasi-topik.dto";
 export class AlokasiTopikService {
   constructor(@InjectRepository(Topik) private topikRepo: Repository<Topik>) {}
 
-  async create(createDto: CreateTopikDto) {
+  async create(createDto: CreateTopikDto & { periode: string }) {
     return await this.topikRepo.insert(createDto);
   }
 
   async findById(id: string) {
+    // not periode-protected
     return await this.topikRepo.findOne({
       select: {
         id: true,
         judul: true,
         deskripsi: true,
+        periode: true,
         pengaju: {
           id: true,
           nama: true,
@@ -40,12 +42,14 @@ export class AlokasiTopikService {
     limit?: number;
     search?: string;
     idPembimbing?: string;
+    periode: string;
   }) {
     const dataQuery = this.topikRepo.find({
       select: {
         id: true,
         judul: true,
         deskripsi: true,
+        periode: true,
         pengaju: {
           id: true,
           nama: true,
@@ -54,6 +58,7 @@ export class AlokasiTopikService {
         },
       },
       where: {
+        periode: options.periode,
         pengaju: {
           id: options.idPembimbing || undefined,
           roles: ArrayContains([RoleEnum.S2_PEMBIMBING]),
@@ -78,7 +83,8 @@ export class AlokasiTopikService {
         .createQueryBuilder("topik")
         .select("topik.id")
         .innerJoinAndSelect("topik.pengaju", "pengaju")
-        .where("pengaju.roles @> :role", {
+        .where("topik.periode = :periode", { periode: options.periode })
+        .andWhere("pengaju.roles @> :role", {
           role: [RoleEnum.S2_PEMBIMBING],
         });
 
@@ -88,12 +94,14 @@ export class AlokasiTopikService {
         });
       }
 
+      if (options.search) {
+        countQuery = countQuery.andWhere("topik.judul LIKE :search", {
+          search: `%${options.search || ""}%`,
+        });
+      }
+
       const [count, data] = await Promise.all([
-        countQuery
-          .andWhere("topik.judul LIKE :search", {
-            search: `%${options.search || ""}%`,
-          })
-          .getCount(),
+        countQuery.getCount(),
         dataQuery,
       ]);
 
@@ -111,10 +119,12 @@ export class AlokasiTopikService {
   }
 
   async update(id: string, updateDto: UpdateTopikDto) {
+    // not periode-protected
     return await this.topikRepo.update(id, updateDto);
   }
 
   async remove(id: string) {
+    // not periode-protected
     return await this.topikRepo.delete({ id }); // TODO: manage relation cascading option
   }
 }
