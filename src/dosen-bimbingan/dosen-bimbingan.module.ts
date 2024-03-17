@@ -7,6 +7,7 @@ import { PendaftaranTesis } from "src/entities/pendaftaranTesis.entity";
 import { DosenBimbingan } from "src/entities/dosenBimbingan.entity";
 import { Pengguna } from "src/entities/pengguna.entity";
 import { KonfigurasiModule } from "src/konfigurasi/konfigurasi.module";
+import { CustomStrategy } from "src/middlewares/custom.strategy";
 
 @Module({
   imports: [
@@ -15,6 +16,6 @@ import { KonfigurasiModule } from "src/konfigurasi/konfigurasi.module";
     KonfigurasiModule,
   ],
   controllers: [DosenBimbinganController],
-  providers: [DosenBimbinganService],
+  providers: [DosenBimbinganService, CustomStrategy],
 })
 export class DosenBimbinganModule {}
