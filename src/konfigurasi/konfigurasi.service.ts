@@ -19,4 +19,14 @@ export class KonfigurasiService {
     const data = await this.konfigurasiRepository.find();
     return { data };
   }
+
+  async getKonfigurasiByKey(key: string): Promise<string | undefined> {
+    const data = await this.konfigurasiRepository.findOne({
+      where: {
+        key,
+      },
+    });
+
+    return data?.value;
+  }
 }

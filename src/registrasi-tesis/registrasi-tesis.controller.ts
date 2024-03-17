@@ -9,6 +9,7 @@ import {
   Req,
   UseGuards,
   ForbiddenException,
+  BadRequestException,
 } from "@nestjs/common";
 import { RegistrasiTesisService } from "./registrasi-tesis.service";
 import {
@@ -24,11 +25,13 @@ import { CustomAuthGuard } from "src/middlewares/custom-auth.guard";
 import { RolesGuard } from "src/middlewares/roles.guard";
 import { RoleEnum } from "src/entities/pengguna.entity";
 import { Roles } from "src/middlewares/roles.decorator";
+import { KonfigurasiService } from "src/konfigurasi/konfigurasi.service";
 
 @Controller("registrasi-tesis")
 export class RegistrasiTesisController {
   constructor(
     private readonly registrasiTesisService: RegistrasiTesisService,
+    private readonly konfService: KonfigurasiService,
   ) {}
 
   // TODO: Protect using roles and guards
@@ -49,7 +52,7 @@ export class RegistrasiTesisController {
   @UseGuards(CustomAuthGuard, RolesGuard)
   @Roles(RoleEnum.S2_PEMBIMBING, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)
   @Get()
-  findAll(
+  async findAll(
     @Query()
     query: RegQueryDto,
     @Req() req: Request,
@@ -60,11 +63,20 @@ export class RegistrasiTesisController {
       throw new ForbiddenException();
     }
 
-    return this.registrasiTesisService.findAllReg({
+    const periode = await this.konfService.getKonfigurasiByKey(
+      process.env.KONF_PERIODE_KEY,
+    );
+
+    if (!periode) {
+      throw new BadRequestException("Periode belum dikonfigurasi.");
+    }
+
+    return await this.registrasiTesisService.findAllReg({
       ...query,
       page: query.page || 1,
       idPenerima:
         query.view === RoleEnum.S2_PEMBIMBING ? idPenerima : undefined,
+      periode,
     });
   }
 

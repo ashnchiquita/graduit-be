@@ -24,4 +24,7 @@ export class Topik {
 
   @Column({ nullable: true })
   idPengaju: string;
+
+  @Column({ type: "text" })
+  periode: string;
 }

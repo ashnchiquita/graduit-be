@@ -5,6 +5,7 @@ import {
   IsString,
   IsNumberString,
 } from "@nestjs/class-validator";
+
 export class CreateTopikDto {
   @IsNotEmpty()
   judul: string;

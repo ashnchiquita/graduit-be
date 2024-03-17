@@ -41,7 +41,9 @@ export class BimbinganService {
       where: {
         mahasiswa: { id: mahasiswaId },
         status: RegStatus.APPROVED,
-        periode: currentPeriode.value,
+        topik: {
+          periode: currentPeriode.value,
+        },
       },
       relations: {
         mahasiswa: true,

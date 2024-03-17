@@ -8,6 +8,7 @@ import { RegistrasiTesisService } from "./registrasi-tesis.service";
 import { Topik } from "src/entities/topik.entity";
 import { CustomStrategy } from "src/middlewares/custom.strategy";
 import { AuthModule } from "src/auth/auth.module";
+import { KonfigurasiModule } from "src/konfigurasi/konfigurasi.module";
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { AuthModule } from "src/auth/auth.module";
       Topik,
     ]),
     AuthModule,
+    KonfigurasiModule,
   ],
   controllers: [RegistrasiTesisController],
   providers: [RegistrasiTesisService, CustomStrategy],
