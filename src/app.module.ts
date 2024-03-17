@@ -28,6 +28,7 @@ import { DashboardModule } from "./dashboard/dashboard.module";
 import { BimbinganModule } from "./bimbingan/bimbingan.module";
 import { Konfigurasi } from "./entities/konfigurasi.entity";
 import { KonfigurasiModule } from "./konfigurasi/konfigurasi.module";
+import { DosenBimbinganModule } from "./dosen-bimbingan/dosen-bimbingan.module";
 
 @Module({
   imports: [
@@ -69,6 +70,7 @@ import { KonfigurasiModule } from "./konfigurasi/konfigurasi.module";
     DashboardModule,
     BimbinganModule,
     KonfigurasiModule,
+    DosenBimbinganModule,
   ],
   controllers: [AppController],
   providers: [AppService],
