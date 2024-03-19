@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PendaftaranTesis } from '../entities/pendaftaranTesis.entity';
+import { JalurEnum } from '../entities/pendaftaranTesis.entity';
 import { Pengguna } from '../entities/pengguna.entity';
 import { Topik } from '../entities/topik.entity';
 
@@ -21,14 +22,26 @@ export class DashboardService {
   }
 
   async findByPenerimaId(penerimaId: string): Promise<PendaftaranTesis[]> {
-    console.log('penerimaId:', penerimaId);
     const penerima = await this.penggunaRepository.findOne({ where: { id: penerimaId } });
-    console.log('penerima:', penerima);
     if (!penerima) {
       return [];
     }
     const pendaftaranTesis = await this.pendaftaranTesisRepository.find({ where: { penerima }, relations: ["mahasiswa", "topik"] });
-    console.log('pendaftaranTesis:', pendaftaranTesis);
     return pendaftaranTesis;
+  }
+
+  async getStatisticsByJalurPilihan(penerimaId: string): Promise<{ jalurPilihan: JalurEnum; count: number }[]> {
+    const penerima = await this.penggunaRepository.findOne({ where: { id: penerimaId } });
+    if (!penerima) {
+      return [];
+    }
+    const statistics = await this.pendaftaranTesisRepository
+      .createQueryBuilder('pendaftaranTesis')
+      .select('pendaftaranTesis.jalurPilihan', 'jalurPilihan')
+      .addSelect('COUNT(*)', 'count')
+      .where('pendaftaranTesis.penerima = :penerima', { penerima: penerima.id })
+      .groupBy('pendaftaranTesis.jalurPilihan')
+      .getRawMany();
+    return statistics;
   }
 }
