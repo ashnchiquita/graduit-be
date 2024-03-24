@@ -29,6 +29,7 @@ import { BimbinganModule } from "./bimbingan/bimbingan.module";
 import { Konfigurasi } from "./entities/konfigurasi.entity";
 import { KonfigurasiModule } from "./konfigurasi/konfigurasi.module";
 import { DosenBimbinganModule } from "./dosen-bimbingan/dosen-bimbingan.module";
+import { ApprovalModule } from "./approval/approval.module";
 
 @Module({
   imports: [
@@ -71,6 +72,7 @@ import { DosenBimbinganModule } from "./dosen-bimbingan/dosen-bimbingan.module";
     BimbinganModule,
     KonfigurasiModule,
     DosenBimbinganModule,
+    ApprovalModule,
   ],
   controllers: [AppController],
   providers: [AppService],
