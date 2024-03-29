@@ -107,6 +107,7 @@ export class RegistrasiTesisService {
       relations: {
         mahasiswa: true,
         penerima: true,
+        topik: true,
       },
       where: {
         topik: {
