@@ -1,14 +1,16 @@
-import { JalurEnum, RegStatus } from '../entities/pendaftaranTesis.entity';
+import { JalurEnum } from "../entities/pendaftaranTesis.entity";
 
 export class DashboardDto {
   id: string;
   jalurPilihan: JalurEnum;
-  waktuPengiriman: Date;
-  jadwalInterview: Date;
-  waktuKeputusan: Date;
-  status: RegStatus;
-  periode: string;
-  topikId: string;
-  mahasiswaId: string;
-  penerimaId: string;
+  status: string;
+  topik: {
+    id: string;
+    judul: string;
+  };
+  mahasiswa: {
+    id: string;
+    nama: string;
+    nim: string;
+  };
 }
