@@ -107,9 +107,36 @@ https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a
 3. Sesuaikan env dengan file .env.example
 4. Jalankan local dev derver `npm run start:dev`
 
-## Schema Validation
+## Techniques
+
+### Schema Validation
 
 Lakukan schema validation untuk **data yang masuk dari luar saat runtime (request body, params, dll)**. Tulis validasi di kelas DTO (buat kelas yang pendek boleh langsung pipe di controller). Dokumentasi:
 
 - [NestJS Validation](https://docs.nestjs.com/techniques/validation)
 - [Class Validator](https://www.npmjs.com/package/@nestjs/class-validator/v/0.13.1)
+
+> **NOTE** <br> Schema validation bersifat whitelist, artinya kalo ga kalian pasang validasinya gak bakal bisa diakses meskipun di runtime kalian tambahin.
+
+### API Documentation
+
+Dokumentasi API bisa diakses di [http://localhost:3000/api-docs](http://localhost:3000/api-docs). Yang esensial:
+| Decorator | Fungsi | Scope |
+| ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
+| `@ApiTags("nama-controller")` | Folder/grup API | Method / Controller |
+| `@ApiOperation({ summary: "summary" })` | Description | Method |
+| `@ApiResponse({ status: XXX, description: "desc", type: Type })` | Keterangan response API | Method / Controller |
+| `@ApiBody({ type: Type })` | Enforce body secara hardcode. Kalo bisa jangan pake ini karena harusnya autogenerate dari `@Body()`. Pake ini kalo kalian pake middleware yang ngepass bodynya ke middleware bukan ke handler | Method |
+| `@ApiCookieAuth()` | Auth pake cookie | Method / Controller |
+| `@ApiProperty({ example: "example", description: "desc" })` | Register property kelas | Model |
+| `@ApiHideProperty()` | Hide property kelas | Model |
+
+Langkahnya kurang lebih:
+
+1. Kalo buat tag baru, register tag nya di `src/main.ts` pake `.addTag("tag")`
+2. Di kelas yang jadi model transfer object (entity / dto), kasih decorator property
+3. Di bagian controller, kasih decorator sesuai kebutuhan auth, response, summary, dll
+
+Dokumentasi:
+
+- [NestJS OpenAPI](https://docs.nestjs.com/openapi/introduction)
