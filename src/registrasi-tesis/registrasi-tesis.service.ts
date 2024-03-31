@@ -69,10 +69,20 @@ export class RegistrasiTesisService {
   }
 
   async findByUserId(mahasiswaId: string) {
-    return await this.pendaftaranTesisRepository.find({
+    const res = await this.pendaftaranTesisRepository.find({
       relations: ["topik", "penerima"],
       where: { mahasiswa: { id: mahasiswaId } },
     });
+
+    return res.map((r) => ({
+      ...r,
+      penerima: {
+        ...r.penerima,
+        password: undefined,
+        roles: undefined,
+        nim: undefined,
+      },
+    }));
   }
 
   async findAllReg(options: {
