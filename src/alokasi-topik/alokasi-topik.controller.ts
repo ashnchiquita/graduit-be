@@ -52,7 +52,7 @@ export class AlokasiTopikController {
     return res;
   }
 
-  @Roles(RoleEnum.S2_TIM_TESIS, RoleEnum.ADMIN)
+  @Roles(RoleEnum.S2_TIM_TESIS, RoleEnum.ADMIN, RoleEnum.S2_MAHASISWA)
   @Get()
   async getAll(
     @Query()

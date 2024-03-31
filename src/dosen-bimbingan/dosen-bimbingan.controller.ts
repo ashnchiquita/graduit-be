@@ -25,7 +25,7 @@ export class DosenBimbinganController {
 
   @Get()
   @UseGuards(CustomAuthGuard, RolesGuard)
-  @Roles(RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)
+  @Roles(RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS, RoleEnum.S2_MAHASISWA)
   async get(@Query() query: DosbimOptQueryDto) {
     if (!query.regId) return await this.dosbimService.getAll();
 
