@@ -9,10 +9,19 @@ import { JalurEnum, RegStatus } from "src/entities/pendaftaranTesis.entity";
 import { RoleEnum } from "src/entities/pengguna.entity";
 
 export class RegDto {
+  @IsUUID()
   idMahasiswa: string;
+
+  @IsUUID()
   idPenerima: string;
+
+  @IsString()
   judulTopik: string;
+
+  @IsString()
   deskripsi: string;
+
+  @IsEnum(JalurEnum)
   jalurPilihan: JalurEnum;
 }
 

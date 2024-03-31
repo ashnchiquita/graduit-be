@@ -41,10 +41,17 @@ export class RegistrasiTesisController {
     return this.registrasiTesisService.findByUserId(params.mahasiswaId);
   }
 
+  @UseGuards(CustomAuthGuard, RolesGuard)
+  @Roles(RoleEnum.S2_MAHASISWA, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)
   @Post()
-  async createTopicRegistration(@Body() topicRegistrationDto: RegDto) {
+  async createTopicRegistration(
+    @Body() topicRegistrationDto: RegDto,
+    @Req() req: Request,
+  ) {
+    const { id } = req.user as AuthDto;
+
     return this.registrasiTesisService.createTopicRegistration(
-      "91e9312b-947d-4f34-b05d-c350e6b2d6f7", // TODO: Get user id from request, for now use generated UUID
+      id,
       topicRegistrationDto,
     );
   }
