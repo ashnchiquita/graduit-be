@@ -1,32 +1,34 @@
 import {
+  BadRequestException,
   Body,
   Controller,
-  Post,
+  ForbiddenException,
   Get,
-  Param,
   NotFoundException,
+  Param,
+  Post,
   Query,
   Req,
   UseGuards,
-  ForbiddenException,
-  BadRequestException,
 } from "@nestjs/common";
-import { RegistrasiTesisService } from "./registrasi-tesis.service";
-import {
-  RegByMhsParamDto,
-  RegParamDto,
-  RegQueryDto,
-  RegDto,
-  ViewQueryDto,
-} from "./registrasi-tesis.dto";
+import { ApiTags } from "@nestjs/swagger";
 import { Request } from "express";
 import { AuthDto } from "src/auth/auth.dto";
-import { CustomAuthGuard } from "src/middlewares/custom-auth.guard";
-import { RolesGuard } from "src/middlewares/roles.guard";
 import { RoleEnum } from "src/entities/pengguna.entity";
-import { Roles } from "src/middlewares/roles.decorator";
 import { KonfigurasiService } from "src/konfigurasi/konfigurasi.service";
+import { CustomAuthGuard } from "src/middlewares/custom-auth.guard";
+import { Roles } from "src/middlewares/roles.decorator";
+import { RolesGuard } from "src/middlewares/roles.guard";
+import {
+  RegByMhsParamDto,
+  RegDto,
+  RegParamDto,
+  RegQueryDto,
+  ViewQueryDto,
+} from "./registrasi-tesis.dto";
+import { RegistrasiTesisService } from "./registrasi-tesis.service";
 
+@ApiTags("Registrasi Tesis")
 @Controller("registrasi-tesis")
 export class RegistrasiTesisController {
   constructor(

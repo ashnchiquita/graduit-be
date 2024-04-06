@@ -1,15 +1,14 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Like } from "typeorm";
 import {
   PendaftaranTesis,
   RegStatus,
 } from "src/entities/pendaftaranTesis.entity";
-import { Repository } from "typeorm";
-import { RegDto } from "./registrasi-tesis.dto";
 import { Pengguna } from "src/entities/pengguna.entity";
-import { validateId } from "src/helper/validation";
 import { Topik } from "src/entities/topik.entity";
+import { validateId } from "src/helper/validation";
+import { Like, Repository } from "typeorm";
+import { RegDto } from "./registrasi-tesis.dto";
 
 @Injectable()
 export class RegistrasiTesisService {
