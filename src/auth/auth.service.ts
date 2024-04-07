@@ -14,7 +14,7 @@ export class AuthService {
       this.httpService
         .get(`${process.env.AUTH_SERVICE_URL}/auth/self`, {
           headers: {
-            Authorization: `Bearer ${req.cookies["gradu-it.access-token"]}`,
+            Authorization: `Bearer ${req.cookies[process.env.COOKIE_NAME]}`,
           },
         })
         .pipe(
