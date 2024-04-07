@@ -1,6 +1,6 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { Topik } from "./topik.entity";
 import { Pengguna } from "./pengguna.entity";
+import { Topik } from "./topik.entity";
 
 export enum RegStatus {
   NOT_ASSIGNED = "NOT_ASSIGNED",

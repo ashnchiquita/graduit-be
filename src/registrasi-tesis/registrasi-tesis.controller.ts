@@ -7,6 +7,7 @@ import {
   NotFoundException,
   Param,
   Post,
+  Put,
   Query,
   Req,
   UseGuards,
@@ -24,6 +25,8 @@ import {
   RegDto,
   RegParamDto,
   RegQueryDto,
+  UpdateInterviewBodyDto,
+  UpdateInterviewParamsDto,
   ViewQueryDto,
 } from "./registrasi-tesis.dto";
 import { RegistrasiTesisService } from "./registrasi-tesis.service";
@@ -58,6 +61,7 @@ export class RegistrasiTesisController {
     );
   }
 
+  // TODO Make sure view S2 only shows newest
   @UseGuards(CustomAuthGuard, RolesGuard)
   @Roles(RoleEnum.S2_PEMBIMBING, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)
   @Get()
@@ -117,5 +121,26 @@ export class RegistrasiTesisController {
     }
 
     return res;
+  }
+
+  @UseGuards(CustomAuthGuard, RolesGuard)
+  @Roles(RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)
+  @Put("/:mhsId/interview")
+  async updateInterviewDateByMhsId(
+    @Param() params: UpdateInterviewParamsDto,
+    @Body() body: UpdateInterviewBodyDto,
+  ) {
+    const periode = await this.konfService.getKonfigurasiByKey(
+      process.env.KONF_PERIODE_KEY,
+    );
+
+    if (!periode) {
+      throw new BadRequestException("Periode belum dikonfigurasi.");
+    }
+
+    return await this.registrasiTesisService.updateInterviewDate(
+      params.mhsId,
+      body,
+    );
   }
 }

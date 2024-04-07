@@ -1,14 +1,18 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import {
   PendaftaranTesis,
   RegStatus,
 } from "src/entities/pendaftaranTesis.entity";
-import { Pengguna } from "src/entities/pengguna.entity";
+import { Pengguna, RoleEnum } from "src/entities/pengguna.entity";
 import { Topik } from "src/entities/topik.entity";
 import { validateId } from "src/helper/validation";
 import { Like, Repository } from "typeorm";
-import { RegDto } from "./registrasi-tesis.dto";
+import { RegDto, UpdateInterviewBodyDto } from "./registrasi-tesis.dto";
 
 @Injectable()
 export class RegistrasiTesisService {
@@ -213,5 +217,60 @@ export class RegistrasiTesisService {
         mahasiswa: true,
       },
     });
+  }
+
+  async updateInterviewDate(mahasiswaId: string, dto: UpdateInterviewBodyDto) {
+    const mahasiswa = await this.penggunaRepository.findOne({
+      select: {
+        id: true,
+        roles: true,
+      },
+      where: {
+        id: mahasiswaId,
+      },
+    });
+
+    if (!mahasiswa || !mahasiswa.roles.includes(RoleEnum.S2_MAHASISWA))
+      throw new BadRequestException("No 'mahasiswa' user with given id exists");
+
+    const newestReg = await this.pendaftaranTesisRepository.findOne({
+      select: {
+        id: true,
+        status: true,
+        waktuPengiriman: true,
+      },
+      where: {
+        mahasiswa: mahasiswa,
+      },
+      order: {
+        waktuPengiriman: "DESC",
+      },
+    });
+
+    if (!newestReg)
+      throw new BadRequestException(
+        "Mahasiswa does not have pending registration",
+      );
+
+    const restrictedStatus: RegStatus[] = [
+      RegStatus.APPROVED,
+      RegStatus.REJECTED,
+    ];
+
+    if (restrictedStatus.includes(newestReg.status))
+      throw new BadRequestException(
+        newestReg.status == RegStatus.APPROVED
+          ? "Cannot set interview for registration that is already accepted"
+          : "Mahasiswa does not have pending registration",
+      );
+
+    const newDate = new Date(dto.date);
+
+    await this.pendaftaranTesisRepository.update(
+      { id: newestReg.id },
+      { jadwalInterview: newDate, status: RegStatus.INTERVIEW },
+    );
+
+    return { status: "ok" };
   }
 }

@@ -1,4 +1,5 @@
 import {
+  IsDateString,
   IsEnum,
   IsNumberString,
   IsOptional,
@@ -82,4 +83,16 @@ export class ViewQueryDto {
     enum: [RoleEnum.S2_PEMBIMBING, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS],
   })
   view: RoleEnum.S2_PEMBIMBING | RoleEnum.ADMIN | RoleEnum.S2_TIM_TESIS;
+}
+
+export class UpdateInterviewParamsDto {
+  @IsUUID()
+  @ApiProperty()
+  mhsId: string;
+}
+
+export class UpdateInterviewBodyDto {
+  @ApiProperty({ type: Date })
+  @IsDateString()
+  date: string;
 }
