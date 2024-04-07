@@ -7,6 +7,7 @@ import {
   IsUUID,
 } from "@nestjs/class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ArrayMinSize, ArrayUnique, IsArray } from "class-validator";
 import { JalurEnum, RegStatus } from "src/entities/pendaftaranTesis.entity";
 import { RoleEnum } from "src/entities/pengguna.entity";
 
@@ -101,4 +102,13 @@ export class UpdateStatusBodyDto {
   @ApiProperty({ enum: RegStatus })
   @IsEnum(RegStatus)
   status: RegStatus;
+}
+
+export class UpdatePembimbingBodyDto {
+  @ApiProperty({ type: [String] })
+  @IsArray()
+  @IsUUID("all", { each: true })
+  @ArrayMinSize(1)
+  @ArrayUnique()
+  pembimbing_ids: string[];
 }

@@ -27,6 +27,7 @@ import {
   RegQueryDto,
   UpdateByMhsParamsDto,
   UpdateInterviewBodyDto,
+  UpdatePembimbingBodyDto,
   UpdateStatusBodyDto,
   ViewQueryDto,
 } from "./registrasi-tesis.dto";
@@ -147,7 +148,7 @@ export class RegistrasiTesisController {
   }
 
   @UseGuards(CustomAuthGuard, RolesGuard)
-  @Roles(RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS, RoleEnum.S2_PEMBIMBING)
+  @Roles(RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)
   @Patch("/:mhsId/status")
   async updateStatusByMhsId(
     @Param() params: UpdateByMhsParamsDto,
@@ -162,6 +163,28 @@ export class RegistrasiTesisController {
     }
 
     return await this.registrasiTesisService.updateStatus(
+      params.mhsId,
+      periode,
+      body,
+    );
+  }
+
+  @UseGuards(CustomAuthGuard, RolesGuard)
+  @Roles(RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)
+  @Patch("/:mhsId/pembimbing")
+  async udpatePembimbingListByMhsId(
+    @Param() params: UpdateByMhsParamsDto,
+    @Body() body: UpdatePembimbingBodyDto,
+  ) {
+    const periode = await this.konfService.getKonfigurasiByKey(
+      process.env.KONF_PERIODE_KEY,
+    );
+
+    if (!periode) {
+      throw new BadRequestException("Periode belum dikonfigurasi.");
+    }
+
+    return await this.registrasiTesisService.udpatePembimbingList(
       params.mhsId,
       periode,
       body,
