@@ -30,10 +30,11 @@ import { Konfigurasi } from "./entities/konfigurasi.entity";
 import { KonfigurasiModule } from "./konfigurasi/konfigurasi.module";
 import { DosenBimbinganModule } from "./dosen-bimbingan/dosen-bimbingan.module";
 import { ApprovalModule } from "./approval/approval.module";
+import { validate } from "./env.validation";
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({ validate }),
     TypeOrmModule.forRoot({
       type: "postgres",
       host: process.env.POSTGRES_HOST,
