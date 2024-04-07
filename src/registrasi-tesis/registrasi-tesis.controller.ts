@@ -6,8 +6,8 @@ import {
   Get,
   NotFoundException,
   Param,
+  Patch,
   Post,
-  Put,
   Query,
   Req,
   UseGuards,
@@ -25,8 +25,9 @@ import {
   RegDto,
   RegParamDto,
   RegQueryDto,
+  UpdateByMhsParamsDto,
   UpdateInterviewBodyDto,
-  UpdateInterviewParamsDto,
+  UpdateStatusBodyDto,
   ViewQueryDto,
 } from "./registrasi-tesis.dto";
 import { RegistrasiTesisService } from "./registrasi-tesis.service";
@@ -125,9 +126,9 @@ export class RegistrasiTesisController {
 
   @UseGuards(CustomAuthGuard, RolesGuard)
   @Roles(RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)
-  @Put("/:mhsId/interview")
+  @Patch("/:mhsId/interview")
   async updateInterviewDateByMhsId(
-    @Param() params: UpdateInterviewParamsDto,
+    @Param() params: UpdateByMhsParamsDto,
     @Body() body: UpdateInterviewBodyDto,
   ) {
     const periode = await this.konfService.getKonfigurasiByKey(
@@ -140,6 +141,29 @@ export class RegistrasiTesisController {
 
     return await this.registrasiTesisService.updateInterviewDate(
       params.mhsId,
+      periode,
+      body,
+    );
+  }
+
+  @UseGuards(CustomAuthGuard, RolesGuard)
+  @Roles(RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS, RoleEnum.S2_PEMBIMBING)
+  @Patch("/:mhsId/status")
+  async updateStatusByMhsId(
+    @Param() params: UpdateByMhsParamsDto,
+    @Body() body: UpdateStatusBodyDto,
+  ) {
+    const periode = await this.konfService.getKonfigurasiByKey(
+      process.env.KONF_PERIODE_KEY,
+    );
+
+    if (!periode) {
+      throw new BadRequestException("Periode belum dikonfigurasi.");
+    }
+
+    return await this.registrasiTesisService.updateStatus(
+      params.mhsId,
+      periode,
       body,
     );
   }

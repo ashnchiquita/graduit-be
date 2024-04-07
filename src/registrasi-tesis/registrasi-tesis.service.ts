@@ -12,7 +12,11 @@ import { Pengguna, RoleEnum } from "src/entities/pengguna.entity";
 import { Topik } from "src/entities/topik.entity";
 import { validateId } from "src/helper/validation";
 import { Like, Repository } from "typeorm";
-import { RegDto, UpdateInterviewBodyDto } from "./registrasi-tesis.dto";
+import {
+  RegDto,
+  UpdateInterviewBodyDto,
+  UpdateStatusBodyDto,
+} from "./registrasi-tesis.dto";
 
 @Injectable()
 export class RegistrasiTesisService {
@@ -219,7 +223,11 @@ export class RegistrasiTesisService {
     });
   }
 
-  async updateInterviewDate(mahasiswaId: string, dto: UpdateInterviewBodyDto) {
+  async updateInterviewDate(
+    mahasiswaId: string,
+    periode: string,
+    dto: UpdateInterviewBodyDto,
+  ) {
     const mahasiswa = await this.penggunaRepository.findOne({
       select: {
         id: true,
@@ -231,16 +239,25 @@ export class RegistrasiTesisService {
     });
 
     if (!mahasiswa || !mahasiswa.roles.includes(RoleEnum.S2_MAHASISWA))
-      throw new BadRequestException("No 'mahasiswa' user with given id exists");
+      throw new BadRequestException("No mahasiswa user with given id exists");
 
     const newestReg = await this.pendaftaranTesisRepository.findOne({
       select: {
         id: true,
         status: true,
         waktuPengiriman: true,
+        topik: {
+          periode: true,
+        },
+      },
+      relations: {
+        topik: true,
       },
       where: {
         mahasiswa: mahasiswa,
+        topik: {
+          periode,
+        },
       },
       order: {
         waktuPengiriman: "DESC",
@@ -249,7 +266,7 @@ export class RegistrasiTesisService {
 
     if (!newestReg)
       throw new BadRequestException(
-        "Mahasiswa does not have pending registration",
+        "Mahasiswa does not have pending registration in this period",
       );
 
     const restrictedStatus: RegStatus[] = [
@@ -269,6 +286,60 @@ export class RegistrasiTesisService {
     await this.pendaftaranTesisRepository.update(
       { id: newestReg.id },
       { jadwalInterview: newDate, status: RegStatus.INTERVIEW },
+    );
+
+    return { status: "ok" };
+  }
+
+  async updateStatus(
+    mahasiswaId: string,
+    periode: string,
+    dto: UpdateStatusBodyDto,
+  ) {
+    const mahasiswa = await this.penggunaRepository.findOne({
+      select: {
+        id: true,
+        roles: true,
+      },
+      where: {
+        id: mahasiswaId,
+      },
+    });
+
+    if (!mahasiswa || !mahasiswa.roles.includes(RoleEnum.S2_MAHASISWA))
+      throw new BadRequestException("No mahasiswa user with given id exists");
+
+    const newestReg = await this.pendaftaranTesisRepository.findOne({
+      select: {
+        id: true,
+        status: true,
+        waktuPengiriman: true,
+        topik: {
+          periode: true,
+        },
+      },
+      relations: {
+        topik: true,
+      },
+      where: {
+        mahasiswa: mahasiswa,
+        topik: {
+          periode,
+        },
+      },
+      order: {
+        waktuPengiriman: "DESC",
+      },
+    });
+
+    if (!newestReg)
+      throw new BadRequestException(
+        "Mahasiswa does not have pending registration in this period",
+      );
+
+    await this.pendaftaranTesisRepository.update(
+      { id: newestReg.id },
+      { status: dto.status },
     );
 
     return { status: "ok" };

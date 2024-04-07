@@ -85,7 +85,7 @@ export class ViewQueryDto {
   view: RoleEnum.S2_PEMBIMBING | RoleEnum.ADMIN | RoleEnum.S2_TIM_TESIS;
 }
 
-export class UpdateInterviewParamsDto {
+export class UpdateByMhsParamsDto {
   @IsUUID()
   @ApiProperty()
   mhsId: string;
@@ -95,4 +95,10 @@ export class UpdateInterviewBodyDto {
   @ApiProperty({ type: Date })
   @IsDateString()
   date: string;
+}
+
+export class UpdateStatusBodyDto {
+  @ApiProperty({ enum: RegStatus })
+  @IsEnum(RegStatus)
+  status: RegStatus;
 }
