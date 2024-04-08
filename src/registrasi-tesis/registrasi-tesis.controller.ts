@@ -26,6 +26,7 @@ import {
   RegDto,
   RegParamDto,
   RegQueryDto,
+  RegStatisticsRespDto,
   UpdateByMhsParamsDto,
   UpdateInterviewBodyDto,
   UpdatePembimbingBodyDto,
@@ -65,10 +66,11 @@ export class RegistrasiTesisController {
   }
 
   // Right now only admin & timtesis view is handled (apakah dosen perlu summary juga?)
+  @ApiOkResponse({ type: RegStatisticsRespDto })
   @UseGuards(CustomAuthGuard, RolesGuard)
   @Roles(RoleEnum.S2_PEMBIMBING, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)
-  @Get("/summary")
-  async getRegSummary(@Req() req: Request, @Query() query: ViewQueryDto) {
+  @Get("/statistics")
+  async getRegsStatistics(@Req() req: Request, @Query() query: ViewQueryDto) {
     const { id: idPenerima, roles } = req.user as AuthDto;
 
     if (!roles.includes(query.view)) {
@@ -79,7 +81,7 @@ export class RegistrasiTesisController {
       process.env.KONF_PERIODE_KEY,
     );
 
-    return this.registrasiTesisService.getRegsSummary({
+    return this.registrasiTesisService.getRegsStatistics({
       periode,
       idPenerima: query.view == RoleEnum.S2_PEMBIMBING ? idPenerima : undefined,
     });

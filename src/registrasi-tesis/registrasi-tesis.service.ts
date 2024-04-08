@@ -100,7 +100,7 @@ export class RegistrasiTesisService {
     }));
   }
 
-  async getRegsSummary(options: {
+  async getRegsStatistics(options: {
     periode: string;
     idPenerima?: string;
   }): Promise<RegStatisticsRespDto> {
@@ -249,7 +249,9 @@ export class RegistrasiTesisService {
 
     const resData: FindAllNewestRegRespDto = {
       data: data.map((reg) => ({
+        pendaftaran_id: reg.id,
         nim: reg.mahasiswa.nim,
+        mahasiswa_id: reg.mahasiswa.id,
         mahasiswa_nama: reg.mahasiswa.nama,
         pembimbing_nama: reg.penerima.nama,
         status: reg.status,

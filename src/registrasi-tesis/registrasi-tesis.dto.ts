@@ -93,9 +93,13 @@ export class ViewQueryDto {
 
 export class FindAllNewestRegRespDataDto {
   @ApiProperty()
+  pendaftaran_id: string;
+  @ApiProperty()
   nim: string;
   @ApiProperty()
   mahasiswa_nama: string;
+  @ApiProperty()
+  mahasiswa_id: string;
   @ApiProperty()
   pembimbing_nama: string;
   @ApiProperty()
@@ -118,13 +122,13 @@ export class RegStatisticsRespDataDto {
 }
 
 export class RegStatisticsRespDto {
-  @ApiProperty({ type: FindAllNewestRegRespDataDto })
+  @ApiProperty({ type: RegStatisticsRespDataDto })
   diterima: RegStatisticsRespDataDto;
 
-  @ApiProperty({ type: FindAllNewestRegRespDataDto })
+  @ApiProperty({ type: RegStatisticsRespDataDto })
   sedang_proses: RegStatisticsRespDataDto;
 
-  @ApiProperty({ type: FindAllNewestRegRespDataDto })
+  @ApiProperty({ type: RegStatisticsRespDataDto })
   ditolak: RegStatisticsRespDataDto;
 }
 
