@@ -112,6 +112,17 @@ export class RegStatisticsRespDataDto {
   percentage: number;
 }
 
+export class RegStatisticsRespDto {
+  @ApiProperty({ type: FindAllNewestRegRespDataDto })
+  diterima: RegStatisticsRespDataDto;
+
+  @ApiProperty({ type: FindAllNewestRegRespDataDto })
+  sedang_proses: RegStatisticsRespDataDto;
+
+  @ApiProperty({ type: FindAllNewestRegRespDataDto })
+  ditolak: RegStatisticsRespDataDto;
+}
+
 export class UpdateByMhsParamsDto {
   @IsUUID()
   @ApiProperty()

@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -12,10 +13,11 @@ import {
 import { Pengguna, RoleEnum } from "src/entities/pengguna.entity";
 import { Topik } from "src/entities/topik.entity";
 import { validateId } from "src/helper/validation";
-import { In, Repository } from "typeorm";
+import { ArrayContains, In, Repository } from "typeorm";
 import {
   FindAllNewestRegRespDto,
   RegDto,
+  RegStatisticsRespDto,
   UpdateInterviewBodyDto,
   UpdatePembimbingBodyDto,
   UpdateStatusBodyDto,
@@ -97,6 +99,76 @@ export class RegistrasiTesisService {
     }));
   }
 
+  async getRegsSummary(options: {
+    periode: string;
+    idPenerima?: string;
+  }): Promise<RegStatisticsRespDto> {
+    const totalMahasiswa = this.penggunaRepository.count({
+      where: { roles: ArrayContains([RoleEnum.S2_MAHASISWA]) },
+    });
+
+    // Show newest regs per Mhs if POV TimTesis or Admin
+    if (!options.idPenerima) {
+      const baseQuery = this.pendaftaranTesisRepository
+        .createQueryBuilder("pt")
+        .innerJoinAndSelect(
+          (qb) =>
+            qb
+              .select([
+                "pt.mahasiswaId AS latest_mahasiswaId",
+                "MAX(pt.waktuPengiriman) AS latestPengiriman",
+              ])
+              .from(PendaftaranTesis, "pt")
+              .groupBy("pt.mahasiswaId"),
+          "latest",
+          "latest.latest_mahasiswaId = pt.mahasiswaId AND pt.waktuPengiriman = latest.latestPengiriman",
+        )
+        .innerJoinAndSelect("pt.topik", "topik")
+        .where("topik.periode = :periode", { periode: options.periode });
+
+      const totalDiterima = baseQuery
+        .clone()
+        .andWhere("pt.status = :status", { status: RegStatus.APPROVED })
+        .getCount();
+
+      const totalProses = baseQuery
+        .clone()
+        .where("pt.status IN (:...status)", {
+          status: [RegStatus.NOT_ASSIGNED, RegStatus.INTERVIEW],
+        })
+        .getCount();
+
+      const totalDitolak = baseQuery
+        .clone()
+        .where("pt.status = :status", { status: RegStatus.REJECTED })
+        .getCount();
+
+      const [total, diterima, proses, ditolak] = await Promise.all([
+        totalMahasiswa,
+        totalDiterima,
+        totalProses,
+        totalDitolak,
+      ]);
+
+      return {
+        diterima: {
+          amount: diterima,
+          percentage: Math.round((diterima / total) * 100),
+        },
+        sedang_proses: {
+          amount: proses,
+          percentage: Math.round((proses / total) * 100),
+        },
+        ditolak: {
+          amount: ditolak,
+          percentage: Math.round((ditolak / total) * 100),
+        },
+      };
+    } else {
+      throw new InternalServerErrorException("Not implemented");
+    }
+  }
+
   // TODO sort
   async findAllRegs(options: {
     status?: RegStatus;
@@ -112,6 +184,7 @@ export class RegistrasiTesisService {
       .select("pt");
 
     // Show newest regs per Mhs if POV TimTesis or Admin
+    // May need to make materialized view to improve performance
     if (!options.idPenerima) {
       baseQuery.innerJoinAndSelect(
         (qb) =>

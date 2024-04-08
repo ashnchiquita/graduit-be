@@ -64,6 +64,27 @@ export class RegistrasiTesisController {
     );
   }
 
+  // Right now only admin & timtesis view is handled (apakah dosen perlu summary juga?)
+  @UseGuards(CustomAuthGuard, RolesGuard)
+  @Roles(RoleEnum.S2_PEMBIMBING, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)
+  @Get("/summary")
+  async getRegSummary(@Req() req: Request, @Query() query: ViewQueryDto) {
+    const { id: idPenerima, roles } = req.user as AuthDto;
+
+    if (!roles.includes(query.view)) {
+      throw new ForbiddenException();
+    }
+
+    const periode = await this.konfService.getKonfigurasiByKey(
+      process.env.KONF_PERIODE_KEY,
+    );
+
+    return this.registrasiTesisService.getRegsSummary({
+      periode,
+      idPenerima: query.view == RoleEnum.S2_PEMBIMBING ? idPenerima : undefined,
+    });
+  }
+
   // Admin & TimTesis view will show newst reg records per Mahasiswa
   // Pembimbing view will show all regs towards them
   @ApiOkResponse({ type: FindAllNewestRegRespDto, isArray: true })
