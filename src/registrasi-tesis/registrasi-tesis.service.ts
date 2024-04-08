@@ -12,8 +12,9 @@ import {
 import { Pengguna, RoleEnum } from "src/entities/pengguna.entity";
 import { Topik } from "src/entities/topik.entity";
 import { validateId } from "src/helper/validation";
-import { In, Like, Repository } from "typeorm";
+import { In, Repository } from "typeorm";
 import {
+  FindAllNewestRegRespDto,
   RegDto,
   UpdateInterviewBodyDto,
   UpdatePembimbingBodyDto,
@@ -96,7 +97,8 @@ export class RegistrasiTesisService {
     }));
   }
 
-  async findAllReg(options: {
+  // TODO sort
+  async findAllRegs(options: {
     status?: RegStatus;
     page: number;
     limit?: number;
@@ -105,93 +107,68 @@ export class RegistrasiTesisService {
     sort?: "ASC" | "DESC";
     periode: string;
   }) {
-    const dataQuery = this.pendaftaranTesisRepository.find({
-      select: {
-        id: true,
-        waktuPengiriman: true,
-        jadwalInterview: true,
-        waktuKeputusan: true,
-        jalurPilihan: true,
-        status: true,
-        penerima: {
-          id: true,
-          nama: true,
-          email: true,
+    const baseQuery = this.pendaftaranTesisRepository
+      .createQueryBuilder("pt")
+      .select("pt");
+
+    // Show newest regs per Mhs if POV TimTesis or Admin
+    if (!options.idPenerima) {
+      baseQuery.innerJoinAndSelect(
+        (qb) =>
+          qb
+            .select([
+              "pt.mahasiswaId AS latest_mahasiswaId",
+              "MAX(pt.waktuPengiriman) AS latestPengiriman",
+            ])
+            .from(PendaftaranTesis, "pt")
+            .groupBy("pt.mahasiswaId"),
+        "latest",
+        "latest.latest_mahasiswaId = pt.mahasiswaId AND pt.waktuPengiriman = latest.latestPengiriman",
+      );
+    }
+
+    baseQuery
+      .innerJoinAndSelect("pt.topik", "topik")
+      .innerJoinAndSelect("pt.penerima", "penerima")
+      .innerJoinAndSelect("pt.mahasiswa", "mahasiswa")
+      .where("topik.periode = :periode", { periode: options.periode });
+
+    if (options.search)
+      baseQuery.andWhere(
+        "mahasiswa.nama LIKE '%' || :search || '%' OR mahasiswa.nim LIKE '%' || :search || '%'",
+        {
+          search: options.search,
         },
-        mahasiswa: {
-          id: true,
-          nama: true,
-          email: true,
-          nim: true,
-        },
-      },
-      relations: {
-        mahasiswa: true,
-        penerima: true,
-        topik: true,
-      },
-      where: {
-        topik: {
-          periode: options.periode,
-        },
-        status: options.status || undefined,
-        penerima: {
-          id: options.idPenerima || undefined,
-        },
-        mahasiswa: {
-          nama: Like(`%${options.search || ""}%`),
-        },
-      },
-      order: {
-        waktuPengiriman: options.sort || "ASC",
-      },
-      take: options.limit || undefined,
-      skip: options.limit ? (options.page - 1) * options.limit : 0,
-    });
+      );
+
+    if (options.idPenerima)
+      baseQuery.andWhere("penerima.id = :idPenerima", {
+        idPenerima: options.idPenerima,
+      });
+
+    if (options.status)
+      baseQuery.andWhere("pt.status = :status", {
+        status: options.status,
+      });
 
     if (options.limit) {
-      let countQuery = this.pendaftaranTesisRepository
-        .createQueryBuilder("pendaftaranTesis")
-        .select("pendaftaranTesis.id")
-        .innerJoinAndSelect("pendaftaranTesis.topik", "topik")
-        .innerJoinAndSelect("pendaftaranTesis.penerima", "penerima")
-        .innerJoinAndSelect("pendaftaranTesis.mahasiswa", "mahasiswa")
-        .where("topik.periode = :periode", { periode: options.periode });
-
-      if (options.status) {
-        countQuery = countQuery.andWhere("pendaftaranTesis.status = :status", {
-          status: options.status,
-        });
-      }
-
-      if (options.idPenerima) {
-        countQuery = countQuery.andWhere("penerima.id = :idPenerima", {
-          idPenerima: options.idPenerima,
-        });
-      }
-
-      if (options.search) {
-        countQuery = countQuery.andWhere("mahasiswa.nama LIKE :search", {
-          search: `%${options.search || ""}%`,
-        });
-      }
-
-      const [count, data] = await Promise.all([
-        countQuery.getCount(),
-        dataQuery,
-      ]);
-
-      return {
-        data,
-        maxPage: Math.ceil(count / options.limit),
-      };
-    } else {
-      const data = await dataQuery;
-      return {
-        data,
-        maxPage: data.length ? 1 : 0,
-      };
+      baseQuery.take(options.limit);
+      baseQuery.skip((options.page - 1) * options.limit);
     }
+
+    const [data, count] = await baseQuery.getManyAndCount();
+
+    const resData: FindAllNewestRegRespDto = {
+      data: data.map((reg) => ({
+        nim: reg.mahasiswa.nim,
+        mahasiswa_nama: reg.mahasiswa.nama,
+        pembimbing_nama: reg.penerima.nama,
+        status: reg.status,
+      })),
+      count,
+    };
+
+    return resData;
   }
 
   async findRegById(id: string) {

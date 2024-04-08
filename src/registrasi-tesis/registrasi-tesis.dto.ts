@@ -86,6 +86,32 @@ export class ViewQueryDto {
   view: RoleEnum.S2_PEMBIMBING | RoleEnum.ADMIN | RoleEnum.S2_TIM_TESIS;
 }
 
+export class FindAllNewestRegRespDataDto {
+  @ApiProperty()
+  nim: string;
+  @ApiProperty()
+  mahasiswa_nama: string;
+  @ApiProperty()
+  pembimbing_nama: string;
+  @ApiProperty()
+  status: string;
+}
+
+export class FindAllNewestRegRespDto {
+  @ApiProperty({ type: [FindAllNewestRegRespDataDto] })
+  data: FindAllNewestRegRespDataDto[];
+
+  @ApiProperty()
+  count: number;
+}
+
+export class RegStatisticsRespDataDto {
+  @ApiProperty()
+  amount: number;
+  @ApiProperty()
+  percentage: number;
+}
+
 export class UpdateByMhsParamsDto {
   @IsUUID()
   @ApiProperty()

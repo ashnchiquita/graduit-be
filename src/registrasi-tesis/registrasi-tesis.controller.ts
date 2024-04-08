@@ -12,7 +12,7 @@ import {
   Req,
   UseGuards,
 } from "@nestjs/common";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { Request } from "express";
 import { AuthDto } from "src/auth/auth.dto";
 import { RoleEnum } from "src/entities/pengguna.entity";
@@ -21,6 +21,7 @@ import { CustomAuthGuard } from "src/middlewares/custom-auth.guard";
 import { Roles } from "src/middlewares/roles.decorator";
 import { RolesGuard } from "src/middlewares/roles.guard";
 import {
+  FindAllNewestRegRespDto,
   RegByMhsParamDto,
   RegDto,
   RegParamDto,
@@ -63,11 +64,13 @@ export class RegistrasiTesisController {
     );
   }
 
-  // TODO Make sure view S2 only shows newest
+  // Admin & TimTesis view will show newst reg records per Mahasiswa
+  // Pembimbing view will show all regs towards them
+  @ApiOkResponse({ type: FindAllNewestRegRespDto, isArray: true })
   @UseGuards(CustomAuthGuard, RolesGuard)
   @Roles(RoleEnum.S2_PEMBIMBING, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)
   @Get()
-  async findAll(
+  async findAllNewest(
     @Query()
     query: RegQueryDto,
     @Req() req: Request,
@@ -86,7 +89,7 @@ export class RegistrasiTesisController {
       throw new BadRequestException("Periode belum dikonfigurasi.");
     }
 
-    return await this.registrasiTesisService.findAllReg({
+    return await this.registrasiTesisService.findAllRegs({
       ...query,
       page: query.page || 1,
       idPenerima:
