@@ -140,3 +140,15 @@ Langkahnya kurang lebih:
 Dokumentasi:
 
 - [NestJS OpenAPI](https://docs.nestjs.com/openapi/introduction)
+
+### Environment Variables
+
+Kalo nambahin environment variable, kalian harus:
+
+- Tambahin di `env.example`
+- Tambahin schema validation. Tulis validasi di `env.validation.ts`. Dokumentasi: [Class Validator](https://www.npmjs.com/package/@nestjs/class-validator/v/0.13.1)
+
+WARNING:
+
+- Sampe sekarang, `allowUnknown` masih di-set jadi `true`. Artinya kalian bisa aja masukin environment variable tanpa ngelakuin validasi skema. Masalahnya adalah kalo di-set ke `false`, environment variables bawaan lokal kalian kayak `USER`, `NODE_ENV` gitu-gitu jadi ke-restrict. Jadi tolong banget, pake environment variables yang emang udah ke-define aja di validasinya.
+- Semua yang diakses pake `process.env.` masih string ya valuenya, dia gak auto transform (meskipun udah pake `class-transformer`). Jadi konversi sesuai kebutuhan masing-masing, ini bener-bener cuman buat validasi skemanya aja.
