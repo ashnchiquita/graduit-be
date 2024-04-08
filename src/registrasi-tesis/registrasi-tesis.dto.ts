@@ -67,6 +67,11 @@ export class RegQueryDto {
   status?: RegStatus;
 
   @IsOptional()
+  @IsEnum(["nim"])
+  @ApiPropertyOptional()
+  order_by?: "nim";
+
+  @IsOptional()
   @IsEnum(["ASC", "DESC"])
   @ApiPropertyOptional()
   sort?: "ASC" | "DESC";

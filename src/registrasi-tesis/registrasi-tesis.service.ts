@@ -12,6 +12,7 @@ import {
 } from "src/entities/pendaftaranTesis.entity";
 import { Pengguna, RoleEnum } from "src/entities/pengguna.entity";
 import { Topik } from "src/entities/topik.entity";
+import { generateQueryBuilderOrderByObj } from "src/helper/sorting";
 import { validateId } from "src/helper/validation";
 import { ArrayContains, In, Repository } from "typeorm";
 import {
@@ -176,6 +177,7 @@ export class RegistrasiTesisService {
     limit?: number;
     idPenerima?: string;
     search?: string;
+    order_by?: "nim";
     sort?: "ASC" | "DESC";
     periode: string;
   }) {
@@ -223,6 +225,20 @@ export class RegistrasiTesisService {
       baseQuery.andWhere("pt.status = :status", {
         status: options.status,
       });
+
+    if (options.order_by) {
+      const orderByMapping = {
+        nim: "CAST(mahasiswa.nim AS INTEGER)",
+      };
+
+      baseQuery.orderBy(
+        generateQueryBuilderOrderByObj(
+          orderByMapping,
+          options.order_by,
+          options.sort,
+        ),
+      );
+    }
 
     if (options.limit) {
       baseQuery.take(options.limit);
