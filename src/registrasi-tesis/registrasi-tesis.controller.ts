@@ -12,7 +12,7 @@ import {
   Req,
   UseGuards,
 } from "@nestjs/common";
-import { ApiOkResponse, ApiTags } from "@nestjs/swagger";
+import { ApiCookieAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { Request } from "express";
 import { AuthDto } from "src/auth/auth.dto";
 import { RoleEnum } from "src/entities/pengguna.entity";
@@ -35,6 +35,7 @@ import {
 } from "./registrasi-tesis.dto";
 import { RegistrasiTesisService } from "./registrasi-tesis.service";
 
+@ApiCookieAuth()
 @ApiTags("Registrasi Tesis")
 @Controller("registrasi-tesis")
 export class RegistrasiTesisController {

@@ -73,7 +73,7 @@ export class RegQueryDto {
 
   @IsOptional()
   @IsEnum(["ASC", "DESC"])
-  @ApiPropertyOptional({ enum: ["nim"] })
+  @ApiPropertyOptional({ enum: ["ASC", "DESC"] })
   sort?: "ASC" | "DESC";
 
   @IsEnum([RoleEnum.S2_PEMBIMBING, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS])
