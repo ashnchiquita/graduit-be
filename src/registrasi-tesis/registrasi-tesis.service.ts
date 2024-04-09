@@ -384,13 +384,14 @@ export class RegistrasiTesisService {
     return { status: "ok" };
   }
 
-  async udpatePembimbingList(
+  async updatePembimbingList(
     mahasiswaId: string,
     periode: string,
     { pembimbing_ids: dosen_ids }: UpdatePembimbingBodyDto,
   ) {
     const newestReg = await this.getNewestRegByMhs(mahasiswaId, periode);
 
+    // TODO decide to allow unapproved Registrations to have their Penerima changed or not
     if (newestReg.status !== RegStatus.APPROVED)
       throw new BadRequestException(
         "Cannot update pembimbing on non-approved registration",

@@ -211,7 +211,7 @@ export class RegistrasiTesisController {
       throw new BadRequestException("Periode belum dikonfigurasi.");
     }
 
-    return await this.registrasiTesisService.udpatePembimbingList(
+    return await this.registrasiTesisService.updatePembimbingList(
       params.mhsId,
       periode,
       body,
