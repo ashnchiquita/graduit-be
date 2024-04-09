@@ -63,17 +63,17 @@ export class RegQueryDto {
 
   @IsOptional()
   @IsEnum(RegStatus)
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ enum: RegStatus })
   status?: RegStatus;
 
   @IsOptional()
   @IsEnum(["nim"])
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ enum: ["nim"] })
   order_by?: "nim";
 
   @IsOptional()
   @IsEnum(["ASC", "DESC"])
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ enum: ["nim"] })
   sort?: "ASC" | "DESC";
 
   @IsEnum([RoleEnum.S2_PEMBIMBING, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS])
@@ -145,8 +145,8 @@ export class UpdateInterviewBodyDto {
 }
 
 export class UpdateStatusBodyDto {
-  @ApiProperty({ enum: RegStatus })
-  @IsEnum(RegStatus)
+  @ApiProperty({ enum: [RegStatus.APPROVED, RegStatus.REJECTED] })
+  @IsEnum([RegStatus.APPROVED, RegStatus.REJECTED])
   status: RegStatus;
 }
 
