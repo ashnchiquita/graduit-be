@@ -46,6 +46,8 @@ export class RegistrasiTesisController {
 
   // TODO: Protect using roles and guards
 
+  @UseGuards(CustomAuthGuard, RolesGuard)
+  @Roles(RoleEnum.S2_MAHASISWA, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)
   @Get("/mahasiswa/:mahasiswaId")
   findByUserId(@Param() params: RegByMhsParamDto) {
     return this.registrasiTesisService.findByUserId(params.mahasiswaId);
