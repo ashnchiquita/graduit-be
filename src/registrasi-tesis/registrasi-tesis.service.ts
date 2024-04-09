@@ -14,7 +14,7 @@ import { Pengguna, RoleEnum } from "src/entities/pengguna.entity";
 import { Topik } from "src/entities/topik.entity";
 import { generateQueryBuilderOrderByObj } from "src/helper/sorting";
 import { validateId } from "src/helper/validation";
-import { ArrayContains, In, Repository } from "typeorm";
+import { ArrayContains, DataSource, In, Repository } from "typeorm";
 import {
   FindAllNewestRegRespDto,
   RegDto,
@@ -35,6 +35,7 @@ export class RegistrasiTesisService {
     private topicRepostitory: Repository<Topik>,
     @InjectRepository(DosenBimbingan)
     private dosenBimbinganRepository: Repository<DosenBimbingan>,
+    private dataSource: DataSource,
   ) {}
 
   async createTopicRegistration(
@@ -426,12 +427,25 @@ export class RegistrasiTesisService {
       (newId) => !newPembimbingIds.includes(newId),
     );
 
-    await Promise.all([
-      this.dosenBimbinganRepository.insert(
+    const queryRunner = await this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      await queryRunner.manager.insert(
+        DosenBimbingan,
         idsToBeAdded.map((idDosen) => ({ pendaftaran: newestReg, idDosen })),
-      ),
-      this.dosenBimbinganRepository.delete({ idDosen: In(idsToBeDeleted) }),
-    ]);
+      );
+      await queryRunner.manager.delete(DosenBimbingan, {
+        idDosen: In(idsToBeDeleted),
+      });
+
+      await queryRunner.commitTransaction();
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+    } finally {
+      await queryRunner.release();
+    }
 
     return { status: "ok" };
   }
