@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Konfigurasi } from "src/entities/konfigurasi.entity";
 import { Repository } from "typeorm";
-import { KonfigurasiDto } from "./konfigurasi.dto";
+import { KonfigurasiArrDto } from "./konfigurasi.dto";
 
 @Injectable()
 export class KonfigurasiService {
@@ -11,11 +11,11 @@ export class KonfigurasiService {
     private konfigurasiRepository: Repository<Konfigurasi>,
   ) {}
 
-  async udpateKonfigurasi({ data }: KonfigurasiDto) {
+  async updateKonfigurasi({ data }: KonfigurasiArrDto) {
     return await this.konfigurasiRepository.upsert(data, ["key"]);
   }
 
-  async getKonfigurasi(): Promise<KonfigurasiDto> {
+  async getKonfigurasi(): Promise<KonfigurasiArrDto> {
     const data = await this.konfigurasiRepository.find();
     return { data };
   }

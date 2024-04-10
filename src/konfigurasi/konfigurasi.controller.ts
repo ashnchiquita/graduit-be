@@ -1,29 +1,32 @@
 import { Body, Controller, Get, Put, UseGuards } from "@nestjs/common";
 import { KonfigurasiService } from "./konfigurasi.service";
-import { KonfigurasiDto, UpdateKonfigurasiResDto } from "./konfigurasi.dto";
+import { KonfigurasiArrDto, UpdateKonfigurasiResDto } from "./konfigurasi.dto";
 import { CustomAuthGuard } from "src/middlewares/custom-auth.guard";
 import { RolesGuard } from "src/middlewares/roles.guard";
 import { RoleEnum } from "src/entities/pengguna.entity";
 import { Roles } from "src/middlewares/roles.decorator";
+import { ApiCookieAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 
+@ApiTags("Konfigurasi")
+@ApiCookieAuth()
 @Controller("konfigurasi")
+@UseGuards(CustomAuthGuard, RolesGuard)
+@Roles(RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)
 export class KonfigurasiController {
   constructor(private readonly konfigurasiService: KonfigurasiService) {}
 
-  @UseGuards(CustomAuthGuard, RolesGuard)
-  @Roles(RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)
+  @ApiOkResponse({ type: UpdateKonfigurasiResDto })
   @Put()
   async updateKonfigurasi(
-    @Body() data: KonfigurasiDto,
+    @Body() data: KonfigurasiArrDto,
   ): Promise<UpdateKonfigurasiResDto> {
-    await this.konfigurasiService.udpateKonfigurasi(data);
+    await this.konfigurasiService.updateKonfigurasi(data);
     return { message: "success" };
   }
 
-  @UseGuards(CustomAuthGuard, RolesGuard)
-  @Roles(RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)
+  @ApiOkResponse({ type: KonfigurasiArrDto })
   @Get()
-  async getKonfigurasi(): Promise<KonfigurasiDto> {
+  async getKonfigurasi(): Promise<KonfigurasiArrDto> {
     return this.konfigurasiService.getKonfigurasi();
   }
 }
