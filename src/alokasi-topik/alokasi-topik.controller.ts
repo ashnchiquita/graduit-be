@@ -13,6 +13,8 @@ import {
 } from "@nestjs/common";
 import {
   CreateTopikDto,
+  GetAllRespDto,
+  OmittedTopik,
   TopikParamDto,
   TopikQueryDto,
   UpdateTopikDto,
@@ -23,7 +25,10 @@ import { RolesGuard } from "src/middlewares/roles.guard";
 import { Roles } from "src/middlewares/roles.decorator";
 import { RoleEnum } from "src/entities/pengguna.entity";
 import { KonfigurasiService } from "src/konfigurasi/konfigurasi.service";
+import { ApiCookieAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 
+@ApiTags("Alokasi Topik")
+@ApiCookieAuth()
 @Controller("alokasi-topik")
 @UseGuards(CustomAuthGuard, RolesGuard)
 export class AlokasiTopikController {
@@ -44,14 +49,16 @@ export class AlokasiTopikController {
     return await this.alokasiTopikService.create({ ...createDto, periode });
   }
 
+  @ApiOkResponse({ type: OmittedTopik })
   @Roles(RoleEnum.S2_TIM_TESIS, RoleEnum.ADMIN)
   @Get("/:id")
   async getById(@Param() params: TopikParamDto) {
     const res = await this.alokasiTopikService.findById(params.id);
     if (!res) throw new NotFoundException();
-    return res;
+    return res as OmittedTopik;
   }
 
+  @ApiOkResponse({ type: GetAllRespDto })
   @Roles(RoleEnum.S2_TIM_TESIS, RoleEnum.ADMIN, RoleEnum.S2_MAHASISWA)
   @Get()
   async getAll(
