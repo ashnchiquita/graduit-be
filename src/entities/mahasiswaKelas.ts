@@ -1,4 +1,4 @@
-import { Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Kelas } from "./kelas.entity";
 import { Pengguna } from "./pengguna.entity";
 
@@ -12,4 +12,7 @@ export class MahasiswaKelas {
 
   @ManyToOne(() => Pengguna, (pengguna) => pengguna.id)
   mahasiswa: Pengguna;
+
+  @Column({ type: "real", nullable: true })
+  nilaiAkhir: number;
 }

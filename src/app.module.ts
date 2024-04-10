@@ -31,6 +31,8 @@ import { KonfigurasiModule } from "./konfigurasi/konfigurasi.module";
 import { DosenBimbinganModule } from "./dosen-bimbingan/dosen-bimbingan.module";
 import { ApprovalModule } from "./approval/approval.module";
 import { validate } from "./env.validation";
+import { MataKuliah } from "./entities/mataKuliah";
+import { SubmisiTugas } from "./entities/submisiTugas";
 
 @Module({
   imports: [
@@ -63,6 +65,8 @@ import { validate } from "./env.validation";
         PembimbingSidang,
         PengujiSidang,
         Konfigurasi,
+        MataKuliah,
+        SubmisiTugas,
       ],
       synchronize: true,
     }),
