@@ -3,7 +3,11 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { RoleEnum } from "src/entities/pengguna.entity";
 import { Topik } from "src/entities/topik.entity";
 import { ArrayContains, Like, Repository } from "typeorm";
-import { CreateTopikDto, UpdateTopikDto } from "./alokasi-topik.dto";
+import {
+  CreateTopikDto,
+  GetAllRespDto,
+  UpdateTopikDto,
+} from "./alokasi-topik.dto";
 
 @Injectable()
 export class AlokasiTopikService {
@@ -43,7 +47,7 @@ export class AlokasiTopikService {
     search?: string;
     idPembimbing?: string;
     periode: string;
-  }) {
+  }): Promise<GetAllRespDto> {
     const dataQuery = this.topikRepo.find({
       select: {
         id: true,

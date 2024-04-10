@@ -21,7 +21,13 @@ async function bootstrap() {
     .setTitle("GraduIT S2 API")
     .setDescription("GraduIT API Documentation for S2 services")
     .setVersion("1.0")
-    .addTag("bimbingan")
+    .addTag("Alokasi Topik")
+    .addTag("Approval")
+    .addTag("Bimbingan")
+    .addTag("Dashboard")
+    .addTag("Dosen Bimbingan")
+    .addTag("Konfigurasi")
+    .addTag("Registrasi Tesis")
     .addCookieAuth(process.env.COOKIE_NAME)
     .build();
   const document = SwaggerModule.createDocument(app, options);
