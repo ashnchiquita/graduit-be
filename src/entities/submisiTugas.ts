@@ -20,13 +20,20 @@ export class SubmisiTugas {
   @Column({ type: "text" })
   jawaban: string;
 
+  @Column({ type: "boolean" })
+  isSubmitted: boolean; // false means draft (saved), true means submitted
+
   @OneToMany(
     () => BerkasSubmisiTugas,
     (berkasSubmisiTugas) => berkasSubmisiTugas.submisiTugas,
   )
   berkasSubmisiTugas: BerkasSubmisiTugas[];
 
-  @Column({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
+  @Column({
+    type: "timestamptz",
+    default: () => "CURRENT_TIMESTAMP",
+    nullable: true,
+  })
   submittedAt: Date;
 
   @ManyToOne(() => Tugas, (tugas) => tugas.id)
