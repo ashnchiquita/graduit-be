@@ -8,7 +8,11 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
-import { DosenBimbinganService } from "./dosen-bimbingan.service";
+import { ApiCookieAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
+import { RoleEnum } from "src/entities/pengguna.entity";
+import { CustomAuthGuard } from "src/middlewares/custom-auth.guard";
+import { Roles } from "src/middlewares/roles.decorator";
+import { RolesGuard } from "src/middlewares/roles.guard";
 import {
   DosbimOptQueryDto,
   DosbimQueryDto,
@@ -16,11 +20,7 @@ import {
   SuccessResDto,
   UpdateDosbimDto,
 } from "./dosen-bimbingan.dto";
-import { CustomAuthGuard } from "src/middlewares/custom-auth.guard";
-import { RolesGuard } from "src/middlewares/roles.guard";
-import { Roles } from "src/middlewares/roles.decorator";
-import { RoleEnum } from "src/entities/pengguna.entity";
-import { ApiCookieAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
+import { DosenBimbinganService } from "./dosen-bimbingan.service";
 
 @ApiTags("Dosen Bimbingan")
 @ApiCookieAuth()
@@ -30,7 +30,12 @@ export class DosenBimbinganController {
   constructor(private readonly dosbimService: DosenBimbinganService) {}
 
   @ApiOkResponse({ type: [GetDosbimResDto] })
-  @Roles(RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS, RoleEnum.S2_MAHASISWA)
+  @Roles(
+    RoleEnum.ADMIN,
+    RoleEnum.S2_TIM_TESIS,
+    RoleEnum.S2_MAHASISWA,
+    RoleEnum.S2_TIM_TESIS,
+  )
   @Get()
   async get(@Query() query: DosbimOptQueryDto) {
     if (!query.regId) return await this.dosbimService.getAll();

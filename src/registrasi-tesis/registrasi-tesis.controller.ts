@@ -44,8 +44,6 @@ export class RegistrasiTesisController {
     private readonly konfService: KonfigurasiService,
   ) {}
 
-  // TODO: Protect using roles and guards
-
   @UseGuards(CustomAuthGuard, RolesGuard)
   @Roles(RoleEnum.S2_MAHASISWA, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)
   @Get("/mahasiswa/:mahasiswaId")

@@ -4,6 +4,7 @@ import { RoleEnum } from "src/entities/pengguna.entity";
 import { Topik } from "src/entities/topik.entity";
 import { ArrayContains, Like, Repository } from "typeorm";
 import {
+  CreateBulkTopikDto,
   CreateTopikDto,
   GetAllRespDto,
   UpdateTopikDto,
@@ -15,6 +16,14 @@ export class AlokasiTopikService {
 
   async create(createDto: CreateTopikDto & { periode: string }) {
     return await this.topikRepo.insert(createDto);
+  }
+
+  async createBulk(createDto: CreateBulkTopikDto, periode: string) {
+    await this.topikRepo.insert(
+      createDto.data.map((dto) => ({ ...dto, periode })),
+    );
+
+    return { status: "ok" };
   }
 
   async findById(id: string) {

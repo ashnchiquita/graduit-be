@@ -11,7 +11,14 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
+import { ApiCookieAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
+import { RoleEnum } from "src/entities/pengguna.entity";
+import { KonfigurasiService } from "src/konfigurasi/konfigurasi.service";
+import { CustomAuthGuard } from "src/middlewares/custom-auth.guard";
+import { Roles } from "src/middlewares/roles.decorator";
+import { RolesGuard } from "src/middlewares/roles.guard";
 import {
+  CreateBulkTopikDto,
   CreateTopikDto,
   GetAllRespDto,
   OmittedTopik,
@@ -20,12 +27,6 @@ import {
   UpdateTopikDto,
 } from "./alokasi-topik.dto";
 import { AlokasiTopikService } from "./alokasi-topik.service";
-import { CustomAuthGuard } from "src/middlewares/custom-auth.guard";
-import { RolesGuard } from "src/middlewares/roles.guard";
-import { Roles } from "src/middlewares/roles.decorator";
-import { RoleEnum } from "src/entities/pengguna.entity";
-import { KonfigurasiService } from "src/konfigurasi/konfigurasi.service";
-import { ApiCookieAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 
 @ApiTags("Alokasi Topik")
 @ApiCookieAuth()
@@ -47,6 +48,18 @@ export class AlokasiTopikController {
     if (!periode) throw new BadRequestException("Periode belum dikonfigurasi.");
 
     return await this.alokasiTopikService.create({ ...createDto, periode });
+  }
+
+  @Roles(RoleEnum.S2_TIM_TESIS, RoleEnum.ADMIN)
+  @Post("/bulk")
+  async createBulk(@Body() createDto: CreateBulkTopikDto) {
+    const periode = await this.konfService.getKonfigurasiByKey(
+      process.env.KONF_PERIODE_KEY,
+    );
+
+    if (!periode) throw new BadRequestException("Periode belum dikonfigurasi.");
+
+    return await this.alokasiTopikService.createBulk(createDto, periode);
   }
 
   @ApiOkResponse({ type: OmittedTopik })
