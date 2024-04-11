@@ -6,7 +6,8 @@ import { RoleEnum } from "src/entities/pengguna.entity";
 import { Roles } from "src/middlewares/roles.decorator";
 import { AuthDto } from "src/auth/auth.dto";
 import { Request } from "express";
-import { DashboardDto } from "./dashboard.dto";
+import { DashboardDto, DashboardMahasiswaResDto } from "./dashboard.dto";
+import { ApiOkResponse } from "@nestjs/swagger";
 
 @Controller("dashboard")
 export class DashboardController {
@@ -24,6 +25,18 @@ export class DashboardController {
   @Get("/dosbim/statistics")
   async getStatisticsByJalurPilihan(@Req() request: Request) {
     return this.dashboardService.getStatisticsByJalurPilihan(
+      (request.user as AuthDto).id,
+    );
+  }
+
+  @UseGuards(CustomAuthGuard, RolesGuard)
+  @Roles(RoleEnum.S2_MAHASISWA)
+  @ApiOkResponse({ type: DashboardMahasiswaResDto })
+  @Get("/mahasiswa")
+  async getDashboardMahasiswa(
+    @Req() request: Request,
+  ): Promise<DashboardMahasiswaResDto> {
+    return this.dashboardService.getDashboardMahasiswa(
       (request.user as AuthDto).id,
     );
   }
