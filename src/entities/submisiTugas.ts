@@ -1,6 +1,13 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from "typeorm";
 import { Pengguna } from "./pengguna.entity";
 import { Tugas } from "./tugas.entity";
+import { BerkasSubmisiTugas } from "./berkasSubmisiTugas";
 
 @Entity()
 export class SubmisiTugas {
@@ -13,12 +20,11 @@ export class SubmisiTugas {
   @Column({ type: "text" })
   jawaban: string;
 
-  @Column({
-    type: "text",
-    array: true,
-    default: [],
-  })
-  berkas: string[];
+  @OneToMany(
+    () => BerkasSubmisiTugas,
+    (berkasSubmisiTugas) => berkasSubmisiTugas.submisiTugas,
+  )
+  berkasSubmisiTugas: BerkasSubmisiTugas[];
 
   @Column({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
   submittedAt: Date;

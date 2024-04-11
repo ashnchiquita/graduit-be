@@ -34,6 +34,8 @@ import { validate } from "./env.validation";
 import { MataKuliah } from "./entities/mataKuliah";
 import { SubmisiTugas } from "./entities/submisiTugas";
 import { KelasModule } from "./kelas/kelas.module";
+import { BerkasSubmisiTugas } from "./entities/berkasSubmisiTugas";
+import { BerkasTugas } from "./entities/berkasTugas";
 
 @Module({
   imports: [
@@ -68,6 +70,8 @@ import { KelasModule } from "./kelas/kelas.module";
         Konfigurasi,
         MataKuliah,
         SubmisiTugas,
+        BerkasSubmisiTugas,
+        BerkasTugas,
       ],
       synchronize: true,
     }),
