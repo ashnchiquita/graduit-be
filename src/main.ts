@@ -26,9 +26,11 @@ async function bootstrap() {
     .addTag("Bimbingan")
     .addTag("Dashboard")
     .addTag("Dosen Bimbingan")
+    .addTag("Kelas")
     .addTag("Konfigurasi")
     .addTag("Registrasi Tesis")
     .addCookieAuth(process.env.COOKIE_NAME)
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup("api-docs", app, document);

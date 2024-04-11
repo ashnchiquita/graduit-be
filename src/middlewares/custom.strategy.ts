@@ -11,6 +11,16 @@ export class CustomStrategy extends PassportStrategy(Strategy, "custom") {
   }
 
   async validate(req: Request) {
-    return this.authService.validate(req);
+    let token = "";
+
+    if (req?.cookies?.[process.env.COOKIE_NAME]) {
+      token = req.cookies[process.env.COOKIE_NAME];
+    }
+
+    if (req.headers?.authorization) {
+      token = req.headers.authorization.slice(7);
+    }
+
+    return this.authService.validate(token);
   }
 }
