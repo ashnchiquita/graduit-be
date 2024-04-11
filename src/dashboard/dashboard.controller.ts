@@ -7,10 +7,16 @@ import { Roles } from "src/middlewares/roles.decorator";
 import { AuthDto } from "src/auth/auth.dto";
 import { Request } from "express";
 import { DashboardDto, JalurStatisticDto } from "./dashboard.dto";
-import { ApiCookieAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
+import {
+  ApiBearerAuth,
+  ApiCookieAuth,
+  ApiOkResponse,
+  ApiTags,
+} from "@nestjs/swagger";
 
 @ApiTags("Dashboard")
 @ApiCookieAuth()
+@ApiBearerAuth()
 @Controller("dashboard")
 @UseGuards(CustomAuthGuard, RolesGuard)
 export class DashboardController {

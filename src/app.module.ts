@@ -32,6 +32,11 @@ import { DosenBimbinganModule } from "./dosen-bimbingan/dosen-bimbingan.module";
 import { ApprovalModule } from "./approval/approval.module";
 import { validate } from "./env.validation";
 import { BerkasBimbingan } from "./entities/berkasBimbingan";
+import { MataKuliah } from "./entities/mataKuliah";
+import { SubmisiTugas } from "./entities/submisiTugas";
+import { KelasModule } from "./kelas/kelas.module";
+import { BerkasSubmisiTugas } from "./entities/berkasSubmisiTugas";
+import { BerkasTugas } from "./entities/berkasTugas";
 
 @Module({
   imports: [
@@ -65,6 +70,10 @@ import { BerkasBimbingan } from "./entities/berkasBimbingan";
         PembimbingSidang,
         PengujiSidang,
         Konfigurasi,
+        MataKuliah,
+        SubmisiTugas,
+        BerkasSubmisiTugas,
+        BerkasTugas,
       ],
       synchronize: true,
     }),
@@ -76,6 +85,7 @@ import { BerkasBimbingan } from "./entities/berkasBimbingan";
     KonfigurasiModule,
     DosenBimbinganModule,
     ApprovalModule,
+    KelasModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -9,6 +9,7 @@ import {
 } from "@nestjs/common";
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiBody,
   ApiCookieAuth,
   ApiNotFoundResponse,
@@ -32,6 +33,7 @@ import { BimbinganService } from "./bimbingan.service";
 
 @ApiTags("Bimbingan")
 @ApiCookieAuth()
+@ApiBearerAuth()
 @Controller("bimbingan")
 @UseGuards(CustomAuthGuard, RolesGuard)
 export class BimbinganController {

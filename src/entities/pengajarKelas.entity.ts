@@ -1,4 +1,10 @@
-import { Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from "typeorm";
 import { Kelas } from "./kelas.entity";
 import { Pengguna } from "./pengguna.entity";
 
@@ -8,8 +14,16 @@ export class PengajarKelas {
   id: string;
 
   @ManyToOne(() => Kelas, (kelas) => kelas.id)
+  @JoinColumn({ name: "kelasId" })
   kelas: Kelas;
 
+  @Column()
+  kelasId: string;
+
   @ManyToOne(() => Pengguna, (pengguna) => pengguna.id)
-  dosen: Pengguna;
+  @JoinColumn({ name: "pengajarId" })
+  pengajar: Pengguna;
+
+  @Column()
+  pengajarId: string;
 }

@@ -25,10 +25,16 @@ import { RolesGuard } from "src/middlewares/roles.guard";
 import { Roles } from "src/middlewares/roles.decorator";
 import { RoleEnum } from "src/entities/pengguna.entity";
 import { KonfigurasiService } from "src/konfigurasi/konfigurasi.service";
-import { ApiCookieAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
+import {
+  ApiBearerAuth,
+  ApiCookieAuth,
+  ApiOkResponse,
+  ApiTags,
+} from "@nestjs/swagger";
 
 @ApiTags("Alokasi Topik")
 @ApiCookieAuth()
+@ApiBearerAuth()
 @Controller("alokasi-topik")
 @UseGuards(CustomAuthGuard, RolesGuard)
 export class AlokasiTopikController {
