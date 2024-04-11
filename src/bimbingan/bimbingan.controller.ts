@@ -8,6 +8,7 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiCookieAuth,
   ApiOkResponse,
@@ -30,6 +31,7 @@ import { BimbinganService } from "./bimbingan.service";
 
 @ApiTags("Bimbingan")
 @ApiCookieAuth()
+@ApiBearerAuth()
 @Controller("bimbingan")
 @UseGuards(CustomAuthGuard, RolesGuard)
 export class BimbinganController {
