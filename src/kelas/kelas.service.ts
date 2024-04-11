@@ -100,6 +100,8 @@ export class KelasService {
   }
 
   async createMatkul(createDto: MataKuliah) {
-    return await this.mataKuliahRepo.insert(createDto);
+    await this.mataKuliahRepo.insert(createDto);
+
+    return { kode: createDto.kode };
   }
 }

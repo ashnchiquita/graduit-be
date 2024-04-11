@@ -12,6 +12,7 @@ import {
   CreateKelasDto,
   GetKelasQueryDto,
   GetListKelasRespDto,
+  KodeRespDto,
 } from "./kelas.dto";
 import { Request } from "express";
 import { AuthDto } from "src/auth/auth.dto";
@@ -19,6 +20,7 @@ import { RoleEnum } from "src/entities/pengguna.entity";
 import {
   ApiBearerAuth,
   ApiCookieAuth,
+  ApiCreatedResponse,
   ApiOkResponse,
   ApiTags,
 } from "@nestjs/swagger";
@@ -66,6 +68,7 @@ export class KelasController {
     return await this.kelasServ.create(body);
   }
 
+  @ApiCreatedResponse({ type: KodeRespDto })
   @Roles(RoleEnum.S2_TIM_TESIS)
   @Post("mata-kuliah")
   async createMataKuliah(@Body() body: MataKuliah) {

@@ -1,6 +1,7 @@
 import { ApiProperty, PickType } from "@nestjs/swagger";
 import { IsEnum } from "class-validator";
 import { Kelas } from "src/entities/kelas.entity";
+import { MataKuliah } from "src/entities/mataKuliah";
 import { RoleEnum } from "src/entities/pengguna.entity";
 
 export class CreateKelasDto extends PickType(Kelas, [
@@ -28,3 +29,5 @@ export class GetListKelasRespDto {
   @ApiProperty()
   jumlah_mahasiswa: number;
 }
+
+export class KodeRespDto extends PickType(MataKuliah, ["kode"] as const) {}
