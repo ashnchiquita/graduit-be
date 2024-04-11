@@ -1,5 +1,13 @@
-import { IsDateString, IsString } from "@nestjs/class-validator";
+import {
+  IsDateString,
+  IsDefined,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from "@nestjs/class-validator";
 import { ApiProperty, PickType } from "@nestjs/swagger";
+import { Type } from "class-transformer";
+import { BerkasBimbingan } from "src/entities/berkasBimbingan";
 import { Bimbingan } from "src/entities/bimbingan.entity";
 import { JalurEnum } from "src/entities/pendaftaranTesis.entity";
 import { Pengguna } from "src/entities/pengguna.entity";
@@ -42,16 +50,21 @@ export class CreateBimbinganReqDto {
   @IsString()
   todo: string;
 
-  // TODO file upload
-
   @ApiProperty({ type: Date })
   @IsDateString()
+  @IsOptional()
   bimbinganBerikutnya: string;
+
+  @ApiProperty({ type: [BerkasBimbingan] })
+  @ValidateNested({ each: true })
+  @Type(() => BerkasBimbingan)
+  @IsDefined()
+  berkas: BerkasBimbingan[];
 }
 
 export class CreateBimbinganResDto {
   @ApiProperty()
-  message: string;
+  id: string;
 }
 
 export class ByMhsIdDto {

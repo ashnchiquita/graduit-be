@@ -8,8 +8,10 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import {
+  ApiBadRequestResponse,
   ApiBody,
   ApiCookieAuth,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiResponse,
   ApiTags,
@@ -36,6 +38,9 @@ export class BimbinganController {
   constructor(private readonly bimbinganService: BimbinganService) {}
 
   @ApiOkResponse({ type: GetByMahasiswaIdResDto })
+  @ApiNotFoundResponse({
+    description: "Tidak ada pendaftaran pada periode sekarang",
+  })
   @Roles(RoleEnum.S2_PEMBIMBING, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)
   @Get("/:mahasiswaId")
   async getByMahasiswaId(
@@ -49,6 +54,9 @@ export class BimbinganController {
   }
 
   @ApiOkResponse({ type: GetByMahasiswaIdResDto })
+  @ApiNotFoundResponse({
+    description: "Tidak ada pendaftaran pada periode sekarang",
+  })
   @Roles(RoleEnum.S2_MAHASISWA)
   @Get("/")
   async getOwnBimbingan(
@@ -60,12 +68,18 @@ export class BimbinganController {
     );
   }
 
-  // TODO handle file upload
   @ApiResponse({ status: 201, type: CreateBimbinganResDto })
+  @ApiBadRequestResponse({
+    description:
+      "Waktu bimbingan lebih dari hari ini atau bimbingan berikutnya sebelum waktu bimbingan yang dimasukkan",
+  })
+  @ApiNotFoundResponse({
+    description: "Tidak ada pendaftaran pada periode sekarang",
+  })
   @Roles(RoleEnum.S2_MAHASISWA)
   @ApiBody({ type: CreateBimbinganReqDto })
   @Post("/")
-  async getBimbinganLogs(
+  async createBimbinganLog(
     @Req() request: Request,
     @Body() body: CreateBimbinganReqDto,
   ): Promise<CreateBimbinganResDto> {

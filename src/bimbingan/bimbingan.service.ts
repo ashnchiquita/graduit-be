@@ -21,6 +21,7 @@ import {
   CreateBimbinganResDto,
   GetByMahasiswaIdResDto,
 } from "./bimbingan.dto";
+import { BerkasBimbingan } from "src/entities/berkasBimbingan";
 
 @Injectable()
 export class BimbinganService {
@@ -33,6 +34,8 @@ export class BimbinganService {
     private konfigurasiRepository: Repository<Konfigurasi>,
     @InjectRepository(DosenBimbingan)
     private dosenBimbinganRepository: Repository<DosenBimbingan>,
+    @InjectRepository(BerkasBimbingan)
+    private berkasBimbinganRepository: Repository<BerkasBimbingan>,
   ) {}
 
   async getByMahasiswaId(
@@ -88,6 +91,9 @@ export class BimbinganService {
           id: pendaftaran.id,
         },
       },
+      relations: {
+        berkas: true,
+      },
     });
 
     return {
@@ -102,7 +108,6 @@ export class BimbinganService {
     };
   }
 
-  // TODO handle file upload
   async create(
     mahasiswaId: string,
     createDto: CreateBimbinganReqDto,
@@ -133,8 +138,6 @@ export class BimbinganService {
       );
     }
 
-    console.log(dayjs(createDto.waktuBimbingan).toDate());
-
     if (dayjs(createDto.waktuBimbingan).isAfter(dayjs(new Date()).endOf("d")))
       throw new BadRequestException(
         "Tanggal bimbingan yang dimasukkan tidak boleh melebihi tanggal hari ini",
@@ -149,14 +152,21 @@ export class BimbinganService {
         "Bimbingan berikutnya harus setelah bimbingan yang dimasukkan",
       );
 
+    const berkasBimbingan = createDto.berkas.map((berkas) =>
+      this.berkasBimbinganRepository.create(berkas),
+    );
+
     const createdBimbinganLog = this.bimbinganRepository.create({
-      ...createDto,
-      berkasLinks: [],
+      waktuBimbingan: createDto.waktuBimbingan,
+      laporanKemajuan: createDto.laporanKemajuan,
+      todo: createDto.todo,
+      bimbinganBerikutnya: createDto.bimbinganBerikutnya,
+      berkas: berkasBimbingan,
       pendaftaran,
     });
 
     await this.bimbinganRepository.save(createdBimbinganLog);
 
-    return { message: "Successfully added log" };
+    return { id: createdBimbinganLog.id };
   }
 }
