@@ -33,6 +33,7 @@ import { ApprovalModule } from "./approval/approval.module";
 import { validate } from "./env.validation";
 import { MataKuliah } from "./entities/mataKuliah";
 import { SubmisiTugas } from "./entities/submisiTugas";
+import { KelasModule } from "./kelas/kelas.module";
 
 @Module({
   imports: [
@@ -78,6 +79,7 @@ import { SubmisiTugas } from "./entities/submisiTugas";
     KonfigurasiModule,
     DosenBimbinganModule,
     ApprovalModule,
+    KelasModule,
   ],
   controllers: [AppController],
   providers: [AppService],
