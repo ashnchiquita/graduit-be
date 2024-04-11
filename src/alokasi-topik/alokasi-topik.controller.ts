@@ -11,7 +11,12 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
-import { ApiCookieAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
+import {
+  ApiBearerAuth,
+  ApiCookieAuth,
+  ApiOkResponse,
+  ApiTags,
+} from "@nestjs/swagger";
 import { RoleEnum } from "src/entities/pengguna.entity";
 import { KonfigurasiService } from "src/konfigurasi/konfigurasi.service";
 import { CustomAuthGuard } from "src/middlewares/custom-auth.guard";
@@ -30,6 +35,7 @@ import { AlokasiTopikService } from "./alokasi-topik.service";
 
 @ApiTags("Alokasi Topik")
 @ApiCookieAuth()
+@ApiBearerAuth()
 @Controller("alokasi-topik")
 @UseGuards(CustomAuthGuard, RolesGuard)
 export class AlokasiTopikController {

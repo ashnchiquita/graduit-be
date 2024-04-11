@@ -8,7 +8,12 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
-import { ApiCookieAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
+import {
+  ApiBearerAuth,
+  ApiCookieAuth,
+  ApiOkResponse,
+  ApiTags,
+} from "@nestjs/swagger";
 import { RoleEnum } from "src/entities/pengguna.entity";
 import { CustomAuthGuard } from "src/middlewares/custom-auth.guard";
 import { Roles } from "src/middlewares/roles.decorator";
@@ -24,6 +29,7 @@ import { DosenBimbinganService } from "./dosen-bimbingan.service";
 
 @ApiTags("Dosen Bimbingan")
 @ApiCookieAuth()
+@ApiBearerAuth()
 @Controller("dosen-bimbingan")
 @UseGuards(CustomAuthGuard, RolesGuard)
 export class DosenBimbinganController {

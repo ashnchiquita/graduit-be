@@ -8,11 +8,17 @@ import { CustomAuthGuard } from "src/middlewares/custom-auth.guard";
 import { RolesGuard } from "src/middlewares/roles.guard";
 import { RoleEnum } from "src/entities/pengguna.entity";
 import { Roles } from "src/middlewares/roles.decorator";
-import { ApiCookieAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
+import {
+  ApiBearerAuth,
+  ApiCookieAuth,
+  ApiOkResponse,
+  ApiTags,
+} from "@nestjs/swagger";
 import { ByIdParamDto } from "./approval.dto";
 
 @ApiTags("Approval")
 @ApiCookieAuth()
+@ApiBearerAuth()
 @Controller("approval")
 @UseGuards(CustomAuthGuard, RolesGuard)
 @Roles(RoleEnum.S2_PEMBIMBING)
