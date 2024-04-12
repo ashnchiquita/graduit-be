@@ -18,7 +18,7 @@ export class Bimbingan {
   @Column({ type: "date", nullable: true })
   bimbinganBerikutnya: string;
 
-  @Column({ type: "simple-array" })
+  @Column({ type: "simple-array", nullable: true })
   berkasLinks: string[];
 
   @ManyToOne(() => PendaftaranTesis, (pendaftaranTesis) => pendaftaranTesis.id)

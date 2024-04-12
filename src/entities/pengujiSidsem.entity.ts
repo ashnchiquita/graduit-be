@@ -1,14 +1,17 @@
 import { Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { Seminar } from "./seminar.entity";
 import { Pengguna } from "./pengguna.entity";
+import { PendaftaranSidsem } from "./pendaftaranSidsem";
 
 @Entity()
-export class PembimbingSeminar {
+export class PengujiSidang {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @ManyToOne(() => Seminar, (seminar) => seminar.id)
-  seminar: Seminar;
+  @ManyToOne(
+    () => PendaftaranSidsem,
+    (pendaftaranSidsem) => pendaftaranSidsem.id,
+  )
+  sidsem: PendaftaranSidsem;
 
   @ManyToOne(() => Pengguna, (pengguna) => pengguna.id)
   dosen: Pengguna;
