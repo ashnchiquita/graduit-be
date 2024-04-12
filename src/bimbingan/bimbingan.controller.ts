@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  Patch,
   Post,
   Req,
   UseGuards,
@@ -28,6 +29,8 @@ import {
   CreateBimbinganReqDto,
   CreateBimbinganResDto,
   GetByMahasiswaIdResDto,
+  UpdateStatusDto,
+  UpdateStatusResDto,
 } from "./bimbingan.dto";
 import { BimbinganService } from "./bimbingan.service";
 
@@ -86,5 +89,19 @@ export class BimbinganController {
     @Body() body: CreateBimbinganReqDto,
   ): Promise<CreateBimbinganResDto> {
     return this.bimbinganService.create((request.user as AuthDto).id, body);
+  }
+
+  @ApiOkResponse({ type: UpdateStatusResDto })
+  @ApiNotFoundResponse({
+    description: "Bimbingan tidak ditemukan",
+  })
+  @Roles(RoleEnum.S2_PEMBIMBING, RoleEnum.ADMIN)
+  @ApiBody({ type: UpdateStatusDto })
+  @Patch("/pengesahan")
+  async updateStatus(
+    @Req() request: Request,
+    @Body() body: UpdateStatusDto,
+  ): Promise<UpdateStatusResDto> {
+    return this.bimbinganService.updateStatus(request.user as AuthDto, body);
   }
 }

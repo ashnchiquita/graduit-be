@@ -1,8 +1,10 @@
 import {
+  IsBoolean,
   IsDateString,
   IsDefined,
   IsOptional,
   IsString,
+  IsUUID,
   ValidateNested,
 } from "@nestjs/class-validator";
 import { ApiProperty, PickType } from "@nestjs/swagger";
@@ -70,4 +72,19 @@ export class CreateBimbinganResDto {
 export class ByMhsIdDto {
   @ApiProperty({ example: "550e8400-e29b-41d4-a716-446655440000" })
   mahasiswaId: string;
+}
+
+export class UpdateStatusDto {
+  @ApiProperty({ example: "550e8400-e29b-41d4-a716-446655440000" })
+  @IsUUID()
+  bimbinganId: string;
+
+  @ApiProperty()
+  @IsBoolean()
+  status: boolean;
+}
+
+export class UpdateStatusResDto {
+  @ApiProperty({ example: "550e8400-e29b-41d4-a716-446655440000" })
+  id: string;
 }

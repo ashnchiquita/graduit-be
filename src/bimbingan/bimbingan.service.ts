@@ -20,6 +20,8 @@ import {
   CreateBimbinganReqDto,
   CreateBimbinganResDto,
   GetByMahasiswaIdResDto,
+  UpdateStatusDto,
+  UpdateStatusResDto,
 } from "./bimbingan.dto";
 import { BerkasBimbingan } from "src/entities/berkasBimbingan";
 
@@ -168,5 +170,47 @@ export class BimbinganService {
     await this.bimbinganRepository.save(createdBimbinganLog);
 
     return { id: createdBimbinganLog.id };
+  }
+
+  async updateStatus(
+    user: AuthDto,
+    dto: UpdateStatusDto,
+  ): Promise<UpdateStatusResDto> {
+    const currentPeriode = await this.konfigurasiRepository.findOne({
+      where: { key: process.env.KONF_PERIODE_KEY },
+    });
+
+    const bimbinganQuery = this.bimbinganRepository
+      .createQueryBuilder("bimbingan")
+      .leftJoinAndSelect("bimbingan.pendaftaran", "pendaftaran")
+      .leftJoinAndSelect("pendaftaran.dosenBimbingan", "dosenBimbingan")
+      .leftJoinAndSelect("dosenBimbingan.dosen", "dosen")
+      .leftJoin("pendaftaran.topik", "topik", "topik.periode = :periode", {
+        periode: currentPeriode.value,
+      })
+      .leftJoinAndSelect("pendaftaran.mahasiswa", "mahasiswa")
+      .where("bimbingan.id = :id", { id: dto.bimbinganId });
+    const bimbingan = await bimbinganQuery.getOne();
+
+    if (!bimbingan) {
+      throw new NotFoundException("Bimbingan tidak ditemukan");
+    }
+
+    if (
+      !user.roles.includes(RoleEnum.ADMIN) &&
+      !bimbingan.pendaftaran.dosenBimbingan
+        .map((d) => d.dosen.id)
+        .includes(user.id)
+    ) {
+      throw new ForbiddenException();
+    }
+
+    await this.bimbinganRepository.update(bimbingan.id, {
+      disahkan: dto.status,
+    });
+
+    return {
+      id: bimbingan.id,
+    };
   }
 }
