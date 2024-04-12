@@ -3,14 +3,18 @@ import {
   Controller,
   Get,
   Param,
+  Patch,
   Post,
   Req,
   UseGuards,
 } from "@nestjs/common";
 import {
+  ApiBadRequestResponse,
   ApiBearerAuth,
   ApiBody,
   ApiCookieAuth,
+  ApiForbiddenResponse,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiResponse,
   ApiTags,
@@ -25,7 +29,10 @@ import {
   ByMhsIdDto,
   CreateBimbinganReqDto,
   CreateBimbinganResDto,
+  GetByBimbinganIdResDto,
   GetByMahasiswaIdResDto,
+  UpdateStatusDto,
+  UpdateStatusResDto,
 } from "./bimbingan.dto";
 import { BimbinganService } from "./bimbingan.service";
 
@@ -38,8 +45,11 @@ export class BimbinganController {
   constructor(private readonly bimbinganService: BimbinganService) {}
 
   @ApiOkResponse({ type: GetByMahasiswaIdResDto })
+  @ApiNotFoundResponse({
+    description: "Tidak ada pendaftaran pada periode sekarang",
+  })
   @Roles(RoleEnum.S2_PEMBIMBING, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)
-  @Get("/:mahasiswaId")
+  @Get("/mahasiswa/:mahasiswaId")
   async getByMahasiswaId(
     @Param() param: ByMhsIdDto,
     @Req() request: Request,
@@ -51,6 +61,9 @@ export class BimbinganController {
   }
 
   @ApiOkResponse({ type: GetByMahasiswaIdResDto })
+  @ApiNotFoundResponse({
+    description: "Tidak ada pendaftaran pada periode sekarang",
+  })
   @Roles(RoleEnum.S2_MAHASISWA)
   @Get("/")
   async getOwnBimbingan(
@@ -62,15 +75,54 @@ export class BimbinganController {
     );
   }
 
-  // TODO handle file upload
   @ApiResponse({ status: 201, type: CreateBimbinganResDto })
+  @ApiBadRequestResponse({
+    description:
+      "Waktu bimbingan lebih dari hari ini atau bimbingan berikutnya sebelum waktu bimbingan yang dimasukkan",
+  })
+  @ApiNotFoundResponse({
+    description: "Tidak ada pendaftaran pada periode sekarang",
+  })
   @Roles(RoleEnum.S2_MAHASISWA)
   @ApiBody({ type: CreateBimbinganReqDto })
   @Post("/")
-  async getBimbinganLogs(
+  async createBimbinganLog(
     @Req() request: Request,
     @Body() body: CreateBimbinganReqDto,
   ): Promise<CreateBimbinganResDto> {
     return this.bimbinganService.create((request.user as AuthDto).id, body);
+  }
+
+  @ApiOkResponse({ type: UpdateStatusResDto })
+  @ApiNotFoundResponse({
+    description: "Bimbingan tidak ditemukan",
+  })
+  @ApiForbiddenResponse({
+    description: "Anda tidak memiliki akses untuk mengubah status bimbingan",
+  })
+  @Roles(RoleEnum.S2_PEMBIMBING, RoleEnum.ADMIN)
+  @ApiBody({ type: UpdateStatusDto })
+  @Patch("/pengesahan")
+  async updateStatus(
+    @Req() request: Request,
+    @Body() body: UpdateStatusDto,
+  ): Promise<UpdateStatusResDto> {
+    return this.bimbinganService.updateStatus(request.user as AuthDto, body);
+  }
+
+  @ApiOkResponse({ type: GetByBimbinganIdResDto })
+  @ApiNotFoundResponse({
+    description: "Bimbingan tidak ditemukan",
+  })
+  @Roles(RoleEnum.S2_PEMBIMBING, RoleEnum.ADMIN)
+  @Get("/:bimbinganId")
+  async getByBimbinganId(
+    @Req() request: Request,
+    @Param("bimbinganId") bimbinganId: string,
+  ): Promise<GetByBimbinganIdResDto> {
+    return this.bimbinganService.getByBimbinganId(
+      request.user as AuthDto,
+      bimbinganId,
+    );
   }
 }
