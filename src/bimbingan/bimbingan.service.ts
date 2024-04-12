@@ -19,6 +19,7 @@ import { Repository } from "typeorm";
 import {
   CreateBimbinganReqDto,
   CreateBimbinganResDto,
+  GetByBimbinganIdResDto,
   GetByMahasiswaIdResDto,
   UpdateStatusDto,
   UpdateStatusResDto,
@@ -176,6 +177,21 @@ export class BimbinganService {
     user: AuthDto,
     dto: UpdateStatusDto,
   ): Promise<UpdateStatusResDto> {
+    const bimbingan = await this.getByBimbinganId(user, dto.bimbinganId);
+
+    await this.bimbinganRepository.update(bimbingan.id, {
+      disahkan: dto.status,
+    });
+
+    return {
+      id: bimbingan.id,
+    };
+  }
+
+  async getByBimbinganId(
+    user: AuthDto,
+    bimbinganId: string,
+  ): Promise<GetByBimbinganIdResDto> {
     const currentPeriode = await this.konfigurasiRepository.findOne({
       where: { key: process.env.KONF_PERIODE_KEY },
     });
@@ -185,11 +201,12 @@ export class BimbinganService {
       .leftJoinAndSelect("bimbingan.pendaftaran", "pendaftaran")
       .leftJoinAndSelect("pendaftaran.dosenBimbingan", "dosenBimbingan")
       .leftJoinAndSelect("dosenBimbingan.dosen", "dosen")
+      .leftJoinAndSelect("bimbingan.berkas", "berkas")
       .leftJoin("pendaftaran.topik", "topik", "topik.periode = :periode", {
         periode: currentPeriode.value,
       })
       .leftJoinAndSelect("pendaftaran.mahasiswa", "mahasiswa")
-      .where("bimbingan.id = :id", { id: dto.bimbinganId });
+      .where("bimbingan.id = :id", { id: bimbinganId });
     const bimbingan = await bimbinganQuery.getOne();
 
     if (!bimbingan) {
@@ -205,12 +222,24 @@ export class BimbinganService {
       throw new ForbiddenException();
     }
 
-    await this.bimbinganRepository.update(bimbingan.id, {
-      disahkan: dto.status,
-    });
+    if (
+      !user.roles.includes(RoleEnum.ADMIN) &&
+      !bimbingan.pendaftaran.dosenBimbingan
+        .map((d) => d.dosen.id)
+        .includes(user.id)
+    ) {
+      throw new ForbiddenException();
+    }
 
     return {
       id: bimbingan.id,
+      waktuBimbingan: bimbingan.waktuBimbingan,
+      laporanKemajuan: bimbingan.laporanKemajuan,
+      todo: bimbingan.todo,
+      bimbinganBerikutnya: bimbingan.bimbinganBerikutnya,
+      disahkan: bimbingan.disahkan,
+      berkas: bimbingan.berkas,
+      jalurPilihan: bimbingan.pendaftaran.jalurPilihan,
     };
   }
 }

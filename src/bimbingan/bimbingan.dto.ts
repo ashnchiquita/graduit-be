@@ -7,11 +7,19 @@ import {
   IsUUID,
   ValidateNested,
 } from "@nestjs/class-validator";
-import { ApiProperty, PickType } from "@nestjs/swagger";
+import {
+  ApiProperty,
+  IntersectionType,
+  OmitType,
+  PickType,
+} from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { BerkasBimbingan } from "src/entities/berkasBimbingan";
 import { Bimbingan } from "src/entities/bimbingan.entity";
-import { JalurEnum } from "src/entities/pendaftaranTesis.entity";
+import {
+  JalurEnum,
+  PendaftaranTesis,
+} from "src/entities/pendaftaranTesis.entity";
 import { Pengguna } from "src/entities/pengguna.entity";
 import { Topik } from "src/entities/topik.entity";
 
@@ -88,3 +96,8 @@ export class UpdateStatusResDto {
   @ApiProperty({ example: "550e8400-e29b-41d4-a716-446655440000" })
   id: string;
 }
+
+export class GetByBimbinganIdResDto extends IntersectionType(
+  OmitType(Bimbingan, ["pendaftaran"] as const),
+  PickType(PendaftaranTesis, ["jalurPilihan"] as const),
+) {}
