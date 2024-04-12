@@ -24,12 +24,14 @@ import { Roles } from "src/middlewares/roles.decorator";
 import { RolesGuard } from "src/middlewares/roles.guard";
 import {
   CreateBulkTopikDto,
+  CreateRespDto,
   CreateTopikDto,
   GetAllRespDto,
   OmittedTopik,
   TopikParamDto,
   TopikQueryDto,
   UpdateTopikDto,
+  createBulkRespDto,
 } from "./alokasi-topik.dto";
 import { AlokasiTopikService } from "./alokasi-topik.service";
 
@@ -44,6 +46,7 @@ export class AlokasiTopikController {
     private konfService: KonfigurasiService,
   ) {}
 
+  @ApiOkResponse({ type: CreateRespDto })
   @Roles(RoleEnum.S2_TIM_TESIS, RoleEnum.ADMIN)
   @Post()
   async create(@Body() createDto: CreateTopikDto) {
@@ -56,6 +59,7 @@ export class AlokasiTopikController {
     return await this.alokasiTopikService.create({ ...createDto, periode });
   }
 
+  @ApiOkResponse({ type: createBulkRespDto })
   @Roles(RoleEnum.S2_TIM_TESIS, RoleEnum.ADMIN)
   @Post("/bulk")
   async createBulk(@Body() createDto: CreateBulkTopikDto) {

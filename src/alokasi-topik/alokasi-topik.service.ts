@@ -5,25 +5,36 @@ import { Topik } from "src/entities/topik.entity";
 import { ArrayContains, Like, Repository } from "typeorm";
 import {
   CreateBulkTopikDto,
+  CreateRespDto,
   CreateTopikDto,
   GetAllRespDto,
   UpdateTopikDto,
+  createBulkRespDto,
 } from "./alokasi-topik.dto";
 
 @Injectable()
 export class AlokasiTopikService {
   constructor(@InjectRepository(Topik) private topikRepo: Repository<Topik>) {}
 
-  async create(createDto: CreateTopikDto & { periode: string }) {
-    return await this.topikRepo.insert(createDto);
+  async create(
+    createDto: CreateTopikDto & { periode: string },
+  ): Promise<CreateRespDto> {
+    const ids = (await this.topikRepo.insert(createDto)).identifiers;
+
+    return { id: ids[0].id };
   }
 
-  async createBulk(createDto: CreateBulkTopikDto, periode: string) {
-    await this.topikRepo.insert(
-      createDto.data.map((dto) => ({ ...dto, periode })),
-    );
+  async createBulk(
+    createDto: CreateBulkTopikDto,
+    periode: string,
+  ): Promise<createBulkRespDto> {
+    const ids = (
+      await this.topikRepo.insert(
+        createDto.data.map((dto) => ({ ...dto, periode })),
+      )
+    ).identifiers;
 
-    return { status: "ok" };
+    return { ids: ids.map(({ id }) => id) };
   }
 
   async findById(id: string) {

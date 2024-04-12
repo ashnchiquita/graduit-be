@@ -75,3 +75,13 @@ export class GetAllRespDto {
   @ApiProperty()
   maxPage: number;
 }
+
+export class createBulkRespDto {
+  @ApiProperty()
+  ids: string[];
+}
+
+export class CreateRespDto {
+  @ApiProperty()
+  id: string;
+}
