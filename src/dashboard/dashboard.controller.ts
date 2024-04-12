@@ -6,7 +6,11 @@ import { RoleEnum } from "src/entities/pengguna.entity";
 import { Roles } from "src/middlewares/roles.decorator";
 import { AuthDto } from "src/auth/auth.dto";
 import { Request } from "express";
-import { DashboardDto, JalurStatisticDto } from "./dashboard.dto";
+import {
+  DashboardDto,
+  DashboardMahasiswaResDto,
+  JalurStatisticDto,
+} from "./dashboard.dto";
 import {
   ApiBearerAuth,
   ApiCookieAuth,
@@ -40,9 +44,11 @@ export class DashboardController {
 
   @UseGuards(CustomAuthGuard, RolesGuard)
   @Roles(RoleEnum.S2_MAHASISWA)
-  // @ApiOkResponse({ type: DashboardMahasiswaResDto })
+  @ApiOkResponse({ type: DashboardMahasiswaResDto })
   @Get("/mahasiswa")
-  async getDashboardMahasiswa(@Req() request: Request) {
+  async getDashboardMahasiswa(
+    @Req() request: Request,
+  ): Promise<DashboardMahasiswaResDto> {
     return this.dashboardService.getDashboardMahasiswa(
       (request.user as AuthDto).id,
     );

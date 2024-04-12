@@ -7,6 +7,8 @@ import { Pengguna } from "../entities/pengguna.entity";
 import { Topik } from "../entities/topik.entity";
 import { Konfigurasi } from "src/entities/konfigurasi.entity";
 import { Bimbingan } from "src/entities/bimbingan.entity";
+import { PendaftaranSidsem } from "src/entities/pendaftaranSidsem";
+import { DosenBimbingan } from "src/entities/dosenBimbingan.entity";
 
 @Module({
   imports: [
@@ -16,6 +18,8 @@ import { Bimbingan } from "src/entities/bimbingan.entity";
       Topik,
       Konfigurasi,
       Bimbingan,
+      PendaftaranSidsem,
+      DosenBimbingan,
     ]),
   ],
   controllers: [DashboardController],
