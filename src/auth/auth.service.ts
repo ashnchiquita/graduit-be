@@ -1,7 +1,6 @@
 import { HttpService } from "@nestjs/axios";
 import { HttpException, Injectable } from "@nestjs/common";
 import { AxiosError } from "axios";
-import { Request } from "express";
 import { catchError, firstValueFrom } from "rxjs";
 import { AuthDto } from "src/auth/auth.dto";
 
@@ -9,12 +8,12 @@ import { AuthDto } from "src/auth/auth.dto";
 export class AuthService {
   constructor(private httpService: HttpService) {}
 
-  async validate(req: Request) {
+  async validate(token: string) {
     const user = await firstValueFrom(
       this.httpService
         .get(`${process.env.AUTH_SERVICE_URL}/auth/self`, {
           headers: {
-            Authorization: `Bearer ${req.cookies["gradu-it.access-token"]}`,
+            Authorization: `Bearer ${token}`,
           },
         })
         .pipe(

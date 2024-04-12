@@ -6,21 +6,30 @@ import { RoleEnum } from "src/entities/pengguna.entity";
 import { Roles } from "src/middlewares/roles.decorator";
 import { AuthDto } from "src/auth/auth.dto";
 import { Request } from "express";
-import { DashboardDto, DashboardMahasiswaResDto } from "./dashboard.dto";
-import { ApiOkResponse } from "@nestjs/swagger";
+import { DashboardDto, JalurStatisticDto } from "./dashboard.dto";
+import {
+  ApiBearerAuth,
+  ApiCookieAuth,
+  ApiOkResponse,
+  ApiTags,
+} from "@nestjs/swagger";
 
+@ApiTags("Dashboard")
+@ApiCookieAuth()
+@ApiBearerAuth()
 @Controller("dashboard")
+@UseGuards(CustomAuthGuard, RolesGuard)
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
-  @UseGuards(CustomAuthGuard, RolesGuard)
+  @ApiOkResponse({ type: [DashboardDto] })
   @Roles(RoleEnum.S2_PEMBIMBING)
   @Get("/dosbim")
   async findByPenerimaId(@Req() request: Request): Promise<DashboardDto[]> {
     return this.dashboardService.findByPenerimaId((request.user as AuthDto).id);
   }
 
-  @UseGuards(CustomAuthGuard, RolesGuard)
+  @ApiOkResponse({ type: [JalurStatisticDto] })
   @Roles(RoleEnum.S2_PEMBIMBING)
   @Get("/dosbim/statistics")
   async getStatisticsByJalurPilihan(@Req() request: Request) {
@@ -31,11 +40,9 @@ export class DashboardController {
 
   @UseGuards(CustomAuthGuard, RolesGuard)
   @Roles(RoleEnum.S2_MAHASISWA)
-  @ApiOkResponse({ type: DashboardMahasiswaResDto })
+  // @ApiOkResponse({ type: DashboardMahasiswaResDto })
   @Get("/mahasiswa")
-  async getDashboardMahasiswa(
-    @Req() request: Request,
-  ): Promise<DashboardMahasiswaResDto> {
+  async getDashboardMahasiswa(@Req() request: Request) {
     return this.dashboardService.getDashboardMahasiswa(
       (request.user as AuthDto).id,
     );

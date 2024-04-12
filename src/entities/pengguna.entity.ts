@@ -1,3 +1,8 @@
+import {
+  ApiHideProperty,
+  ApiProperty,
+  ApiPropertyOptional,
+} from "@nestjs/swagger";
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 export enum RoleEnum {
@@ -17,21 +22,27 @@ export enum RoleEnum {
 
 @Entity()
 export class Pengguna {
+  @ApiProperty({ example: "550e8400-e29b-41d4-a716-446655440000" })
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
+  @ApiProperty()
   @Column()
   nama: string;
 
+  @ApiProperty({ example: "13521999@mahasiswa.itb.ac.id" })
   @Column({ type: "text", unique: true })
   email: string;
 
+  @ApiHideProperty()
   @Column({ type: "text", nullable: true })
   password: string;
 
+  @ApiPropertyOptional({ example: "13521999" })
   @Column({ type: "varchar", length: 8, nullable: true })
   nim: string;
 
+  @ApiProperty({ enum: RoleEnum, isArray: true })
   @Column({
     type: "enum",
     enum: RoleEnum,

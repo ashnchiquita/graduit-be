@@ -93,9 +93,9 @@ export class BimbinganService {
     return {
       bimbingan,
       mahasiswa: {
-        ...pendaftaran.mahasiswa,
-        password: undefined,
-        roles: undefined,
+        id: pendaftaran.mahasiswa.id,
+        nama: pendaftaran.mahasiswa.nama,
+        email: pendaftaran.mahasiswa.email,
         jalurPilihan: pendaftaran.jalurPilihan,
       },
       topik: pendaftaran.topik,

@@ -5,11 +5,10 @@ import {
   PendaftaranTesis,
   RegStatus,
 } from "../entities/pendaftaranTesis.entity";
-import { JalurEnum } from "../entities/pendaftaranTesis.entity";
 import { Pengguna } from "../entities/pengguna.entity";
 import { Konfigurasi } from "src/entities/konfigurasi.entity";
-import { DashboardDto, DashboardMahasiswaResDto } from "./dashboard.dto";
 import { Bimbingan } from "src/entities/bimbingan.entity";
+import { DashboardDto, JalurStatisticDto } from "./dashboard.dto";
 
 @Injectable()
 export class DashboardService {
@@ -69,7 +68,7 @@ export class DashboardService {
 
   async getStatisticsByJalurPilihan(
     penerimaId: string,
-  ): Promise<{ jalurPilihan: JalurEnum; count: number }[]> {
+  ): Promise<JalurStatisticDto[]> {
     const [currentPeriode, penerima] = await Promise.all([
       this.konfigurasiRepository.findOne({
         where: { key: process.env.KONF_PERIODE_KEY },
@@ -86,7 +85,7 @@ export class DashboardService {
       .createQueryBuilder("pendaftaranTesis")
       .select("pendaftaranTesis.jalurPilihan", "jalurPilihan")
       .addSelect("COUNT(*)", "count")
-      .leftJoinAndSelect("pendaftaranTesis.topik", "topik")
+      .leftJoin("pendaftaranTesis.topik", "topik")
       .where("pendaftaranTesis.penerima = :penerima", { penerima: penerima.id })
       .andWhere("pendaftaranTesis.status = :status", {
         status: RegStatus.APPROVED,
@@ -97,11 +96,11 @@ export class DashboardService {
         periode: currentPeriode.value,
       })
       .getRawMany();
-    return statistics;
+    return statistics as JalurStatisticDto[];
   }
 
-  async getDashboardMahasiswa() // mahasiswaId: string,
-  : Promise<DashboardMahasiswaResDto> {
+  async getDashboardMahasiswa() {
+    // mahasiswaId: string,
     // const currentPeriode = await this.konfigurasiRepository.findOne({
     //   where: { key: process.env.KONF_PERIODE_KEY },
     // });
