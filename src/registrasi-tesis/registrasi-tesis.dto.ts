@@ -39,13 +39,21 @@ export class RegByMhsParamDto {
   mahasiswaId: string;
 }
 
-export class RegParamDto {
+export class IdDto {
   @IsUUID()
   @ApiProperty()
   id: string;
 }
 
-export class RegQueryDto {
+export class ViewQueryDto {
+  @IsEnum([RoleEnum.S2_PEMBIMBING, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS])
+  @ApiProperty({
+    enum: [RoleEnum.S2_PEMBIMBING, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS],
+  })
+  view: RoleEnum.S2_PEMBIMBING | RoleEnum.ADMIN | RoleEnum.S2_TIM_TESIS;
+}
+
+export class RegQueryDto extends ViewQueryDto {
   @IsOptional()
   @IsNumberString()
   @ApiPropertyOptional()
@@ -75,33 +83,24 @@ export class RegQueryDto {
   @IsEnum(["ASC", "DESC"])
   @ApiPropertyOptional({ enum: ["ASC", "DESC"] })
   sort?: "ASC" | "DESC";
-
-  @IsEnum([RoleEnum.S2_PEMBIMBING, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS])
-  @ApiProperty({
-    enum: [RoleEnum.S2_PEMBIMBING, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS],
-  })
-  view: RoleEnum.S2_PEMBIMBING | RoleEnum.ADMIN | RoleEnum.S2_TIM_TESIS;
-}
-
-export class ViewQueryDto {
-  @IsEnum([RoleEnum.S2_PEMBIMBING, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS])
-  @ApiProperty({
-    enum: [RoleEnum.S2_PEMBIMBING, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS],
-  })
-  view: RoleEnum.S2_PEMBIMBING | RoleEnum.ADMIN | RoleEnum.S2_TIM_TESIS;
 }
 
 export class FindAllNewestRegRespDataDto {
   @ApiProperty()
   pendaftaran_id: string;
+
   @ApiProperty()
   nim: string;
+
   @ApiProperty()
   mahasiswa_nama: string;
+
   @ApiProperty()
   mahasiswa_id: string;
+
   @ApiProperty()
   pembimbing_nama: string;
+
   @ApiProperty()
   status: string;
 }

@@ -4,7 +4,6 @@ import {
   Controller,
   ForbiddenException,
   Get,
-  NotFoundException,
   Param,
   Patch,
   Post,
@@ -27,9 +26,9 @@ import { Roles } from "src/middlewares/roles.decorator";
 import { RolesGuard } from "src/middlewares/roles.guard";
 import {
   FindAllNewestRegRespDto,
+  IdDto,
   RegByMhsParamDto,
   RegDto,
-  RegParamDto,
   RegQueryDto,
   RegStatisticsRespDto,
   UpdateByMhsParamsDto,
@@ -51,10 +50,28 @@ export class RegistrasiTesisController {
   ) {}
 
   @UseGuards(CustomAuthGuard, RolesGuard)
-  @Roles(RoleEnum.S2_MAHASISWA, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)
+  @Roles(
+    RoleEnum.S2_MAHASISWA,
+    RoleEnum.ADMIN,
+    RoleEnum.S2_TIM_TESIS,
+    RoleEnum.S2_PEMBIMBING,
+  )
   @Get("/mahasiswa/:mahasiswaId")
-  findByUserId(@Param() params: RegByMhsParamDto) {
-    return this.registrasiTesisService.findByUserId(params.mahasiswaId);
+  findByUserId(@Param() params: RegByMhsParamDto, @Req() req: Request) {
+    const { id, roles } = req.user as AuthDto;
+    let idPenerima = undefined;
+
+    if (
+      !roles.includes(RoleEnum.ADMIN) ||
+      !roles.includes(RoleEnum.S2_TIM_TESIS)
+    ) {
+      idPenerima = id;
+    }
+
+    return this.registrasiTesisService.findByUserId(
+      params.mahasiswaId,
+      idPenerima,
+    );
   }
 
   @UseGuards(CustomAuthGuard, RolesGuard)
@@ -72,7 +89,6 @@ export class RegistrasiTesisController {
     );
   }
 
-  // Right now only admin & timtesis view is handled (apakah dosen perlu summary juga?)
   @ApiOkResponse({ type: RegStatisticsRespDto })
   @UseGuards(CustomAuthGuard, RolesGuard)
   @Roles(RoleEnum.S2_PEMBIMBING, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)
@@ -128,42 +144,14 @@ export class RegistrasiTesisController {
     });
   }
 
+  @ApiOkResponse({ type: IdDto })
   @UseGuards(CustomAuthGuard, RolesGuard)
-  @Roles(RoleEnum.S2_PEMBIMBING, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)
-  @Get("/:id")
-  async findById(
-    @Req() req: Request,
-    @Param() params: RegParamDto,
-    @Query()
-    query: ViewQueryDto,
-  ) {
-    const { id: idPenerima, roles } = req.user as AuthDto;
-
-    if (!roles.includes(query.view)) {
-      throw new ForbiddenException();
-    }
-
-    const res = await this.registrasiTesisService.findRegById(params.id);
-    if (!res) {
-      throw new NotFoundException();
-    }
-
-    if (
-      query.view === RoleEnum.S2_PEMBIMBING &&
-      res.penerima.id !== idPenerima
-    ) {
-      throw new ForbiddenException();
-    }
-
-    return res;
-  }
-
-  @UseGuards(CustomAuthGuard, RolesGuard)
-  @Roles(RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)
+  @Roles(RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS, RoleEnum.S2_PEMBIMBING)
   @Patch("/:mhsId/interview")
   async updateInterviewDateByMhsId(
     @Param() params: UpdateByMhsParamsDto,
     @Body() body: UpdateInterviewBodyDto,
+    @Req() req: Request,
   ) {
     const periode = await this.konfService.getKonfigurasiByKey(
       process.env.KONF_PERIODE_KEY,
@@ -171,21 +159,34 @@ export class RegistrasiTesisController {
 
     if (!periode) {
       throw new BadRequestException("Periode belum dikonfigurasi.");
+    }
+
+    const { id, roles } = req.user as AuthDto;
+    let idPenerima = undefined;
+
+    if (
+      !roles.includes(RoleEnum.ADMIN) ||
+      !roles.includes(RoleEnum.S2_TIM_TESIS)
+    ) {
+      idPenerima = id;
     }
 
     return await this.registrasiTesisService.updateInterviewDate(
       params.mhsId,
       periode,
       body,
+      idPenerima,
     );
   }
 
+  @ApiOkResponse({ type: IdDto })
   @UseGuards(CustomAuthGuard, RolesGuard)
-  @Roles(RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)
+  @Roles(RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS, RoleEnum.S2_PEMBIMBING)
   @Patch("/:mhsId/status")
   async updateStatusByMhsId(
     @Param() params: UpdateByMhsParamsDto,
     @Body() body: UpdateStatusBodyDto,
+    @Req() req: Request,
   ) {
     const periode = await this.konfService.getKonfigurasiByKey(
       process.env.KONF_PERIODE_KEY,
@@ -195,17 +196,29 @@ export class RegistrasiTesisController {
       throw new BadRequestException("Periode belum dikonfigurasi.");
     }
 
+    const { id, roles } = req.user as AuthDto;
+    let idPenerima = undefined;
+
+    if (
+      !roles.includes(RoleEnum.ADMIN) ||
+      !roles.includes(RoleEnum.S2_TIM_TESIS)
+    ) {
+      idPenerima = id;
+    }
+
     return await this.registrasiTesisService.updateStatus(
       params.mhsId,
       periode,
       body,
+      idPenerima,
     );
   }
 
+  @ApiOkResponse({ type: IdDto })
   @UseGuards(CustomAuthGuard, RolesGuard)
   @Roles(RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)
   @Patch("/:mhsId/pembimbing")
-  async udpatePembimbingListByMhsId(
+  async updatePembimbingListByMhsId(
     @Param() params: UpdateByMhsParamsDto,
     @Body() body: UpdatePembimbingBodyDto,
   ) {
