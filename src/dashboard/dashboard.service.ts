@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Brackets, Repository } from "typeorm";
 import {
   PendaftaranTesis,
   RegStatus,
@@ -26,26 +26,37 @@ export class DashboardService {
     });
   }
 
-  async findByPenerimaId(penerimaId: string): Promise<DashboardDto[]> {
+  async findByPenerimaId(
+    penerimaId: string,
+    search?: string,
+  ): Promise<DashboardDto[]> {
     const currentPeriode = await this.konfigurasiRepository.findOne({
       where: { key: process.env.KONF_PERIODE_KEY },
     });
 
-    const pendaftaranTesis = await this.pendaftaranTesisRepository.find({
-      where: {
+    let pendaftaranTesisQuery = this.pendaftaranTesisRepository
+      .createQueryBuilder("pendaftaranTesis")
+      .leftJoinAndSelect("pendaftaranTesis.mahasiswa", "mahasiswa")
+      .leftJoinAndSelect("pendaftaranTesis.topik", "topik")
+      .where("pendaftaranTesis.penerimaId = :penerima", {
+        penerima: penerimaId,
+      })
+      .andWhere("pendaftaranTesis.status = :status", {
         status: RegStatus.APPROVED,
-        penerima: {
-          id: penerimaId,
-        },
-        topik: {
-          periode: currentPeriode.value,
-        },
-      },
-      relations: {
-        mahasiswa: true,
-        topik: true,
-      },
-    });
+      })
+      .andWhere("topik.periode = :periode", { periode: currentPeriode.value });
+
+    if (search) {
+      pendaftaranTesisQuery = pendaftaranTesisQuery.andWhere(
+        new Brackets((qb) => {
+          qb.where("mahasiswa.nama ILIKE :search", {
+            search: `%${search}%`,
+          }).orWhere("mahasiswa.nim ILIKE :search", { search: `%${search}%` });
+        }),
+      );
+    }
+    const pendaftaranTesis = await pendaftaranTesisQuery.getMany();
+    console.log(pendaftaranTesis);
 
     return pendaftaranTesis.map((pendaftaran) => ({
       id: pendaftaran.id,
