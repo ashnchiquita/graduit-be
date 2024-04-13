@@ -91,7 +91,7 @@ export class KelasController {
 
   @Roles(RoleEnum.S2_TIM_TESIS, RoleEnum.ADMIN)
   @ApiOkResponse({ type: GetNextNomorResDto })
-  @Get("/:kodeMatkul/next-nomor")
+  @Get("/next-nomor/:kodeMatkul")
   async getNextNomor(
     @Param("kodeMatkul") kodeMatkul: string,
   ): Promise<GetNextNomorResDto> {
