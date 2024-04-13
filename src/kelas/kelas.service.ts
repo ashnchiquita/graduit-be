@@ -1,10 +1,22 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Kelas } from "src/entities/kelas.entity";
 import { Repository } from "typeorm";
-import { CreateKelasDto, GetListKelasRespDto } from "./kelas.dto";
+import {
+  CreateKelasDto,
+  DeleteKelasDto,
+  GetListKelasRespDto,
+  IdKelasResDto,
+  UpdateKelasDto,
+} from "./kelas.dto";
 import { KonfigurasiService } from "src/konfigurasi/konfigurasi.service";
 import { MataKuliah } from "src/entities/mataKuliah";
+import { CARD_COLORS } from "./kelas.constant";
 
 @Injectable()
 export class KelasService {
@@ -70,7 +82,7 @@ export class KelasService {
     return mapped;
   }
 
-  async create(createDto: CreateKelasDto) {
+  async create(createDto: CreateKelasDto): Promise<IdKelasResDto> {
     const currPeriod = await this.konfService.getKonfigurasiByKey(
       process.env.KONF_PERIODE_KEY,
     );
@@ -79,29 +91,137 @@ export class KelasService {
       throw new BadRequestException("Periode belum dikonfigurasi");
     }
 
-    const maxClass = await this.kelasRepo.findOne({
-      where: {
-        mataKuliahKode: createDto.mataKuliahKode,
-        periode: currPeriod,
-      },
-      order: {
-        nomor: "DESC",
-      },
-    });
+    let nomor = createDto.nomor;
+    if (nomor) {
+      const checkClassQueary = this.kelasRepo
+        .createQueryBuilder("kelas")
+        .where("kelas.nomor = :nomor", { nomor })
+        .andWhere("kelas.mataKuliahKode = :mataKuliahKode", {
+          mataKuliahKode: createDto.mataKuliahKode,
+        })
+        .andWhere("kelas.periode = :periode", { periode: currPeriod });
 
-    const num = maxClass ? maxClass.nomor + 1 : 1;
+      const checkClass = await checkClassQueary.getOne();
 
-    return await this.kelasRepo.insert({
+      if (checkClass) {
+        throw new BadRequestException(`Kelas dengan nomor ${nomor} sudah ada`);
+      }
+    } else {
+      const maxClass = await this.kelasRepo.findOne({
+        where: {
+          mataKuliahKode: createDto.mataKuliahKode,
+          periode: currPeriod,
+        },
+        order: {
+          nomor: "DESC",
+        },
+      });
+
+      nomor = maxClass ? maxClass.nomor + 1 : 1;
+    }
+
+    const colorIdx = Math.floor(Math.random() * CARD_COLORS.length);
+    const kelas = this.kelasRepo.create({
       ...createDto,
-      nomor: num,
+      nomor,
       periode: currPeriod,
-      warna: "gray", // TODO: random color, maybe need some adjustment for tailwind dynamic binding
+      warna: CARD_COLORS[colorIdx],
     });
+
+    try {
+      await this.kelasRepo.save(kelas);
+    } catch {
+      throw new InternalServerErrorException("Gagal membuat kelas baru");
+    }
+
+    return {
+      id: kelas.id,
+    };
   }
 
   async createMatkul(createDto: MataKuliah) {
     await this.mataKuliahRepo.insert(createDto);
 
     return { kode: createDto.kode };
+  }
+
+  async updateOrCreate(dto: UpdateKelasDto): Promise<IdKelasResDto> {
+    const currPeriod = await this.konfService.getKonfigurasiByKey(
+      process.env.KONF_PERIODE_KEY,
+    );
+
+    if (!currPeriod) {
+      throw new BadRequestException("Periode belum dikonfigurasi");
+    }
+
+    if (!dto.id) {
+      // Create kelas
+      if (!dto.mataKuliahKode) {
+        throw new BadRequestException("Kode mata kuliah tidak boleh kosong");
+      }
+
+      return await this.create({
+        mataKuliahKode: dto.mataKuliahKode,
+        nomor: dto.nomor,
+      });
+    } else {
+      // Update kelas
+      const kelasQuery = this.kelasRepo
+        .createQueryBuilder("kelas")
+        .where("kelas.id = :id", { id: dto.id })
+        .andWhere("kelas.periode = :periode", { periode: currPeriod });
+
+      if (dto.nomor) {
+        kelasQuery.andWhere("kelas.nomor = :nomor", { nomor: dto.nomor });
+      }
+
+      const kelas = await kelasQuery.getOne();
+
+      if (!kelas) {
+        throw new NotFoundException("Kelas tidak ditemukan");
+      }
+
+      try {
+        await this.kelasRepo.update(kelas.id, dto);
+      } catch {
+        throw new InternalServerErrorException("Gagal memperbarui kelas");
+      }
+
+      return {
+        id: kelas.id,
+      };
+    }
+  }
+
+  async delete(dto: DeleteKelasDto): Promise<Kelas> {
+    const currPeriod = await this.konfService.getKonfigurasiByKey(
+      process.env.KONF_PERIODE_KEY,
+    );
+
+    if (!currPeriod) {
+      throw new BadRequestException("Periode belum dikonfigurasi");
+    }
+
+    const kelasQuery = this.kelasRepo
+      .createQueryBuilder("kelas")
+      .where("kelas.nomor = :nomor", { nomor: dto.nomor })
+      .andWhere("kelas.mataKuliahKode = :mataKuliahKode", {
+        mataKuliahKode: dto.mataKuliahKode,
+      })
+      .andWhere("kelas.periode = :periode", { periode: currPeriod });
+
+    const kelas = await kelasQuery.getOne();
+
+    if (!kelas) {
+      throw new BadRequestException("Kelas tidak ditemukan");
+    }
+
+    try {
+      await this.kelasRepo.delete(kelas.id);
+    } catch {
+      throw new InternalServerErrorException("Gagal menghapus kelas");
+    }
+
+    return kelas;
   }
 }

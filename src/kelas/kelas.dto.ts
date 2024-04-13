@@ -1,11 +1,30 @@
-import { ApiProperty, PickType } from "@nestjs/swagger";
-import { IsEnum } from "class-validator";
+import { IsEnum, IsOptional, IsPositive } from "@nestjs/class-validator";
+import {
+  ApiProperty,
+  PickType,
+  PartialType,
+  ApiPropertyOptional,
+} from "@nestjs/swagger";
 import { Kelas } from "src/entities/kelas.entity";
 import { MataKuliah } from "src/entities/mataKuliah";
 import { RoleEnum } from "src/entities/pengguna.entity";
 
 export class CreateKelasDto extends PickType(Kelas, [
   "mataKuliahKode",
+] as const) {
+  @ApiPropertyOptional({ example: 1 })
+  @IsOptional()
+  @IsPositive()
+  nomor: number;
+}
+
+export class UpdateKelasDto extends PartialType(Kelas) {}
+
+export class IdKelasResDto extends PickType(Kelas, ["id"] as const) {}
+
+export class DeleteKelasDto extends PickType(Kelas, [
+  "mataKuliahKode",
+  "nomor",
 ] as const) {}
 
 export class GetKelasQueryDto {
