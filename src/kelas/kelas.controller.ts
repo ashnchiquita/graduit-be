@@ -4,6 +4,7 @@ import {
   Delete,
   ForbiddenException,
   Get,
+  Param,
   Post,
   Put,
   Query,
@@ -15,6 +16,7 @@ import {
   DeleteKelasDto,
   GetKelasQueryDto,
   GetListKelasRespDto,
+  GetNextNomorResDto,
   IdKelasResDto,
   KodeRespDto,
   UpdateKelasDto,
@@ -73,7 +75,31 @@ export class KelasController {
       idMahasiswa = id;
     }
 
-    return await this.kelasServ.getListKelas(idMahasiswa, idPengajar);
+    return await this.kelasServ.getListKelas(
+      idMahasiswa,
+      idPengajar,
+      query.kodeMatkul,
+      query.search,
+    );
+  }
+
+  @ApiOkResponse({ type: MataKuliah, isArray: true })
+  @Get("/mata-kuliah")
+  async getAllMatkul() {
+    return await this.kelasServ.getAllMatkul();
+  }
+
+  @Roles(RoleEnum.S2_TIM_TESIS, RoleEnum.ADMIN)
+  @ApiOkResponse({ type: GetNextNomorResDto })
+  @Get("/:kodeMatkul/next-nomor")
+  async getNextNomor(
+    @Param("kodeMatkul") kodeMatkul: string,
+  ): Promise<GetNextNomorResDto> {
+    const nomor = await this.kelasServ.getNextNomorKelas(kodeMatkul);
+
+    return {
+      nomor,
+    };
   }
 
   @Roles(RoleEnum.S2_TIM_TESIS, RoleEnum.ADMIN)

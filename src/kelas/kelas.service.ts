@@ -6,7 +6,7 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Kelas } from "src/entities/kelas.entity";
-import { Repository } from "typeorm";
+import { Brackets, Repository } from "typeorm";
 import {
   CreateKelasDto,
   DeleteKelasDto,
@@ -28,7 +28,12 @@ export class KelasService {
     private konfService: KonfigurasiService,
   ) {}
 
-  async getListKelas(idMahasiswa?: string, idPengajar?: string) {
+  async getListKelas(
+    idMahasiswa?: string,
+    idPengajar?: string,
+    kodeMatkul?: string,
+    search?: string,
+  ) {
     const currPeriod = await this.konfService.getKonfigurasiByKey(
       process.env.KONF_PERIODE_KEY,
     );
@@ -66,6 +71,24 @@ export class KelasService {
         .andWhere("pengajar.pengajarId = :idPengajar", {
           idPengajar,
         });
+    }
+
+    if (kodeMatkul) {
+      baseQuery = baseQuery.andWhere("mataKuliah.kode = :kodeMatkul", {
+        kodeMatkul,
+      });
+    }
+
+    if (search) {
+      baseQuery = baseQuery.andWhere(
+        new Brackets((qb) => {
+          qb.where("mataKuliah.kode ILIKE :search", {
+            search: `%${search}%`,
+          }).orWhere("mataKuliah.nama ILIKE :search", {
+            search: `%${search}%`,
+          });
+        }),
+      );
     }
 
     const result = await baseQuery
@@ -107,17 +130,7 @@ export class KelasService {
         throw new BadRequestException(`Kelas dengan nomor ${nomor} sudah ada`);
       }
     } else {
-      const maxClass = await this.kelasRepo.findOne({
-        where: {
-          mataKuliahKode: createDto.mataKuliahKode,
-          periode: currPeriod,
-        },
-        order: {
-          nomor: "DESC",
-        },
-      });
-
-      nomor = maxClass ? maxClass.nomor + 1 : 1;
+      nomor = await this.getNextNomorKelas(createDto.mataKuliahKode);
     }
 
     const colorIdx = Math.floor(Math.random() * CARD_COLORS.length);
@@ -223,5 +236,31 @@ export class KelasService {
     }
 
     return kelas;
+  }
+
+  async getAllMatkul(): Promise<MataKuliah[]> {
+    return await this.mataKuliahRepo.find();
+  }
+
+  async getNextNomorKelas(kodeMatkul: string): Promise<number> {
+    const currPeriod = await this.konfService.getKonfigurasiByKey(
+      process.env.KONF_PERIODE_KEY,
+    );
+
+    if (!currPeriod) {
+      throw new BadRequestException("Periode belum dikonfigurasi");
+    }
+
+    const maxClass = await this.kelasRepo.findOne({
+      where: {
+        mataKuliahKode: kodeMatkul,
+        periode: currPeriod,
+      },
+      order: {
+        nomor: "DESC",
+      },
+    });
+
+    return maxClass ? maxClass.nomor + 1 : 1;
   }
 }
