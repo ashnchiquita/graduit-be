@@ -88,7 +88,7 @@ export class KelasController {
     return await this.kelasServ.getKelasPengguna("MAHASISWA");
   }
 
-  @ApiOkResponse({ type: MessageResDto })
+  @ApiCreatedResponse({ type: MessageResDto })
   @ApiInternalServerErrorResponse({ description: "Gagal menambahkan kelas" })
   @Post("/mahasiswa/assign")
   async assignKelasMahasiswa(
@@ -113,7 +113,7 @@ export class KelasController {
     return await this.kelasServ.getKelasPengguna("DOSEN");
   }
 
-  @ApiOkResponse({ type: MessageResDto })
+  @ApiCreatedResponse({ type: MessageResDto })
   @ApiInternalServerErrorResponse({ description: "Gagal menambahkan kelas" })
   @Post("/dosen/assign")
   async assignKelasDosen(@Body() body: AssignKelasDto): Promise<MessageResDto> {
