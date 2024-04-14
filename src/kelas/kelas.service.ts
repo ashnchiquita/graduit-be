@@ -1,7 +1,11 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Kelas } from "src/entities/kelas.entity";
-import { Brackets, Repository } from "typeorm";
+import { Brackets, DataSource, Repository } from "typeorm";
 import {
   AssignKelasDto,
   CreateKelasDto,
@@ -29,6 +33,7 @@ export class KelasService {
     private mahasiswaKelasRepo: Repository<MahasiswaKelas>,
     @InjectRepository(PengajarKelas)
     private pengajarKelasRepo: Repository<PengajarKelas>,
+    private datasource: DataSource,
   ) {}
 
   async getListKelas(idMahasiswa?: string, idPengajar?: string) {
@@ -157,13 +162,15 @@ export class KelasService {
     }
 
     const mhs = await penggunaQuery.getMany();
-    console.log(mhs);
+
     return mhs.map((m) => ({
-      ...m,
+      id: m.id,
+      nama: m.nama,
+      email: m.email,
       kelas: m?.[relation].map((k) => ({
         id: k.kelas.id,
         nomor: k.kelas.nomor,
-        mata_kuliah: k.kelas.mataKuliahKode,
+        mataKuliahKode: k.kelas.mataKuliahKode,
       })),
     }));
   }
@@ -177,25 +184,41 @@ export class KelasService {
       throw new BadRequestException("Periode belum dikonfigurasi");
     }
 
-    for (const mhsId of dto.penggunaIds) {
-      const currKelasQuery = this.mahasiswaKelasRepo
-        .createQueryBuilder("mahasiswaKelas")
-        .leftJoinAndSelect("mahasiswaKelas.kelas", "kelas")
-        .where("mahasiswaKelas.mahasiswaId = :mhsId", { mhsId })
-        .andWhere("kelas.periode = :periode", { periode: currPeriod });
+    const queryRunner = this.datasource.createQueryRunner();
 
-      const currKelas = (await currKelasQuery.getMany()).map((k) => k.kelasId);
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      for (const mhsId of dto.penggunaIds) {
+        const currKelasQuery = queryRunner.manager
+          .createQueryBuilder(MahasiswaKelas, "mahasiswaKelas")
+          .leftJoinAndSelect("mahasiswaKelas.kelas", "kelas")
+          .where("mahasiswaKelas.mahasiswaId = :mhsId", { mhsId })
+          .andWhere("kelas.periode = :periode", { periode: currPeriod });
 
-      for (const kelasId of dto.kelasIds) {
-        if (currKelas.includes(kelasId)) {
-          continue;
+        const currKelas = (await currKelasQuery.getMany()).map(
+          (k) => k.kelasId,
+        );
+
+        for (const kelasId of dto.kelasIds) {
+          if (currKelas.includes(kelasId)) {
+            continue;
+          }
+
+          await queryRunner.manager.insert(MahasiswaKelas, {
+            mahasiswaId: mhsId,
+            kelasId,
+          });
         }
-
-        await this.mahasiswaKelasRepo.insert({
-          mahasiswaId: mhsId,
-          kelasId,
-        });
       }
+
+      await queryRunner.commitTransaction();
+    } catch {
+      await queryRunner.rollbackTransaction();
+
+      throw new InternalServerErrorException("Gagal menambahkan kelas");
+    } finally {
+      await queryRunner.release();
     }
 
     return { message: "Kelas berhasil diassign" };
@@ -210,21 +233,37 @@ export class KelasService {
       throw new BadRequestException("Periode belum dikonfigurasi");
     }
 
-    for (const mhsId of dto.penggunaIds) {
-      const currKelasQuery = this.mahasiswaKelasRepo
-        .createQueryBuilder("mahasiswaKelas")
-        .leftJoinAndSelect("mahasiswaKelas.kelas", "kelas")
-        .where("mahasiswaKelas.mahasiswaId = :mhsId", { mhsId })
-        .andWhere("kelas.periode = :periode", { periode: currPeriod });
+    const queryRunner = this.datasource.createQueryRunner();
 
-      const currKelas = (await currKelasQuery.getMany()).map((k) => k.kelasId);
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      for (const mhsId of dto.penggunaIds) {
+        const currKelasQuery = queryRunner.manager
+          .createQueryBuilder(MahasiswaKelas, "mahasiswaKelas")
+          .leftJoinAndSelect("mahasiswaKelas.kelas", "kelas")
+          .where("mahasiswaKelas.mahasiswaId = :mhsId", { mhsId })
+          .andWhere("kelas.periode = :periode", { periode: currPeriod });
 
-      for (const kelasId of currKelas) {
-        await this.mahasiswaKelasRepo.delete({
-          mahasiswaId: mhsId,
-          kelasId,
-        });
+        const currKelas = (await currKelasQuery.getMany()).map(
+          (k) => k.kelasId,
+        );
+
+        for (const kelasId of currKelas) {
+          await queryRunner.manager.delete(MahasiswaKelas, {
+            mahasiswaId: mhsId,
+            kelasId,
+          });
+        }
       }
+
+      await queryRunner.commitTransaction();
+    } catch {
+      await queryRunner.rollbackTransaction();
+
+      throw new InternalServerErrorException("Gagal menghapus kelas");
+    } finally {
+      await queryRunner.release();
     }
 
     return { message: "Kelas berhasil dihapus" };
@@ -239,25 +278,41 @@ export class KelasService {
       throw new BadRequestException("Periode belum dikonfigurasi");
     }
 
-    for (const dosenId of dto.penggunaIds) {
-      const currKelasQuery = this.pengajarKelasRepo
-        .createQueryBuilder("pengajarKelas")
-        .leftJoinAndSelect("pengajarKelas.kelas", "kelas")
-        .where("pengajarKelas.pengajarId = :dosenId", { dosenId })
-        .andWhere("kelas.periode = :periode", { periode: currPeriod });
+    const queryRunner = this.datasource.createQueryRunner();
 
-      const currKelas = (await currKelasQuery.getMany()).map((k) => k.kelasId);
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      for (const dosenId of dto.penggunaIds) {
+        const currKelasQuery = queryRunner.manager
+          .createQueryBuilder(PengajarKelas, "pengajarKelas")
+          .leftJoinAndSelect("pengajarKelas.kelas", "kelas")
+          .where("pengajarKelas.pengajarId = :dosenId", { dosenId })
+          .andWhere("kelas.periode = :periode", { periode: currPeriod });
 
-      for (const kelasId of dto.kelasIds) {
-        if (currKelas.includes(kelasId)) {
-          continue;
+        const currKelas = (await currKelasQuery.getMany()).map(
+          (k) => k.kelasId,
+        );
+
+        for (const kelasId of dto.kelasIds) {
+          if (currKelas.includes(kelasId)) {
+            continue;
+          }
+
+          await queryRunner.manager.insert(PengajarKelas, {
+            pengajarId: dosenId,
+            kelasId,
+          });
         }
-
-        await this.pengajarKelasRepo.insert({
-          pengajarId: dosenId,
-          kelasId,
-        });
       }
+
+      await queryRunner.commitTransaction();
+    } catch {
+      await queryRunner.rollbackTransaction();
+
+      throw new InternalServerErrorException("Gagal menambahkan kelas");
+    } finally {
+      await queryRunner.release();
     }
 
     return { message: "Kelas berhasil diassign" };
@@ -272,21 +327,36 @@ export class KelasService {
       throw new BadRequestException("Periode belum dikonfigurasi");
     }
 
-    for (const dosenId of dto.penggunaIds) {
-      const currKelasQuery = this.pengajarKelasRepo
-        .createQueryBuilder("pengajarKelas")
-        .leftJoinAndSelect("pengajarKelas.kelas", "kelas")
-        .where("pengajarKelas.pengajarId = :dosenId", { dosenId })
-        .andWhere("kelas.periode = :periode", { periode: currPeriod });
+    const queryRunner = this.datasource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      for (const dosenId of dto.penggunaIds) {
+        const currKelasQuery = queryRunner.manager
+          .createQueryBuilder(PengajarKelas, "pengajarKelas")
+          .leftJoinAndSelect("pengajarKelas.kelas", "kelas")
+          .where("pengajarKelas.pengajarId = :dosenId", { dosenId })
+          .andWhere("kelas.periode = :periode", { periode: currPeriod });
 
-      const currKelas = (await currKelasQuery.getMany()).map((k) => k.kelasId);
+        const currKelas = (await currKelasQuery.getMany()).map(
+          (k) => k.kelasId,
+        );
 
-      for (const kelasId of currKelas) {
-        await this.pengajarKelasRepo.delete({
-          pengajarId: dosenId,
-          kelasId,
-        });
+        for (const kelasId of currKelas) {
+          await queryRunner.manager.delete(PengajarKelas, {
+            pengajarId: dosenId,
+            kelasId,
+          });
+        }
       }
+
+      await queryRunner.commitTransaction();
+    } catch {
+      await queryRunner.rollbackTransaction();
+
+      throw new InternalServerErrorException("Gagal menghapus kelas");
+    } finally {
+      await queryRunner.release();
     }
 
     return { message: "Kelas berhasil dihapus" };

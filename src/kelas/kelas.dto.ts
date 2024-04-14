@@ -3,7 +3,7 @@ import { ApiProperty, PickType } from "@nestjs/swagger";
 import { IsEnum } from "class-validator";
 import { Kelas } from "src/entities/kelas.entity";
 import { MataKuliah } from "src/entities/mataKuliah";
-import { RoleEnum } from "src/entities/pengguna.entity";
+import { Pengguna, RoleEnum } from "src/entities/pengguna.entity";
 
 export class CreateKelasDto extends PickType(Kelas, [
   "mataKuliahKode",
@@ -34,9 +34,11 @@ export class GetListKelasRespDto {
 export class KodeRespDto extends PickType(MataKuliah, ["kode"] as const) {}
 
 export class AssignKelasDto {
+  @ApiProperty()
   @IsUUID("all", { each: true })
   kelasIds: string[];
 
+  @ApiProperty()
   @IsUUID("all", { each: true })
   penggunaIds: string[];
 }
@@ -48,4 +50,19 @@ export class UnassignKelasDto extends PickType(AssignKelasDto, [
 export class MessageResDto {
   @ApiProperty()
   message: string;
+}
+
+class KelasUser extends PickType(Kelas, [
+  "id",
+  "nomor",
+  "mataKuliahKode",
+] as const) {}
+
+export class UserKelasResDto extends PickType(Pengguna, [
+  "id",
+  "nama",
+  "email",
+] as const) {
+  @ApiProperty({ type: [KelasUser] })
+  kelas: KelasUser[];
 }

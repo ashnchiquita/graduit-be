@@ -17,6 +17,7 @@ import {
   KodeRespDto,
   MessageResDto,
   UnassignKelasDto,
+  UserKelasResDto,
 } from "./kelas.dto";
 import { Request } from "express";
 import { AuthDto } from "src/auth/auth.dto";
@@ -25,6 +26,7 @@ import {
   ApiBearerAuth,
   ApiCookieAuth,
   ApiCreatedResponse,
+  ApiInternalServerErrorResponse,
   ApiOkResponse,
   ApiTags,
 } from "@nestjs/swagger";
@@ -79,11 +81,15 @@ export class KelasController {
     return await this.kelasServ.createMatkul(body);
   }
 
+  @Roles(RoleEnum.S2_TIM_TESIS, RoleEnum.ADMIN)
+  @ApiOkResponse({ type: UserKelasResDto, isArray: true })
   @Get("/mahasiswa")
-  async getMahasiswa() {
+  async getMahasiswa(): Promise<UserKelasResDto[]> {
     return await this.kelasServ.getKelasPengguna("MAHASISWA");
   }
 
+  @ApiOkResponse({ type: MessageResDto })
+  @ApiInternalServerErrorResponse({ description: "Gagal menambahkan kelas" })
   @Post("/mahasiswa/assign")
   async assignKelasMahasiswa(
     @Body() body: AssignKelasDto,
@@ -91,10 +97,35 @@ export class KelasController {
     return await this.kelasServ.assignKelasMahasiswa(body);
   }
 
+  @ApiOkResponse({ type: MessageResDto })
+  @ApiInternalServerErrorResponse({ description: "Gagal menghapus kelas" })
   @Delete("/mahasiswa/unassign")
   async unassignKelasMahasiswa(
     @Body() body: UnassignKelasDto,
   ): Promise<MessageResDto> {
     return await this.kelasServ.unassignKelasMahasiswa(body);
+  }
+
+  @Roles(RoleEnum.S2_TIM_TESIS, RoleEnum.ADMIN)
+  @ApiOkResponse({ type: UserKelasResDto, isArray: true })
+  @Get("/dosen")
+  async getDosen(): Promise<UserKelasResDto[]> {
+    return await this.kelasServ.getKelasPengguna("DOSEN");
+  }
+
+  @ApiOkResponse({ type: MessageResDto })
+  @ApiInternalServerErrorResponse({ description: "Gagal menambahkan kelas" })
+  @Post("/dosen/assign")
+  async assignKelasDosen(@Body() body: AssignKelasDto): Promise<MessageResDto> {
+    return await this.kelasServ.assignKelasDosen(body);
+  }
+
+  @ApiOkResponse({ type: MessageResDto })
+  @ApiInternalServerErrorResponse({ description: "Gagal menghapus kelas" })
+  @Delete("/dosen/unassign")
+  async unassignKelasDosen(
+    @Body() body: UnassignKelasDto,
+  ): Promise<MessageResDto> {
+    return await this.kelasServ.unassignKelasDosen(body);
   }
 }
