@@ -51,21 +51,47 @@ export class RegistrasiTesisController {
 
   @UseGuards(CustomAuthGuard, RolesGuard)
   @Roles(RoleEnum.S2_MAHASISWA, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)
+  @Post()
+  async createTopicRegistration(
+    @Body() topicRegistrationDto: RegDto,
+    @Req() req: Request,
+  ) {
+    const { id } = req.user as AuthDto;
+
+    return this.registrasiTesisService.createTopicRegistration(
+      id,
+      topicRegistrationDto,
+    );
+  }
+
+  @UseGuards(CustomAuthGuard, RolesGuard)
+  @Roles(RoleEnum.S2_MAHASISWA, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)
   @Get("/mahasiswa/:mahasiswaId")
-  findByUserId(@Param() params: RegByMhsParamDto, @Req() req: Request) {
+  async findByUserId(@Param() params: RegByMhsParamDto, @Req() req: Request) {
     const { id, roles } = req.user as AuthDto;
 
     if (
       !roles.includes(RoleEnum.ADMIN) &&
       !roles.includes(RoleEnum.S2_TIM_TESIS)
     ) {
-      // roles only includes RoleEnum.S2_MAHASISWA
+      // roles only include RoleEnum.S2_MAHASISWA
       if (id !== params.mahasiswaId) {
         throw new ForbiddenException();
       }
     }
 
-    return this.registrasiTesisService.findByUserId(params.mahasiswaId);
+    const periode = await this.konfService.getKonfigurasiByKey(
+      process.env.KONF_PERIODE_KEY,
+    );
+
+    if (!periode) {
+      throw new BadRequestException("Periode belum dikonfigurasi.");
+    }
+
+    return this.registrasiTesisService.findByUserId(
+      params.mahasiswaId,
+      periode,
+    );
   }
 
   @UseGuards(CustomAuthGuard, RolesGuard)
@@ -89,21 +115,6 @@ export class RegistrasiTesisController {
       params.mahasiswaId,
       idPenerima,
       periode,
-    );
-  }
-
-  @UseGuards(CustomAuthGuard, RolesGuard)
-  @Roles(RoleEnum.S2_MAHASISWA, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)
-  @Post()
-  async createTopicRegistration(
-    @Body() topicRegistrationDto: RegDto,
-    @Req() req: Request,
-  ) {
-    const { id } = req.user as AuthDto;
-
-    return this.registrasiTesisService.createTopicRegistration(
-      id,
-      topicRegistrationDto,
     );
   }
 
@@ -183,9 +194,10 @@ export class RegistrasiTesisController {
     let idPenerima = undefined;
 
     if (
-      !roles.includes(RoleEnum.ADMIN) ||
+      !roles.includes(RoleEnum.ADMIN) &&
       !roles.includes(RoleEnum.S2_TIM_TESIS)
     ) {
+      // roles only include RoleEnum.S2_PEMBIMBING
       idPenerima = id;
     }
 
@@ -218,7 +230,7 @@ export class RegistrasiTesisController {
     let idPenerima = undefined;
 
     if (
-      !roles.includes(RoleEnum.ADMIN) ||
+      !roles.includes(RoleEnum.ADMIN) &&
       !roles.includes(RoleEnum.S2_TIM_TESIS)
     ) {
       idPenerima = id;

@@ -86,7 +86,7 @@ export class RegistrasiTesisService {
     return createdRegistration;
   }
 
-  async findByUserId(mahasiswaId: string) {
+  async findByUserId(mahasiswaId: string, periode: string) {
     const res = await this.pendaftaranTesisRepository
       .createQueryBuilder("pt")
       .select("pt.id")
@@ -106,6 +106,7 @@ export class RegistrasiTesisService {
       .leftJoin("pt.dosenBimbingan", "dosenBimbingan")
       .leftJoin("dosenBimbingan.dosen", "dosen")
       .where("pt.mahasiswaId = :mahasiswaId", { mahasiswaId })
+      .andWhere("topik.periode = :periode", { periode })
       .orderBy("pt.waktuPengiriman", "DESC")
       .getMany();
 
@@ -114,9 +115,11 @@ export class RegistrasiTesisService {
     }
 
     const mappedRes = res.map((r) => ({
+      id: r.id,
       jadwalInterview: r.jadwalInterview,
       jalurPilihan: r.jalurPilihan,
       status: r.status,
+      waktuPengiriman: r.waktuPengiriman,
       judulTopik: r.topik.judul,
       dosenPembimbing:
         r.status === RegStatus.APPROVED
