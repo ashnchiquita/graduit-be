@@ -50,6 +50,8 @@ export class GetByMahasiswaIdResDto {
   status: BimbinganStatus;
 }
 
+class BerkasWithoutId extends OmitType(BerkasBimbingan, ["id"] as const) {}
+
 export class CreateBimbinganReqDto {
   @ApiProperty({ type: Date })
   @IsDateString()
@@ -68,11 +70,11 @@ export class CreateBimbinganReqDto {
   @IsOptional()
   bimbinganBerikutnya: string;
 
-  @ApiProperty({ type: [BerkasBimbingan] })
+  @ApiProperty({ type: [BerkasWithoutId] })
   @ValidateNested({ each: true })
-  @Type(() => BerkasBimbingan)
+  @Type(() => BerkasWithoutId)
   @IsDefined()
-  berkas: BerkasBimbingan[];
+  berkas: BerkasWithoutId[];
 }
 
 export class CreateBimbinganResDto {
@@ -82,6 +84,7 @@ export class CreateBimbinganResDto {
 
 export class ByMhsIdDto {
   @ApiProperty({ example: "550e8400-e29b-41d4-a716-446655440000" })
+  @IsUUID()
   mahasiswaId: string;
 }
 

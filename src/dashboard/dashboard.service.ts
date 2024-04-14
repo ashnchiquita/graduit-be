@@ -93,35 +93,42 @@ export class DashboardService {
   }
 
   async getStatisticsByJalurPilihan(
-    penerimaId: string,
+    dosenId: string,
   ): Promise<JalurStatisticDto[]> {
-    const [currentPeriode, penerima] = await Promise.all([
+    const [currentPeriode, dosen] = await Promise.all([
       this.konfigurasiRepository.findOne({
         where: { key: process.env.KONF_PERIODE_KEY },
       }),
       this.penggunaRepository.findOne({
-        where: { id: penerimaId },
+        where: { id: dosenId },
       }),
     ]);
 
-    if (!penerima) {
-      return [];
+    if (!dosen) {
+      throw new BadRequestException("Dosen tidak ditemukan");
     }
+
     const statistics = await this.pendaftaranTesisRepository
       .createQueryBuilder("pendaftaranTesis")
       .select("pendaftaranTesis.jalurPilihan", "jalurPilihan")
       .addSelect("COUNT(*)", "count")
-      .leftJoin("pendaftaranTesis.topik", "topik")
-      .where("pendaftaranTesis.penerima = :penerima", { penerima: penerima.id })
+      .leftJoin("pendaftaranTesis.topik", "topik", "topik.periode = :periode", {
+        periode: currentPeriode.value,
+      })
+      .innerJoin(
+        "pendaftaranTesis.dosenBimbingan",
+        "dosenBimbingan",
+        "dosenBimbingan.idDosen = :dosenId",
+        {
+          dosenId,
+        },
+      )
       .andWhere("pendaftaranTesis.status = :status", {
         status: RegStatus.APPROVED,
       })
       .groupBy("pendaftaranTesis.jalurPilihan")
-      .addGroupBy("topik.id")
-      .having("topik.periode = :periode", {
-        periode: currentPeriode.value,
-      })
       .getRawMany();
+
     return statistics as JalurStatisticDto[];
   }
 }

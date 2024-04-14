@@ -225,15 +225,6 @@ export class BimbinganService {
       throw new ForbiddenException();
     }
 
-    if (
-      !user.roles.includes(RoleEnum.ADMIN) &&
-      !bimbingan.pendaftaran.dosenBimbingan
-        .map((d) => d.dosen.id)
-        .includes(user.id)
-    ) {
-      throw new ForbiddenException();
-    }
-
     return {
       id: bimbingan.id,
       waktuBimbingan: bimbingan.waktuBimbingan,
