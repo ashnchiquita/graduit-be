@@ -1,3 +1,4 @@
+import { IsUUID } from "@nestjs/class-validator";
 import { ApiProperty, PickType } from "@nestjs/swagger";
 import { IsEnum } from "class-validator";
 import { Kelas } from "src/entities/kelas.entity";
@@ -31,3 +32,20 @@ export class GetListKelasRespDto {
 }
 
 export class KodeRespDto extends PickType(MataKuliah, ["kode"] as const) {}
+
+export class AssignKelasDto {
+  @IsUUID("all", { each: true })
+  kelasIds: string[];
+
+  @IsUUID("all", { each: true })
+  penggunaIds: string[];
+}
+
+export class UnassignKelasDto extends PickType(AssignKelasDto, [
+  "penggunaIds",
+] as const) {}
+
+export class MessageResDto {
+  @ApiProperty()
+  message: string;
+}

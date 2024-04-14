@@ -3,7 +3,9 @@ import {
   ApiProperty,
   ApiPropertyOptional,
 } from "@nestjs/swagger";
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { MahasiswaKelas } from "./mahasiswaKelas";
+import { PengajarKelas } from "./pengajarKelas.entity";
 
 export enum RoleEnum {
   ADMIN = "ADMIN",
@@ -50,4 +52,10 @@ export class Pengguna {
     default: [],
   })
   roles: RoleEnum[];
+
+  @OneToMany(() => MahasiswaKelas, (mahasiswaKelas) => mahasiswaKelas.mahasiswa)
+  mahasiswaKelas: MahasiswaKelas[];
+
+  @OneToMany(() => PengajarKelas, (pengajarKelas) => pengajarKelas.pengajar)
+  pengajarKelas: PengajarKelas[];
 }

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   ForbiddenException,
   Get,
   Post,
@@ -9,10 +10,13 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import {
+  AssignKelasDto,
   CreateKelasDto,
   GetKelasQueryDto,
   GetListKelasRespDto,
   KodeRespDto,
+  MessageResDto,
+  UnassignKelasDto,
 } from "./kelas.dto";
 import { Request } from "express";
 import { AuthDto } from "src/auth/auth.dto";
@@ -73,5 +77,24 @@ export class KelasController {
   @Post("mata-kuliah")
   async createMataKuliah(@Body() body: MataKuliah) {
     return await this.kelasServ.createMatkul(body);
+  }
+
+  @Get("/mahasiswa")
+  async getMahasiswa() {
+    return await this.kelasServ.getKelasPengguna("MAHASISWA");
+  }
+
+  @Post("/mahasiswa/assign")
+  async assignKelasMahasiswa(
+    @Body() body: AssignKelasDto,
+  ): Promise<MessageResDto> {
+    return await this.kelasServ.assignKelasMahasiswa(body);
+  }
+
+  @Delete("/mahasiswa/unassign")
+  async unassignKelasMahasiswa(
+    @Body() body: UnassignKelasDto,
+  ): Promise<MessageResDto> {
+    return await this.kelasServ.unassignKelasMahasiswa(body);
   }
 }
