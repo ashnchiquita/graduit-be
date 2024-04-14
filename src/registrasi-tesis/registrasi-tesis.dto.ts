@@ -6,10 +6,14 @@ import {
   IsString,
   IsUUID,
 } from "@nestjs/class-validator";
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional, PickType } from "@nestjs/swagger";
 import { ArrayMinSize, ArrayUnique, IsArray } from "class-validator";
-import { JalurEnum, RegStatus } from "src/entities/pendaftaranTesis.entity";
-import { RoleEnum } from "src/entities/pengguna.entity";
+import {
+  JalurEnum,
+  PendaftaranTesis,
+  RegStatus,
+} from "src/entities/pendaftaranTesis.entity";
+import { Pengguna, RoleEnum } from "src/entities/pengguna.entity";
 
 export class RegDto {
   @IsUUID()
@@ -156,4 +160,27 @@ export class UpdatePembimbingBodyDto {
   @ArrayMinSize(1)
   @ArrayUnique()
   pembimbing_ids: string[];
+}
+
+class DosenPembimbingDto extends PickType(Pengguna, [
+  "id",
+  "nama",
+  "kontak",
+] as const) {}
+
+export class GetByIdRespDto extends PickType(PendaftaranTesis, [
+  "id",
+  "jadwalInterview",
+  "status",
+  "jalurPilihan",
+  "waktuPengiriman",
+] as const) {
+  @ApiProperty()
+  judulTopik: string;
+
+  @ApiProperty()
+  deskripsiTopik: string;
+
+  @ApiProperty({ type: [DosenPembimbingDto] })
+  dosenPembimbing: DosenPembimbingDto[];
 }

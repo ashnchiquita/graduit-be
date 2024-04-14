@@ -15,6 +15,7 @@ import {
   ApiBearerAuth,
   ApiCookieAuth,
   ApiOkResponse,
+  ApiOperation,
   ApiTags,
 } from "@nestjs/swagger";
 import { Request } from "express";
@@ -26,6 +27,7 @@ import { Roles } from "src/middlewares/roles.decorator";
 import { RolesGuard } from "src/middlewares/roles.guard";
 import {
   FindAllNewestRegRespDto,
+  GetByIdRespDto,
   IdDto,
   RegByMhsParamDto,
   RegDto,
@@ -49,6 +51,10 @@ export class RegistrasiTesisController {
     private readonly konfService: KonfigurasiService,
   ) {}
 
+  @ApiOperation({
+    summary:
+      "Create new registration. Roles: S2_MAHASISWA, ADMIN, S2_TIM_TESIS",
+  })
   @UseGuards(CustomAuthGuard, RolesGuard)
   @Roles(RoleEnum.S2_MAHASISWA, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)
   @Post()
@@ -64,6 +70,11 @@ export class RegistrasiTesisController {
     );
   }
 
+  @ApiOperation({
+    summary:
+      "Find registrations (historical) by Mahasiswa ID. Roles: S2_MAHASISWA, ADMIN, S2_TIM_TESIS",
+  })
+  @ApiOkResponse({ type: [GetByIdRespDto] })
   @UseGuards(CustomAuthGuard, RolesGuard)
   @Roles(RoleEnum.S2_MAHASISWA, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)
   @Get("/mahasiswa/:mahasiswaId")
@@ -91,17 +102,33 @@ export class RegistrasiTesisController {
     return this.registrasiTesisService.findByUserId(
       params.mahasiswaId,
       periode,
+      false,
+      undefined,
     );
   }
 
+  @ApiOperation({
+    summary:
+      "Find newest registration by Mahasiswa ID. Roles: ADMIN, S2_TIM_TESIS, S2_PEMBIMBING",
+  })
+  @ApiOkResponse({ type: GetByIdRespDto })
   @UseGuards(CustomAuthGuard, RolesGuard)
-  @Roles(RoleEnum.S2_PEMBIMBING)
+  @Roles(RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS, RoleEnum.S2_PEMBIMBING)
   @Get("/mahasiswa/:mahasiswaId/newest")
   async findNewestByUserId(
     @Param() params: RegByMhsParamDto,
     @Req() req: Request,
   ) {
-    const { id: idPenerima } = req.user as AuthDto;
+    const { id, roles } = req.user as AuthDto;
+
+    let idPenerima = undefined;
+    if (
+      !roles.includes(RoleEnum.ADMIN) &&
+      !roles.includes(RoleEnum.S2_TIM_TESIS)
+    ) {
+      // roles only include RoleEnum.S2_PEMBIMBING
+      idPenerima = id;
+    }
 
     const periode = await this.konfService.getKonfigurasiByKey(
       process.env.KONF_PERIODE_KEY,
@@ -111,13 +138,20 @@ export class RegistrasiTesisController {
       throw new BadRequestException("Periode belum dikonfigurasi.");
     }
 
-    return this.registrasiTesisService.findNewestByUserId(
+    const res = await this.registrasiTesisService.findByUserId(
       params.mahasiswaId,
-      idPenerima,
       periode,
+      true,
+      idPenerima,
     );
+
+    return res[0];
   }
 
+  @ApiOperation({
+    summary:
+      "Get statistics of registrations. Roles: S2_PEMBIMBING, ADMIN, S2_TIM_TESIS",
+  })
   @ApiOkResponse({ type: RegStatisticsRespDto })
   @UseGuards(CustomAuthGuard, RolesGuard)
   @Roles(RoleEnum.S2_PEMBIMBING, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)
@@ -141,6 +175,10 @@ export class RegistrasiTesisController {
 
   // Admin & TimTesis view will show newst reg records per Mahasiswa
   // Pembimbing view will show all regs towards them
+  @ApiOperation({
+    summary:
+      "Find all newest registration for each Mahasiswa. Roles: S2_PEMBIMBING, ADMIN, S2_TIM_TESIS",
+  })
   @ApiOkResponse({ type: FindAllNewestRegRespDto, isArray: true })
   @UseGuards(CustomAuthGuard, RolesGuard)
   @Roles(RoleEnum.S2_PEMBIMBING, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)
@@ -173,6 +211,10 @@ export class RegistrasiTesisController {
     });
   }
 
+  @ApiOperation({
+    summary:
+      "Update interview date of newest registration by Mahasiswa ID. Roles: S2_PEMBIMBING, ADMIN, S2_TIM_TESIS",
+  })
   @ApiOkResponse({ type: IdDto })
   @UseGuards(CustomAuthGuard, RolesGuard)
   @Roles(RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS, RoleEnum.S2_PEMBIMBING)
@@ -209,6 +251,10 @@ export class RegistrasiTesisController {
     );
   }
 
+  @ApiOperation({
+    summary:
+      "Update status of newest registration by Mahasiswa ID. Roles: S2_PEMBIMBING, ADMIN, S2_TIM_TESIS",
+  })
   @ApiOkResponse({ type: IdDto })
   @UseGuards(CustomAuthGuard, RolesGuard)
   @Roles(RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS, RoleEnum.S2_PEMBIMBING)
@@ -233,6 +279,7 @@ export class RegistrasiTesisController {
       !roles.includes(RoleEnum.ADMIN) &&
       !roles.includes(RoleEnum.S2_TIM_TESIS)
     ) {
+      // roles only include RoleEnum.S2_PEMBIMBING
       idPenerima = id;
     }
 
@@ -244,6 +291,10 @@ export class RegistrasiTesisController {
     );
   }
 
+  @ApiOperation({
+    summary:
+      "Update pembimbing list of approved registration by Mahasiswa ID. Roles: ADMIN, S2_TIM_TESIS",
+  })
   @ApiOkResponse({ type: IdDto })
   @UseGuards(CustomAuthGuard, RolesGuard)
   @Roles(RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)

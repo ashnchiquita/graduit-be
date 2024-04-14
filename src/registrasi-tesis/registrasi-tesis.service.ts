@@ -86,8 +86,13 @@ export class RegistrasiTesisService {
     return createdRegistration;
   }
 
-  async findByUserId(mahasiswaId: string, periode: string) {
-    const res = await this.pendaftaranTesisRepository
+  async findByUserId(
+    mahasiswaId: string,
+    periode: string,
+    isNewestOnly: boolean,
+    idPenerima?: string,
+  ) {
+    const baseQuery = this.pendaftaranTesisRepository
       .createQueryBuilder("pt")
       .select("pt.id")
       .addSelect("pt.jadwalInterview")
@@ -101,17 +106,29 @@ export class RegistrasiTesisService {
       .addSelect("dosen.id")
       .addSelect("dosen.nama")
       .addSelect("dosen.kontak")
+      .addSelect("topik.judul")
+      .addSelect("topik.deskripsi")
       .leftJoin("pt.topik", "topik")
       .leftJoin("pt.penerima", "penerima")
       .leftJoin("pt.dosenBimbingan", "dosenBimbingan")
       .leftJoin("dosenBimbingan.dosen", "dosen")
       .where("pt.mahasiswaId = :mahasiswaId", { mahasiswaId })
       .andWhere("topik.periode = :periode", { periode })
-      .orderBy("pt.waktuPengiriman", "DESC")
-      .getMany();
+      .orderBy("pt.waktuPengiriman", "DESC");
+
+    const res = await baseQuery.getMany();
 
     if (res.length === 0) {
       throw new NotFoundException("Tidak ada registrasi tesis yang ditemukan.");
+    }
+
+    if (idPenerima) {
+      // requester only has S2_PEMBIMBING access
+      const reg = res[0];
+
+      if (reg.penerima.id !== idPenerima) {
+        throw new ForbiddenException();
+      }
     }
 
     const mappedRes = res.map((r) => ({
@@ -121,36 +138,21 @@ export class RegistrasiTesisService {
       status: r.status,
       waktuPengiriman: r.waktuPengiriman,
       judulTopik: r.topik.judul,
+      deskripsiTopik: r.topik.deskripsi,
       dosenPembimbing:
         r.status === RegStatus.APPROVED
           ? r.dosenBimbingan.map((db) => db.dosen)
           : [r.penerima],
     }));
 
-    return mappedRes;
-  }
-
-  async findNewestByUserId(
-    mahasiswaId: string,
-    idPenerima: string,
-    periode: string,
-  ) {
-    const newestReg = await this.getNewestRegByMhs(mahasiswaId, periode);
-
-    if (newestReg.penerima.id !== idPenerima) {
-      throw new ForbiddenException();
+    if (isNewestOnly) {
+      // only get last registration
+      // slow performance because get all records first then only returns the first one
+      // need to change to use subquery
+      mappedRes.splice(1);
     }
 
-    const res = {
-      waktuPengiriman: newestReg.waktuPengiriman,
-      jalurPilihan: newestReg.jalurPilihan,
-      jadwalInterview: newestReg.jadwalInterview,
-      status: newestReg.status,
-      judulTopik: newestReg.topik.judul,
-      deskripsiTopik: newestReg.topik.deskripsi,
-    };
-
-    return res;
+    return mappedRes;
   }
 
   async getRegsStatistics(options: {
