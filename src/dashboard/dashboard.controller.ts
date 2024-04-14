@@ -33,7 +33,7 @@ export class DashboardController {
     @Req() request: Request,
     @Query() query: GetDashboardDosbimQueryDto,
   ): Promise<DashboardDto[]> {
-    return this.dashboardService.findByPenerimaId(
+    return this.dashboardService.findByDosenId(
       (request.user as AuthDto).id,
       query.search,
     );

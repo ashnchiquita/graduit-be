@@ -28,8 +28,8 @@ export class DashboardService {
     });
   }
 
-  async findByPenerimaId(
-    penerimaId: string,
+  async findByDosenId(
+    dosenId: string,
     search?: string,
   ): Promise<DashboardDto[]> {
     const currentPeriode = await this.konfigurasiRepository.findOne({
@@ -44,9 +44,14 @@ export class DashboardService {
       .createQueryBuilder("pendaftaranTesis")
       .leftJoinAndSelect("pendaftaranTesis.mahasiswa", "mahasiswa")
       .leftJoinAndSelect("pendaftaranTesis.topik", "topik")
-      .where("pendaftaranTesis.penerimaId = :penerima", {
-        penerima: penerimaId,
-      })
+      .innerJoin(
+        "pendaftaranTesis.dosenBimbingan",
+        "dosenBimbingan",
+        "dosenBimbingan.idDosen = :dosenId",
+        {
+          dosenId,
+        },
+      )
       .andWhere("pendaftaranTesis.status = :status", {
         status: RegStatus.APPROVED,
       })
