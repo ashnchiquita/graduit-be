@@ -9,6 +9,12 @@ import { PendaftaranTesis } from "./pendaftaranTesis.entity";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { BerkasBimbingan } from "./berkasBimbingan";
 
+export enum BimbinganStatus {
+  LANCAR = "LANCAR",
+  BUTUH_BIMBINGAN = "BUTUH_BIMBINGAN",
+  TERKENDALA = "TERKENDALA",
+}
+
 @Entity()
 export class Bimbingan {
   @ApiProperty({ example: "550e8400-e29b-41d4-a716-446655440000" })

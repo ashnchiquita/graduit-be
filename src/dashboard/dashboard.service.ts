@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Brackets, Repository } from "typeorm";
 import {
@@ -8,6 +8,7 @@ import {
 import { Pengguna } from "../entities/pengguna.entity";
 import { Konfigurasi } from "src/entities/konfigurasi.entity";
 import { DashboardDto, JalurStatisticDto } from "./dashboard.dto";
+import { BimbinganService } from "src/bimbingan/bimbingan.service";
 
 @Injectable()
 export class DashboardService {
@@ -18,6 +19,7 @@ export class DashboardService {
     private penggunaRepository: Repository<Pengguna>,
     @InjectRepository(Konfigurasi)
     private konfigurasiRepository: Repository<Konfigurasi>,
+    private bimbinganService: BimbinganService,
   ) {}
 
   async findAll(): Promise<PendaftaranTesis[]> {
@@ -33,6 +35,10 @@ export class DashboardService {
     const currentPeriode = await this.konfigurasiRepository.findOne({
       where: { key: process.env.KONF_PERIODE_KEY },
     });
+
+    if (!currentPeriode) {
+      throw new BadRequestException("Periode belum dikonfigurasi");
+    }
 
     let pendaftaranTesisQuery = this.pendaftaranTesisRepository
       .createQueryBuilder("pendaftaranTesis")
@@ -56,22 +62,29 @@ export class DashboardService {
       );
     }
     const pendaftaranTesis = await pendaftaranTesisQuery.getMany();
-    console.log(pendaftaranTesis);
 
-    return pendaftaranTesis.map((pendaftaran) => ({
-      id: pendaftaran.id,
-      jalurPilihan: pendaftaran.jalurPilihan,
-      status: "LANCAR",
-      topik: {
-        id: pendaftaran.topik.id,
-        judul: pendaftaran.topik.judul,
-      },
-      mahasiswa: {
-        id: pendaftaran.mahasiswa.id,
-        nama: pendaftaran.mahasiswa.nama,
-        nim: pendaftaran.mahasiswa.nim,
-      },
-    }));
+    const statusMap = await Promise.all(
+      pendaftaranTesis.map(async (pendaftaran) => {
+        return await this.bimbinganService.getBimbinganStatus(pendaftaran);
+      }),
+    );
+
+    return pendaftaranTesis.map((pendaftaran, index) => {
+      return {
+        id: pendaftaran.id,
+        jalurPilihan: pendaftaran.jalurPilihan,
+        status: statusMap[index],
+        topik: {
+          id: pendaftaran.topik.id,
+          judul: pendaftaran.topik.judul,
+        },
+        mahasiswa: {
+          id: pendaftaran.mahasiswa.id,
+          nama: pendaftaran.mahasiswa.nama,
+          nim: pendaftaran.mahasiswa.nim,
+        },
+      };
+    });
   }
 
   async getStatisticsByJalurPilihan(

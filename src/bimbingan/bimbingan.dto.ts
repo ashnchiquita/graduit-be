@@ -15,7 +15,7 @@ import {
 } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { BerkasBimbingan } from "src/entities/berkasBimbingan";
-import { Bimbingan } from "src/entities/bimbingan.entity";
+import { Bimbingan, BimbinganStatus } from "src/entities/bimbingan.entity";
 import {
   JalurEnum,
   PendaftaranTesis,
@@ -45,6 +45,9 @@ export class GetByMahasiswaIdResDto {
 
   @ApiProperty({ type: PickedTopikBimbingan })
   topik: PickedTopikBimbingan;
+
+  @ApiProperty({ enum: BimbinganStatus })
+  status: BimbinganStatus;
 }
 
 export class CreateBimbinganReqDto {

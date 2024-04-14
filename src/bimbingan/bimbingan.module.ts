@@ -20,5 +20,6 @@ import { BerkasBimbingan } from "src/entities/berkasBimbingan";
   ],
   controllers: [BimbinganController],
   providers: [BimbinganService],
+  exports: [BimbinganService],
 })
 export class BimbinganModule {}

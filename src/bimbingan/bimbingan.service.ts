@@ -7,7 +7,7 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import * as dayjs from "dayjs";
 import { AuthDto } from "src/auth/auth.dto";
-import { Bimbingan } from "src/entities/bimbingan.entity";
+import { Bimbingan, BimbinganStatus } from "src/entities/bimbingan.entity";
 import { DosenBimbingan } from "src/entities/dosenBimbingan.entity";
 import { Konfigurasi } from "src/entities/konfigurasi.entity";
 import {
@@ -99,6 +99,8 @@ export class BimbinganService {
       },
     });
 
+    const status = await this.getBimbinganStatus(pendaftaran);
+
     return {
       bimbingan,
       mahasiswa: {
@@ -108,6 +110,7 @@ export class BimbinganService {
         jalurPilihan: pendaftaran.jalurPilihan,
       },
       topik: pendaftaran.topik,
+      status,
     };
   }
 
@@ -241,5 +244,39 @@ export class BimbinganService {
       berkas: bimbingan.berkas,
       jalurPilihan: bimbingan.pendaftaran.jalurPilihan,
     };
+  }
+
+  async getBimbinganStatus(
+    pendaftaran: PendaftaranTesis,
+  ): Promise<BimbinganStatus> {
+    const lastBimbinganQuery = this.bimbinganRepository
+      .createQueryBuilder("bimbingan")
+      .where("bimbingan.pendaftaranId = :pendaftaranId", {
+        pendaftaranId: pendaftaran.id,
+      })
+      .orderBy("bimbingan.waktuBimbingan", "DESC")
+      .limit(1);
+
+    const lastBimbingan = await lastBimbinganQuery.getOne();
+
+    if (!lastBimbingan) {
+      return dayjs(pendaftaran.waktuPengiriman).isBefore(
+        dayjs().subtract(3, "month"),
+      )
+        ? BimbinganStatus.TERKENDALA
+        : BimbinganStatus.LANCAR;
+    }
+
+    if (
+      dayjs(lastBimbingan.waktuBimbingan).isBefore(dayjs().subtract(3, "month"))
+    ) {
+      return BimbinganStatus.TERKENDALA;
+    } else if (
+      dayjs(lastBimbingan.waktuBimbingan).isBefore(dayjs().subtract(1, "month"))
+    ) {
+      return BimbinganStatus.BUTUH_BIMBINGAN;
+    } else {
+      return BimbinganStatus.LANCAR;
+    }
   }
 }
