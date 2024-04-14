@@ -315,6 +315,7 @@ export class RegistrasiTesisService {
         mahasiswa_nama: reg.mahasiswa.nama,
         pembimbing_nama: reg.penerima.nama,
         status: reg.status,
+        jadwal_interview: reg.jadwalInterview,
       })),
       count,
     };
@@ -384,7 +385,7 @@ export class RegistrasiTesisService {
   ) {
     const newestReg = await this.getNewestRegByMhs(mahasiswaId, periode);
 
-    if (newestReg && newestReg.penerima.id !== idPenerima) {
+    if (newestReg && idPenerima && newestReg.penerima.id !== idPenerima) {
       throw new ForbiddenException();
     }
 
@@ -418,7 +419,7 @@ export class RegistrasiTesisService {
   ) {
     const newestReg = await this.getNewestRegByMhs(mahasiswaId, periode);
 
-    if (newestReg && newestReg.penerima.id !== idPenerima) {
+    if (newestReg && idPenerima && newestReg.penerima.id !== idPenerima) {
       throw new ForbiddenException();
     }
 
@@ -464,6 +465,14 @@ export class RegistrasiTesisService {
   ) {
     const newestReg = await this.getNewestRegByMhs(mahasiswaId, periode);
 
+    const penerimaId = newestReg.penerima.id;
+
+    if (!dosen_ids.includes(penerimaId)) {
+      throw new BadRequestException(
+        "Pembimbing pertama harus menjadi dosen pembimbing juga",
+      );
+    }
+
     if (newestReg.status !== RegStatus.APPROVED)
       throw new BadRequestException(
         "Cannot update pembimbing on non-approved registration",
@@ -493,14 +502,6 @@ export class RegistrasiTesisService {
     const idsToBeAdded = newPembimbingIds.filter(
       (newId) => !currentPembimbingIds.includes(newId),
     );
-
-    const penerimaId = newestReg.penerima.id;
-
-    if (!idsToBeAdded.includes(penerimaId)) {
-      throw new BadRequestException(
-        "Pembimbing pertama harus menjadi dosen pembimbing juga",
-      );
-    }
 
     const idsToBeDeleted = currentPembimbingIds.filter(
       (newId) => !newPembimbingIds.includes(newId),

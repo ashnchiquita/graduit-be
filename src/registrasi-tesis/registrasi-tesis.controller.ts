@@ -213,7 +213,7 @@ export class RegistrasiTesisController {
 
   @ApiOperation({
     summary:
-      "Update interview date of newest registration by Mahasiswa ID. Roles: S2_PEMBIMBING, ADMIN, S2_TIM_TESIS",
+      "Update interview date of newest in process registration by Mahasiswa ID. Roles: S2_PEMBIMBING, ADMIN, S2_TIM_TESIS",
   })
   @ApiOkResponse({ type: IdDto })
   @UseGuards(CustomAuthGuard, RolesGuard)

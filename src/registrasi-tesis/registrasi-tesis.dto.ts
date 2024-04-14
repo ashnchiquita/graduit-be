@@ -107,6 +107,9 @@ export class FindAllNewestRegRespDataDto {
 
   @ApiProperty()
   status: string;
+
+  @ApiProperty()
+  jadwal_interview: Date;
 }
 
 export class FindAllNewestRegRespDto {
