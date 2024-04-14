@@ -115,6 +115,7 @@ export class KelasController {
     return await this.kelasServ.create(body);
   }
 
+  // TODO: restrict payload
   @Roles(RoleEnum.S2_TIM_TESIS, RoleEnum.ADMIN)
   @ApiOkResponse({ type: IdKelasResDto })
   @ApiNotFoundResponse({
