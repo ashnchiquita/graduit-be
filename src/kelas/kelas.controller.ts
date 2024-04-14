@@ -88,6 +88,7 @@ export class KelasController {
     return await this.kelasServ.getKelasPengguna("MAHASISWA");
   }
 
+  @Roles(RoleEnum.S2_TIM_TESIS, RoleEnum.ADMIN)
   @ApiCreatedResponse({ type: MessageResDto })
   @ApiInternalServerErrorResponse({ description: "Gagal menambahkan kelas" })
   @Post("/mahasiswa/assign")
@@ -97,6 +98,7 @@ export class KelasController {
     return await this.kelasServ.assignKelasMahasiswa(body);
   }
 
+  @Roles(RoleEnum.S2_TIM_TESIS, RoleEnum.ADMIN)
   @ApiOkResponse({ type: MessageResDto })
   @ApiInternalServerErrorResponse({ description: "Gagal menghapus kelas" })
   @Delete("/mahasiswa/unassign")
@@ -113,6 +115,7 @@ export class KelasController {
     return await this.kelasServ.getKelasPengguna("DOSEN");
   }
 
+  @Roles(RoleEnum.S2_TIM_TESIS, RoleEnum.ADMIN)
   @ApiCreatedResponse({ type: MessageResDto })
   @ApiInternalServerErrorResponse({ description: "Gagal menambahkan kelas" })
   @Post("/dosen/assign")
@@ -120,6 +123,7 @@ export class KelasController {
     return await this.kelasServ.assignKelasDosen(body);
   }
 
+  @Roles(RoleEnum.S2_TIM_TESIS, RoleEnum.ADMIN)
   @ApiOkResponse({ type: MessageResDto })
   @ApiInternalServerErrorResponse({ description: "Gagal menghapus kelas" })
   @Delete("/dosen/unassign")
