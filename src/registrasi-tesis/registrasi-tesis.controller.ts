@@ -50,27 +50,45 @@ export class RegistrasiTesisController {
   ) {}
 
   @UseGuards(CustomAuthGuard, RolesGuard)
-  @Roles(
-    RoleEnum.S2_MAHASISWA,
-    RoleEnum.ADMIN,
-    RoleEnum.S2_TIM_TESIS,
-    RoleEnum.S2_PEMBIMBING,
-  )
+  @Roles(RoleEnum.S2_MAHASISWA, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)
   @Get("/mahasiswa/:mahasiswaId")
   findByUserId(@Param() params: RegByMhsParamDto, @Req() req: Request) {
     const { id, roles } = req.user as AuthDto;
-    let idPenerima = undefined;
 
     if (
-      !roles.includes(RoleEnum.ADMIN) ||
+      !roles.includes(RoleEnum.ADMIN) &&
       !roles.includes(RoleEnum.S2_TIM_TESIS)
     ) {
-      idPenerima = id;
+      // roles only includes RoleEnum.S2_MAHASISWA
+      if (id !== params.mahasiswaId) {
+        throw new ForbiddenException();
+      }
     }
 
-    return this.registrasiTesisService.findByUserId(
+    return this.registrasiTesisService.findByUserId(params.mahasiswaId);
+  }
+
+  @UseGuards(CustomAuthGuard, RolesGuard)
+  @Roles(RoleEnum.S2_PEMBIMBING)
+  @Get("/mahasiswa/:mahasiswaId/newest")
+  async findNewestByUserId(
+    @Param() params: RegByMhsParamDto,
+    @Req() req: Request,
+  ) {
+    const { id: idPenerima } = req.user as AuthDto;
+
+    const periode = await this.konfService.getKonfigurasiByKey(
+      process.env.KONF_PERIODE_KEY,
+    );
+
+    if (!periode) {
+      throw new BadRequestException("Periode belum dikonfigurasi.");
+    }
+
+    return this.registrasiTesisService.findNewestByUserId(
       params.mahasiswaId,
       idPenerima,
+      periode,
     );
   }
 

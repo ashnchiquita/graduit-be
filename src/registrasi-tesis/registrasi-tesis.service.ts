@@ -86,30 +86,68 @@ export class RegistrasiTesisService {
     return createdRegistration;
   }
 
-  async findByUserId(mahasiswaId: string, idPenerima?: string) {
-    const res = await this.pendaftaranTesisRepository.find({
-      relations: ["topik", "penerima"],
-      where: { mahasiswa: { id: mahasiswaId } },
-      order: { waktuPengiriman: "DESC" },
-    });
+  async findByUserId(mahasiswaId: string) {
+    const res = await this.pendaftaranTesisRepository
+      .createQueryBuilder("pt")
+      .select("pt.id")
+      .addSelect("pt.jadwalInterview")
+      .addSelect("pt.status")
+      .addSelect("pt.jalurPilihan")
+      .addSelect("pt.waktuPengiriman")
+      .addSelect("topik.judul")
+      .addSelect("penerima.id")
+      .addSelect("penerima.nama")
+      .addSelect("dosenBimbingan")
+      .addSelect("dosen.id")
+      .addSelect("dosen.nama")
+      .addSelect("dosen.kontak")
+      .leftJoin("pt.topik", "topik")
+      .leftJoin("pt.penerima", "penerima")
+      .leftJoin("pt.dosenBimbingan", "dosenBimbingan")
+      .leftJoin("dosenBimbingan.dosen", "dosen")
+      .where("pt.mahasiswaId = :mahasiswaId", { mahasiswaId })
+      .orderBy("pt.waktuPengiriman", "DESC")
+      .getMany();
 
     if (res.length === 0) {
       throw new NotFoundException("Tidak ada registrasi tesis yang ditemukan.");
     }
 
-    if (idPenerima && res[0].penerima.id !== idPenerima) {
+    const mappedRes = res.map((r) => ({
+      jadwalInterview: r.jadwalInterview,
+      jalurPilihan: r.jalurPilihan,
+      status: r.status,
+      judulTopik: r.topik.judul,
+      dosenPembimbing:
+        r.status === RegStatus.APPROVED
+          ? r.dosenBimbingan.map((db) => db.dosen)
+          : [r.penerima],
+    }));
+
+    return mappedRes;
+  }
+
+  async findNewestByUserId(
+    mahasiswaId: string,
+    idPenerima: string,
+    periode: string,
+  ) {
+    const newestReg = await this.getNewestRegByMhs(mahasiswaId, periode);
+
+    if (newestReg.penerima.id !== idPenerima) {
       throw new ForbiddenException();
     }
 
-    return res.map((r) => ({
-      ...r,
-      penerima: {
-        ...r.penerima,
-        password: undefined,
-        roles: undefined,
-        nim: undefined,
-      },
-    }));
+    const res = {
+      waktuPengiriman: newestReg.waktuPengiriman,
+      jalurPilihan: newestReg.jalurPilihan,
+      jadwalInterview: newestReg.jadwalInterview,
+      status: newestReg.status,
+      judulTopik: newestReg.topik.judul,
+      deskripsiTopik: newestReg.topik.deskripsi,
+    };
+
+    return res;
   }
 
   async getRegsStatistics(options: {
@@ -296,9 +334,13 @@ export class RegistrasiTesisService {
     const newestReg = await this.pendaftaranTesisRepository.findOne({
       select: {
         id: true,
+        jadwalInterview: true,
         status: true,
         waktuPengiriman: true,
+        jalurPilihan: true,
         topik: {
+          judul: true,
+          deskripsi: true,
           periode: true,
         },
         penerima: {
@@ -308,6 +350,7 @@ export class RegistrasiTesisService {
       relations: {
         topik: true,
         penerima: true,
+        mahasiswa: true,
       },
       where: {
         mahasiswa: mahasiswa,
@@ -382,7 +425,7 @@ export class RegistrasiTesisService {
       await queryRunner.manager.update(
         PendaftaranTesis,
         { id: newestReg.id },
-        { status: dto.status },
+        { status: dto.status, waktuKeputusan: new Date() },
       );
 
       if (dto.status === RegStatus.APPROVED) {
