@@ -12,10 +12,11 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import {
+  ByIdKelasDto,
   CreateKelasDto,
   DeleteKelasDto,
   GetKelasQueryDto,
-  GetListKelasRespDto,
+  GetKelasRespDto,
   GetNextNomorResDto,
   IdKelasResDto,
   KodeRespDto,
@@ -49,7 +50,7 @@ import { Kelas } from "src/entities/kelas.entity";
 export class KelasController {
   constructor(private readonly kelasServ: KelasService) {}
 
-  @ApiOkResponse({ type: GetListKelasRespDto, isArray: true })
+  @ApiOkResponse({ type: GetKelasRespDto, isArray: true })
   @Roles(
     RoleEnum.S2_KULIAH,
     RoleEnum.S2_MAHASISWA,
@@ -147,5 +148,70 @@ export class KelasController {
   @Delete()
   async delete(@Body() body: DeleteKelasDto): Promise<Kelas> {
     return await this.kelasServ.delete(body);
+  }
+
+  @Roles(
+    RoleEnum.S2_TIM_TESIS,
+    RoleEnum.ADMIN,
+    RoleEnum.S2_KULIAH,
+    RoleEnum.S2_MAHASISWA,
+  )
+  @ApiOkResponse({ type: GetKelasRespDto })
+  @Get("/:id")
+  async getById(
+    @Param() param: ByIdKelasDto,
+    @Req() req: Request,
+  ): Promise<GetKelasRespDto> {
+    let idMahasiswa = undefined;
+    let idPengajar = undefined;
+
+    const { id, roles } = req.user as AuthDto;
+
+    if (
+      !roles.includes(RoleEnum.S2_TIM_TESIS) &&
+      !roles.includes(RoleEnum.ADMIN)
+    ) {
+      if (roles.includes(RoleEnum.S2_KULIAH)) {
+        idPengajar = id;
+      } else {
+        // requester only has S2_MAHASISWA access
+        idMahasiswa = id;
+      }
+    }
+
+    return await this.kelasServ.getById(param.id, idMahasiswa, idPengajar);
+  }
+
+  @Roles(
+    RoleEnum.S2_TIM_TESIS,
+    RoleEnum.ADMIN,
+    RoleEnum.S2_KULIAH,
+    RoleEnum.S2_MAHASISWA,
+  )
+  @ApiOkResponse({ type: GetKelasRespDto })
+  @Get("/:id/detail")
+  async getKelasDetail(@Param() param: ByIdKelasDto, @Req() req: Request) {
+    let idMahasiswa = undefined;
+    let idPengajar = undefined;
+
+    const { id, roles } = req.user as AuthDto;
+
+    if (
+      !roles.includes(RoleEnum.S2_TIM_TESIS) &&
+      !roles.includes(RoleEnum.ADMIN)
+    ) {
+      if (roles.includes(RoleEnum.S2_KULIAH)) {
+        idPengajar = id;
+      } else {
+        // requester only has S2_MAHASISWA access
+        idMahasiswa = id;
+      }
+    }
+
+    return await this.kelasServ.getKelasDetail(
+      param.id,
+      idMahasiswa,
+      idPengajar,
+    );
   }
 }

@@ -43,18 +43,26 @@ export class GetKelasQueryDto {
   search: string;
 }
 
-export class GetListKelasRespDto {
+export class ByIdKelasDto extends PickType(Kelas, ["id"] as const) {}
+
+export class GetKelasRespDto {
   @ApiProperty()
   id: string;
 
   @ApiProperty({ example: "K02" })
   nomor: string;
 
-  @ApiProperty({ example: "IF4031 Pengembangan Aplikasi Terdistribusi" })
-  mata_kuliah: string;
+  @ApiProperty({ example: "IF3270" })
+  kode_mata_kuliah: string;
+
+  @ApiProperty({ example: "Pengembangan Aplikasi Terdistribusi" })
+  nama_mata_kuliah: string;
 
   @ApiProperty()
   jumlah_mahasiswa: number;
+
+  @ApiProperty({ example: "bg-blue-600/20" })
+  warna: string;
 }
 
 export class KodeRespDto extends PickType(MataKuliah, ["kode"] as const) {}
