@@ -87,7 +87,6 @@ export class DashboardMahasiswaResDto {
   @ApiProperty({ type: [NoNIMUserDashboard] })
   dosenBimbingan: NoNIMUserDashboard[];
 
-  // TODO: Adjust berkas
   @ApiProperty({ type: [Bimbingan] })
   bimbingan: Bimbingan[];
 

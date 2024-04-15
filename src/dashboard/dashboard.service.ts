@@ -206,6 +206,7 @@ export class DashboardService {
         });
       const bimbinganQuery = this.bimbinganRepository
         .createQueryBuilder("bimbingan")
+        .leftJoinAndSelect("bimbingan.berkas", "berkas")
         .where("bimbingan.pendaftaranId = :id", {
           id: pendaftaranTesis.id,
         });
@@ -253,7 +254,7 @@ export class DashboardService {
       seminarSatu,
       seminarDua: {
         ...seminarDua,
-        penguji: seminarDua.penguji.map((p) => ({
+        penguji: seminarDua?.penguji.map((p) => ({
           id: p.dosen.id,
           nama: p.dosen.nama,
           email: p.dosen.email,
@@ -261,7 +262,7 @@ export class DashboardService {
       },
       sidang: {
         ...sidang,
-        penguji: sidang.penguji.map((p) => ({
+        penguji: sidang?.penguji.map((p) => ({
           id: p.dosen.id,
           nama: p.dosen.nama,
           email: p.dosen.email,
