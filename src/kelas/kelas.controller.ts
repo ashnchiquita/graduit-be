@@ -15,6 +15,7 @@ import {
   ByIdKelasDto,
   CreateKelasDto,
   DeleteKelasDto,
+  GetKelasDetailRespDto,
   GetKelasQueryDto,
   GetKelasRespDto,
   GetNextNomorResDto,
@@ -188,7 +189,7 @@ export class KelasController {
     RoleEnum.S2_KULIAH,
     RoleEnum.S2_MAHASISWA,
   )
-  @ApiOkResponse({ type: GetKelasRespDto })
+  @ApiOkResponse({ type: GetKelasDetailRespDto })
   @Get("/:id/detail")
   async getKelasDetail(@Param() param: ByIdKelasDto, @Req() req: Request) {
     let idMahasiswa = undefined;

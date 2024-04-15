@@ -10,6 +10,7 @@ import { Brackets, Repository } from "typeorm";
 import {
   CreateKelasDto,
   DeleteKelasDto,
+  GetKelasDetailRespDto,
   GetKelasRespDto,
   IdKelasResDto,
   UpdateKelasDto,
@@ -220,7 +221,7 @@ export class KelasService {
       );
     }
 
-    const mapped = {
+    const mapped: GetKelasDetailRespDto = {
       id: result[0].id,
       pengajar: result[0].pengajar.map((p) => ({
         id: p.pengajar.id,

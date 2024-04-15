@@ -7,7 +7,7 @@ import {
 } from "@nestjs/swagger";
 import { Kelas } from "src/entities/kelas.entity";
 import { MataKuliah } from "src/entities/mataKuliah";
-import { RoleEnum } from "src/entities/pengguna.entity";
+import { Pengguna, RoleEnum } from "src/entities/pengguna.entity";
 
 export class CreateKelasDto extends PickType(Kelas, [
   "mataKuliahKode",
@@ -70,4 +70,23 @@ export class KodeRespDto extends PickType(MataKuliah, ["kode"] as const) {}
 export class GetNextNomorResDto {
   @ApiProperty({ example: 2 })
   nomor: number;
+}
+
+class PickedPengajarKelasDto extends PickType(Pengguna, [
+  "id",
+  "nama",
+] as const) {}
+
+class PickedMahasiswaKelasDto extends PickType(Pengguna, [
+  "id",
+  "nama",
+  "nim",
+] as const) {}
+
+export class GetKelasDetailRespDto extends PickType(Kelas, ["id"] as const) {
+  @ApiProperty({ type: [PickedPengajarKelasDto] })
+  pengajar: PickedPengajarKelasDto[];
+
+  @ApiProperty({ type: [PickedMahasiswaKelasDto] })
+  mahasiswa: PickedMahasiswaKelasDto[];
 }
