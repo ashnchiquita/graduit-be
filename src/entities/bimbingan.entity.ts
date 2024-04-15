@@ -38,7 +38,7 @@ export class Bimbingan {
   bimbinganBerikutnya: string;
 
   @ApiProperty()
-  @Column({ type: "boolean", default: false })
+  @Column({ type: "boolean", default: true })
   disahkan: boolean;
 
   @ManyToOne(() => PendaftaranTesis, (pendaftaranTesis) => pendaftaranTesis.id)
