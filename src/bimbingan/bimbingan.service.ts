@@ -7,7 +7,7 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import * as dayjs from "dayjs";
 import { AuthDto } from "src/auth/auth.dto";
-import { Bimbingan } from "src/entities/bimbingan.entity";
+import { Bimbingan, BimbinganStatus } from "src/entities/bimbingan.entity";
 import { DosenBimbingan } from "src/entities/dosenBimbingan.entity";
 import { Konfigurasi } from "src/entities/konfigurasi.entity";
 import {
@@ -19,8 +19,12 @@ import { Repository } from "typeorm";
 import {
   CreateBimbinganReqDto,
   CreateBimbinganResDto,
+  GetByBimbinganIdResDto,
   GetByMahasiswaIdResDto,
+  UpdateStatusDto,
+  UpdateStatusResDto,
 } from "./bimbingan.dto";
+import { BerkasBimbingan } from "src/entities/berkasBimbingan";
 
 @Injectable()
 export class BimbinganService {
@@ -33,6 +37,8 @@ export class BimbinganService {
     private konfigurasiRepository: Repository<Konfigurasi>,
     @InjectRepository(DosenBimbingan)
     private dosenBimbinganRepository: Repository<DosenBimbingan>,
+    @InjectRepository(BerkasBimbingan)
+    private berkasBimbinganRepository: Repository<BerkasBimbingan>,
   ) {}
 
   async getByMahasiswaId(
@@ -88,7 +94,12 @@ export class BimbinganService {
           id: pendaftaran.id,
         },
       },
+      relations: {
+        berkas: true,
+      },
     });
+
+    const status = await this.getBimbinganStatus(pendaftaran);
 
     return {
       bimbingan,
@@ -99,10 +110,10 @@ export class BimbinganService {
         jalurPilihan: pendaftaran.jalurPilihan,
       },
       topik: pendaftaran.topik,
+      status,
     };
   }
 
-  // TODO handle file upload
   async create(
     mahasiswaId: string,
     createDto: CreateBimbinganReqDto,
@@ -133,8 +144,6 @@ export class BimbinganService {
       );
     }
 
-    console.log(dayjs(createDto.waktuBimbingan).toDate());
-
     if (dayjs(createDto.waktuBimbingan).isAfter(dayjs(new Date()).endOf("d")))
       throw new BadRequestException(
         "Tanggal bimbingan yang dimasukkan tidak boleh melebihi tanggal hari ini",
@@ -149,14 +158,116 @@ export class BimbinganService {
         "Bimbingan berikutnya harus setelah bimbingan yang dimasukkan",
       );
 
+    const berkasBimbingan = createDto.berkas.map((berkas) =>
+      this.berkasBimbinganRepository.create(berkas),
+    );
+
     const createdBimbinganLog = this.bimbinganRepository.create({
-      ...createDto,
-      berkasLinks: [],
+      waktuBimbingan: createDto.waktuBimbingan,
+      laporanKemajuan: createDto.laporanKemajuan,
+      todo: createDto.todo,
+      bimbinganBerikutnya: createDto.bimbinganBerikutnya,
+      berkas: berkasBimbingan,
       pendaftaran,
     });
 
     await this.bimbinganRepository.save(createdBimbinganLog);
 
-    return { message: "Successfully added log" };
+    return { id: createdBimbinganLog.id };
+  }
+
+  async updateStatus(
+    user: AuthDto,
+    dto: UpdateStatusDto,
+  ): Promise<UpdateStatusResDto> {
+    const bimbingan = await this.getByBimbinganId(user, dto.bimbinganId);
+
+    await this.bimbinganRepository.update(bimbingan.id, {
+      disahkan: dto.status,
+    });
+
+    return {
+      id: bimbingan.id,
+    };
+  }
+
+  async getByBimbinganId(
+    user: AuthDto,
+    bimbinganId: string,
+  ): Promise<GetByBimbinganIdResDto> {
+    const currentPeriode = await this.konfigurasiRepository.findOne({
+      where: { key: process.env.KONF_PERIODE_KEY },
+    });
+
+    const bimbinganQuery = this.bimbinganRepository
+      .createQueryBuilder("bimbingan")
+      .leftJoinAndSelect("bimbingan.pendaftaran", "pendaftaran")
+      .leftJoinAndSelect("pendaftaran.dosenBimbingan", "dosenBimbingan")
+      .leftJoinAndSelect("dosenBimbingan.dosen", "dosen")
+      .leftJoinAndSelect("bimbingan.berkas", "berkas")
+      .leftJoin("pendaftaran.topik", "topik", "topik.periode = :periode", {
+        periode: currentPeriode.value,
+      })
+      .leftJoinAndSelect("pendaftaran.mahasiswa", "mahasiswa")
+      .where("bimbingan.id = :id", { id: bimbinganId });
+    const bimbingan = await bimbinganQuery.getOne();
+
+    if (!bimbingan) {
+      throw new NotFoundException("Bimbingan tidak ditemukan");
+    }
+
+    if (
+      !user.roles.includes(RoleEnum.ADMIN) &&
+      !bimbingan.pendaftaran.dosenBimbingan
+        .map((d) => d.dosen.id)
+        .includes(user.id)
+    ) {
+      throw new ForbiddenException();
+    }
+
+    return {
+      id: bimbingan.id,
+      waktuBimbingan: bimbingan.waktuBimbingan,
+      laporanKemajuan: bimbingan.laporanKemajuan,
+      todo: bimbingan.todo,
+      bimbinganBerikutnya: bimbingan.bimbinganBerikutnya,
+      disahkan: bimbingan.disahkan,
+      berkas: bimbingan.berkas,
+      jalurPilihan: bimbingan.pendaftaran.jalurPilihan,
+    };
+  }
+
+  async getBimbinganStatus(
+    pendaftaran: PendaftaranTesis,
+  ): Promise<BimbinganStatus> {
+    const lastBimbinganQuery = this.bimbinganRepository
+      .createQueryBuilder("bimbingan")
+      .where("bimbingan.pendaftaranId = :pendaftaranId", {
+        pendaftaranId: pendaftaran.id,
+      })
+      .orderBy("bimbingan.waktuBimbingan", "DESC")
+      .limit(1);
+
+    const lastBimbingan = await lastBimbinganQuery.getOne();
+
+    if (!lastBimbingan) {
+      return dayjs(pendaftaran.waktuPengiriman).isBefore(
+        dayjs().subtract(3, "month"),
+      )
+        ? BimbinganStatus.TERKENDALA
+        : BimbinganStatus.LANCAR;
+    }
+
+    if (
+      dayjs(lastBimbingan.waktuBimbingan).isBefore(dayjs().subtract(3, "month"))
+    ) {
+      return BimbinganStatus.TERKENDALA;
+    } else if (
+      dayjs(lastBimbingan.waktuBimbingan).isBefore(dayjs().subtract(1, "month"))
+    ) {
+      return BimbinganStatus.BUTUH_BIMBINGAN;
+    } else {
+      return BimbinganStatus.LANCAR;
+    }
   }
 }

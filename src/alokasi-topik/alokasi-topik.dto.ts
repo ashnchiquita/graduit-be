@@ -1,10 +1,12 @@
 import {
-  IsUUID,
+  IsNumberString,
   IsOptional,
   IsString,
-  IsNumberString,
+  IsUUID,
+  ValidateNested,
 } from "@nestjs/class-validator";
 import { ApiProperty, ApiPropertyOptional, OmitType } from "@nestjs/swagger";
+import { Type } from "class-transformer";
 import { Pengguna } from "src/entities/pengguna.entity";
 import { Topik } from "src/entities/topik.entity";
 
@@ -20,6 +22,13 @@ export class CreateTopikDto {
   @ApiProperty({ example: "550e8400-e29b-41d4-a716-446655440000" })
   @IsUUID()
   idPengaju: string;
+}
+
+export class CreateBulkTopikDto {
+  @ApiProperty({ type: [CreateTopikDto] })
+  @ValidateNested({ each: true })
+  @Type(() => CreateTopikDto)
+  data: CreateTopikDto[];
 }
 
 export class UpdateTopikDto extends CreateTopikDto {}
@@ -65,4 +74,14 @@ export class GetAllRespDto {
 
   @ApiProperty()
   maxPage: number;
+}
+
+export class createBulkRespDto {
+  @ApiProperty()
+  ids: string[];
+}
+
+export class CreateRespDto {
+  @ApiProperty()
+  id: string;
 }

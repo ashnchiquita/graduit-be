@@ -8,18 +8,30 @@ import {
 } from "typeorm";
 import { MataKuliah } from "./mataKuliah";
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString, Length } from "class-validator";
 import { PengajarKelas } from "./pengajarKelas.entity";
 import { MahasiswaKelas } from "./mahasiswaKelas";
+import {
+  IsPositive,
+  IsString,
+  IsUUID,
+  Length,
+  MaxLength,
+} from "@nestjs/class-validator";
 
 @Entity()
 export class Kelas {
+  @ApiProperty({ example: "550e8400-e29b-41d4-a716-446655440000" })
+  @IsUUID()
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
   @Column({ type: "smallint" })
+  @ApiProperty({ example: 1 })
+  @IsPositive()
   nomor: number;
 
+  @ApiProperty()
+  @IsString()
   @Column({ type: "text" })
   periode: string;
 
@@ -33,6 +45,9 @@ export class Kelas {
   @Column({ nullable: true })
   mataKuliahKode: string;
 
+  @ApiProperty({ example: "bg-blue-600/20" })
+  @IsString()
+  @MaxLength(24)
   @Column({ type: "varchar", length: 24 })
   warna: string;
 

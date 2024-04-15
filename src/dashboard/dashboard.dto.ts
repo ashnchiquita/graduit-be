@@ -1,4 +1,9 @@
-import { ApiProperty, OmitType, PickType } from "@nestjs/swagger";
+import {
+  ApiProperty,
+  ApiPropertyOptional,
+  OmitType,
+  PickType,
+} from "@nestjs/swagger";
 import {
   JalurEnum,
   PendaftaranTesis,
@@ -7,6 +12,8 @@ import { Topik } from "src/entities/topik.entity";
 import { Pengguna } from "src/entities/pengguna.entity";
 import { Bimbingan } from "src/entities/bimbingan.entity";
 import { PendaftaranSidsem } from "src/entities/pendaftaranSidsem";
+import { IsOptional } from "class-validator";
+import { BimbinganStatus } from "src/entities/bimbingan.entity";
 
 class PickedTopikDashboard extends PickType(Topik, ["id", "judul"] as const) {}
 class PickedMhsDashboard extends PickType(Pengguna, [
@@ -52,8 +59,8 @@ export class DashboardDto {
   @ApiProperty({ enum: JalurEnum })
   jalurPilihan: JalurEnum;
 
-  @ApiProperty()
-  status: string;
+  @ApiProperty({ enum: BimbinganStatus })
+  status: BimbinganStatus;
 
   @ApiProperty()
   topik: PickedTopikDashboard;
@@ -101,4 +108,10 @@ export class DashboardMahasiswaResDto {
     nullable: true,
   })
   sidang: SidsemWithPenguji;
+}
+
+export class GetDashboardDosbimQueryDto {
+  @ApiPropertyOptional({})
+  @IsOptional()
+  search: string;
 }
