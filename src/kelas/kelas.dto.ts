@@ -1,11 +1,30 @@
-import { ApiProperty, PickType } from "@nestjs/swagger";
-import { IsEnum } from "class-validator";
+import { IsEnum, IsOptional, IsPositive } from "@nestjs/class-validator";
+import {
+  ApiProperty,
+  PickType,
+  PartialType,
+  ApiPropertyOptional,
+} from "@nestjs/swagger";
 import { Kelas } from "src/entities/kelas.entity";
 import { MataKuliah } from "src/entities/mataKuliah";
 import { RoleEnum } from "src/entities/pengguna.entity";
 
 export class CreateKelasDto extends PickType(Kelas, [
   "mataKuliahKode",
+] as const) {
+  @ApiPropertyOptional({ example: 1 })
+  @IsOptional()
+  @IsPositive()
+  nomor: number;
+}
+
+export class UpdateKelasDto extends PartialType(Kelas) {}
+
+export class IdKelasResDto extends PickType(Kelas, ["id"] as const) {}
+
+export class DeleteKelasDto extends PickType(Kelas, [
+  "mataKuliahKode",
+  "nomor",
 ] as const) {}
 
 export class GetKelasQueryDto {
@@ -14,6 +33,14 @@ export class GetKelasQueryDto {
     enum: [RoleEnum.S2_KULIAH, RoleEnum.S2_MAHASISWA, RoleEnum.S2_TIM_TESIS],
   })
   view: RoleEnum.S2_KULIAH | RoleEnum.S2_MAHASISWA | RoleEnum.S2_TIM_TESIS;
+
+  @ApiPropertyOptional({ example: "IF3270" })
+  @IsOptional()
+  kodeMatkul: string;
+
+  @ApiPropertyOptional({ example: "Intelegensi Buatan" })
+  @IsOptional()
+  search: string;
 }
 
 export class GetListKelasRespDto {
@@ -31,3 +58,8 @@ export class GetListKelasRespDto {
 }
 
 export class KodeRespDto extends PickType(MataKuliah, ["kode"] as const) {}
+
+export class GetNextNomorResDto {
+  @ApiProperty({ example: 2 })
+  nomor: number;
+}

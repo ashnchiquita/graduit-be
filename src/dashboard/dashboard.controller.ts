@@ -1,4 +1,4 @@
-import { Controller, Get, Req, UseGuards } from "@nestjs/common";
+import { Controller, Get, Query, Req, UseGuards } from "@nestjs/common";
 import { DashboardService } from "./dashboard.service";
 import { CustomAuthGuard } from "src/middlewares/custom-auth.guard";
 import { RolesGuard } from "src/middlewares/roles.guard";
@@ -6,7 +6,11 @@ import { RoleEnum } from "src/entities/pengguna.entity";
 import { Roles } from "src/middlewares/roles.decorator";
 import { AuthDto } from "src/auth/auth.dto";
 import { Request } from "express";
-import { DashboardDto, JalurStatisticDto } from "./dashboard.dto";
+import {
+  DashboardDto,
+  GetDashboardDosbimQueryDto,
+  JalurStatisticDto,
+} from "./dashboard.dto";
 import {
   ApiBearerAuth,
   ApiCookieAuth,
@@ -25,8 +29,14 @@ export class DashboardController {
   @ApiOkResponse({ type: [DashboardDto] })
   @Roles(RoleEnum.S2_PEMBIMBING)
   @Get("/dosbim")
-  async findByPenerimaId(@Req() request: Request): Promise<DashboardDto[]> {
-    return this.dashboardService.findByPenerimaId((request.user as AuthDto).id);
+  async findByPenerimaId(
+    @Req() request: Request,
+    @Query() query: GetDashboardDosbimQueryDto,
+  ): Promise<DashboardDto[]> {
+    return this.dashboardService.findByDosenId(
+      (request.user as AuthDto).id,
+      query.search,
+    );
   }
 
   @ApiOkResponse({ type: [JalurStatisticDto] })

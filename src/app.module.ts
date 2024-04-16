@@ -31,6 +31,7 @@ import { KonfigurasiModule } from "./konfigurasi/konfigurasi.module";
 import { DosenBimbinganModule } from "./dosen-bimbingan/dosen-bimbingan.module";
 import { ApprovalModule } from "./approval/approval.module";
 import { validate } from "./env.validation";
+import { BerkasBimbingan } from "./entities/berkasBimbingan";
 import { MataKuliah } from "./entities/mataKuliah";
 import { SubmisiTugas } from "./entities/submisiTugas";
 import { KelasModule } from "./kelas/kelas.module";
@@ -50,6 +51,7 @@ import { SubmisiModule } from "./submisi-tugas/submisi.module";
       database: process.env.POSTGRES_DATABASE,
       ssl: process.env.POSTGRES_HOST !== "localhost",
       entities: [
+        BerkasBimbingan,
         Bimbingan,
         Pengguna,
         RangeJadwalSeminar,
