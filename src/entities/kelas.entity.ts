@@ -17,6 +17,7 @@ import {
   Length,
   MaxLength,
 } from "@nestjs/class-validator";
+import { Tugas } from "./tugas.entity";
 
 @Entity()
 export class Kelas {
@@ -56,4 +57,7 @@ export class Kelas {
 
   @OneToMany(() => MahasiswaKelas, (mahasiswa) => mahasiswa.kelas)
   mahasiswa: MahasiswaKelas[];
+
+  @OneToMany(() => Tugas, (tugas) => tugas.kelas)
+  tugas: Tugas[];
 }

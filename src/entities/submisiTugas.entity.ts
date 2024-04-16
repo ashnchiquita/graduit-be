@@ -7,7 +7,7 @@ import {
 } from "typeorm";
 import { Pengguna } from "./pengguna.entity";
 import { Tugas } from "./tugas.entity";
-import { BerkasSubmisiTugas } from "./berkasSubmisiTugas";
+import { BerkasSubmisiTugas } from "./berkasSubmisiTugas.entity";
 
 @Entity()
 export class SubmisiTugas {

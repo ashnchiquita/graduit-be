@@ -1,13 +1,13 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { Tugas } from "./tugas.entity";
+import { SubmisiTugas } from "./submisiTugas.entity";
 
 @Entity()
-export class BerkasTugas {
+export class BerkasSubmisiTugas {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @ManyToOne(() => Tugas, (tugas) => tugas.id)
-  tugas: Tugas;
+  @ManyToOne(() => SubmisiTugas, (submisi) => submisi.id)
+  submisiTugas: SubmisiTugas;
 
   @Column({ type: "text" })
   nama: string;

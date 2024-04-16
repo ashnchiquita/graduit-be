@@ -31,12 +31,13 @@ import { KonfigurasiModule } from "./konfigurasi/konfigurasi.module";
 import { DosenBimbinganModule } from "./dosen-bimbingan/dosen-bimbingan.module";
 import { ApprovalModule } from "./approval/approval.module";
 import { validate } from "./env.validation";
-import { BerkasBimbingan } from "./entities/berkasBimbingan";
+import { BerkasBimbingan } from "./entities/berkasBimbingan.entity";
 import { MataKuliah } from "./entities/mataKuliah";
-import { SubmisiTugas } from "./entities/submisiTugas";
+import { SubmisiTugas } from "./entities/submisiTugas.entity";
 import { KelasModule } from "./kelas/kelas.module";
-import { BerkasSubmisiTugas } from "./entities/berkasSubmisiTugas";
-import { BerkasTugas } from "./entities/berkasTugas";
+import { BerkasSubmisiTugas } from "./entities/berkasSubmisiTugas.entity";
+import { BerkasTugas } from "./entities/berkasTugas.entity";
+import { TugasModule } from './tugas/tugas.module';
 
 @Module({
   imports: [
@@ -86,6 +87,7 @@ import { BerkasTugas } from "./entities/berkasTugas";
     DosenBimbinganModule,
     ApprovalModule,
     KelasModule,
+    TugasModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -29,6 +29,7 @@ async function bootstrap() {
     .addTag("Kelas")
     .addTag("Konfigurasi")
     .addTag("Registrasi Tesis")
+    .addTag("Tugas")
     .addCookieAuth(process.env.COOKIE_NAME)
     .addBearerAuth()
     .build();
