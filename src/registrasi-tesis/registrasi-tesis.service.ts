@@ -15,7 +15,7 @@ import { Pengguna, RoleEnum } from "src/entities/pengguna.entity";
 import { Topik } from "src/entities/topik.entity";
 import { generateQueryBuilderOrderByObj } from "src/helper/sorting";
 import { validateId } from "src/helper/validation";
-import { ArrayContains, DataSource, In, Repository } from "typeorm";
+import { ArrayContains, Brackets, DataSource, In, Repository } from "typeorm";
 import {
   FindAllNewestRegRespDto,
   IdDto,
@@ -25,6 +25,7 @@ import {
   UpdatePembimbingBodyDto,
   UpdateStatusBodyDto,
 } from "./registrasi-tesis.dto";
+import * as dayjs from "dayjs";
 
 @Injectable()
 export class RegistrasiTesisService {
@@ -270,16 +271,16 @@ export class RegistrasiTesisService {
 
     if (options.search)
       baseQuery.andWhere(
-        "mahasiswa.nama LIKE '%' || :search || '%' OR mahasiswa.nim LIKE '%' || :search || '%'",
-        {
-          search: options.search,
-        },
+        new Brackets((qb) =>
+          qb
+            .where("mahasiswa.nama ILIKE :search", {
+              search: `%${options.search}%`,
+            })
+            .orWhere("mahasiswa.nim ILIKE :search", {
+              search: `%${options.search}%`,
+            }),
+        ),
       );
-
-    if (options.idPenerima)
-      baseQuery.andWhere("penerima.id = :idPenerima", {
-        idPenerima: options.idPenerima,
-      });
 
     if (options.status)
       baseQuery.andWhere("pt.status = :status", {
@@ -383,6 +384,15 @@ export class RegistrasiTesisService {
     dto: UpdateInterviewBodyDto,
     idPenerima?: string,
   ) {
+    const minDate = new Date();
+    minDate.setDate(minDate.getDate() + 2);
+
+    if (dayjs(dto.date).isBefore(dayjs(minDate).endOf("d"))) {
+      throw new BadRequestException(
+        "Interview date must be at least 2 days from now",
+      );
+    }
+
     const newestReg = await this.getNewestRegByMhs(mahasiswaId, periode);
 
     if (newestReg && idPenerima && newestReg.penerima.id !== idPenerima) {
@@ -464,14 +474,6 @@ export class RegistrasiTesisService {
     { pembimbing_ids: dosen_ids }: UpdatePembimbingBodyDto,
   ) {
     const newestReg = await this.getNewestRegByMhs(mahasiswaId, periode);
-
-    const penerimaId = newestReg.penerima.id;
-
-    if (!dosen_ids.includes(penerimaId)) {
-      throw new BadRequestException(
-        "Pembimbing pertama harus menjadi dosen pembimbing juga",
-      );
-    }
 
     if (newestReg.status !== RegStatus.APPROVED)
       throw new BadRequestException(
