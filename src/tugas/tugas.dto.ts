@@ -1,10 +1,11 @@
 import { ApiProperty, OmitType, PickType } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsUUID, ValidateNested } from "class-validator";
+import { IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
 import { BerkasTugas } from "src/entities/berkasTugas.entity";
 import { Kelas } from "src/entities/kelas.entity";
 import { Pengguna } from "src/entities/pengguna.entity";
 import { Tugas } from "src/entities/tugas.entity";
+import { GetKelasRespDto } from "src/kelas/kelas.dto";
 
 class BerkasTugasWithoutId extends OmitType(BerkasTugas, ["id"] as const) {}
 
@@ -57,4 +58,30 @@ export class GetTugasByIdRespDto extends PickType(Tugas, [
 
   @ApiProperty({ type: PickedTugasKelas })
   kelas: PickedTugasKelas;
+}
+
+export class GetTugasByKelasIdQueryDto extends PickType(Tugas, [
+  "kelasId",
+] as const) {
+  @IsOptional()
+  @IsString()
+  search?: string;
+}
+
+export class GetTugasSummaryRespDto extends PickType(Tugas, [
+  "id",
+  "judul",
+  "waktuMulai",
+  "waktuSelesai",
+] as const) {
+  @ApiProperty()
+  totalSubmisi: number;
+}
+
+export class GetTugasByKelasIdRespDto {
+  @ApiProperty({ type: [GetTugasSummaryRespDto] })
+  tugas: GetTugasSummaryRespDto[];
+
+  @ApiProperty({ type: GetKelasRespDto })
+  kelas: GetKelasRespDto;
 }

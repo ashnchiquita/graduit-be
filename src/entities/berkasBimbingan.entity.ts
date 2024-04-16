@@ -9,7 +9,9 @@ export class BerkasBimbingan {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @ManyToOne(() => Bimbingan, (bimbingan) => bimbingan.id)
+  @ManyToOne(() => Bimbingan, (bimbingan) => bimbingan.id, {
+    orphanedRowAction: "delete",
+  })
   bimbingan: Bimbingan;
 
   @Column({ type: "text" })

@@ -3,7 +3,7 @@ import { TugasController } from "./tugas.controller";
 import { TugasService } from "./tugas.service";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { PengajarKelas } from "src/entities/pengajarKelas.entity";
-import { MahasiswaKelas } from "src/entities/mahasiswaKelas";
+import { MahasiswaKelas } from "src/entities/mahasiswaKelas.entity";
 import { Tugas } from "src/entities/tugas.entity";
 import { SubmisiTugas } from "src/entities/submisiTugas.entity";
 import { AuthModule } from "src/auth/auth.module";
@@ -13,6 +13,9 @@ import { BerkasTugas } from "src/entities/berkasTugas.entity";
 import { BerkasSubmisiTugas } from "src/entities/berkasSubmisiTugas.entity";
 import { Kelas } from "src/entities/kelas.entity";
 import { Pengguna } from "src/entities/pengguna.entity";
+import { KelasModule } from "src/kelas/kelas.module";
+import { KelasService } from "src/kelas/kelas.service";
+import { MataKuliah } from "src/entities/mataKuliah.entity";
 
 @Module({
   imports: [
@@ -25,12 +28,14 @@ import { Pengguna } from "src/entities/pengguna.entity";
       BerkasSubmisiTugas,
       Kelas,
       Pengguna,
+      MataKuliah,
     ]),
     AuthModule,
     KonfigurasiModule,
+    KelasModule,
   ],
   controllers: [TugasController],
-  providers: [TugasService, CustomStrategy],
+  providers: [TugasService, CustomStrategy, KelasService],
   exports: [TugasService],
 })
 export class TugasModule {}

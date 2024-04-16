@@ -9,15 +9,18 @@ import { Repository } from "typeorm";
 import {
   CreateTugasDto,
   GetTugasByIdRespDto,
+  GetTugasByKelasIdRespDto,
+  GetTugasSummaryRespDto,
   TugasIdDto,
   UpdateTugasDto,
 } from "./tugas.dto";
 import { BerkasTugas } from "src/entities/berkasTugas.entity";
 import { SubmisiTugas } from "src/entities/submisiTugas.entity";
 import { PengajarKelas } from "src/entities/pengajarKelas.entity";
-import { MahasiswaKelas } from "src/entities/mahasiswaKelas";
+import { MahasiswaKelas } from "src/entities/mahasiswaKelas.entity";
 import { Kelas } from "src/entities/kelas.entity";
 import { Pengguna } from "src/entities/pengguna.entity";
+import { KelasService } from "src/kelas/kelas.service";
 
 @Injectable()
 export class TugasService {
@@ -35,6 +38,7 @@ export class TugasService {
     private kelasRepo: Repository<Kelas>,
     @InjectRepository(Pengguna)
     private penggunaRepo: Repository<Pengguna>,
+    private kelasService: KelasService,
   ) {}
 
   private async isPengajarKelas(pengajarId: string, kelasId: string) {
@@ -204,9 +208,54 @@ export class TugasService {
       }
     }
 
-    // const result: GetTugasByIdRespDto = await this.getTugas(id);
     const result = await this.getTugas(id);
 
     return result;
+  }
+
+  async getTugasByKelasId(
+    kelasId: string,
+    idPengajar: string,
+    search: string,
+  ): Promise<GetTugasByKelasIdRespDto> {
+    const isPengajarKelas = await this.isPengajarKelas(idPengajar, kelasId);
+
+    if (!isPengajarKelas) {
+      throw new ForbiddenException("Anda bukan pengajar kelas ini");
+    }
+
+    const kelasQuery = this.kelasService.getById(kelasId);
+    const tugasQuery = await this.tugasRepo
+      .createQueryBuilder("tugas")
+      .leftJoinAndSelect(
+        "tugas.submisiTugas",
+        "submisi_tugas",
+        "submisi_tugas.isSubmitted = true",
+      )
+      .select([
+        "tugas.id AS id",
+        "tugas.judul AS judul",
+        "tugas.waktuMulai AS waktu_mulai",
+        "tugas.waktuSelesai AS waktu_selesai",
+        "COUNT(submisi_tugas) AS total_submisi",
+      ])
+      .where("tugas.kelasId = :kelasId", {
+        kelasId,
+      })
+      .andWhere("tugas.judul ILIKE :search", { search: `%${search}%` })
+      .groupBy("tugas.id")
+      .orderBy("tugas.createdAt", "DESC")
+      .getRawMany();
+
+    const [kelas, tugas] = await Promise.all([kelasQuery, tugasQuery]);
+    const mappedTugas: GetTugasSummaryRespDto[] = tugas.map((tugas) => ({
+      id: tugas.id,
+      judul: tugas.judul,
+      waktuMulai: tugas.waktu_mulai,
+      waktuSelesai: tugas.waktu_selesai,
+      totalSubmisi: parseInt(tugas.total_submisi),
+    }));
+
+    return { kelas, tugas: mappedTugas };
   }
 }

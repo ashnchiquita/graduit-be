@@ -5,6 +5,7 @@ import {
 } from "@nestjs/swagger";
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { PendaftaranTesis } from "./pendaftaranTesis.entity";
+import { SubmisiTugas } from "./submisiTugas.entity";
 
 export enum RoleEnum {
   ADMIN = "ADMIN",
@@ -58,4 +59,7 @@ export class Pengguna {
 
   @OneToMany(() => PendaftaranTesis, (pendaftaran) => pendaftaran.mahasiswa)
   pendaftaranTesis: PendaftaranTesis[];
+
+  @OneToMany(() => SubmisiTugas, (submisiTugas) => submisiTugas.mahasiswa)
+  submisiTugas: SubmisiTugas[];
 }

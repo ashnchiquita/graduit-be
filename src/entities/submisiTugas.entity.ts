@@ -11,6 +11,7 @@ import { Tugas } from "./tugas.entity";
 import { BerkasSubmisiTugas } from "./berkasSubmisiTugas.entity";
 import { ApiProperty } from "@nestjs/swagger";
 import { IsString, IsUUID } from "class-validator";
+import { IsBoolean } from "@nestjs/class-validator";
 
 @Entity()
 export class SubmisiTugas {
@@ -34,6 +35,7 @@ export class SubmisiTugas {
   jawaban: string;
 
   @ApiProperty({ description: "true means submitted, false means draft" })
+  @IsBoolean()
   @Column({ type: "boolean" })
   isSubmitted: boolean; // false means draft (saved), true means submitted
 
@@ -41,6 +43,7 @@ export class SubmisiTugas {
   @OneToMany(
     () => BerkasSubmisiTugas,
     (berkasSubmisiTugas) => berkasSubmisiTugas.submisiTugas,
+    { cascade: true },
   )
   berkasSubmisiTugas: BerkasSubmisiTugas[];
 

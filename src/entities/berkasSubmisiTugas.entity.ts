@@ -1,7 +1,8 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { SubmisiTugas } from "./submisiTugas.entity";
 import { ApiProperty } from "@nestjs/swagger";
-import { IsUUID } from "@nestjs/class-validator";
+import { IsString, IsUUID } from "@nestjs/class-validator";
+import { IsUrl } from "class-validator";
 
 @Entity()
 export class BerkasSubmisiTugas {
@@ -10,14 +11,18 @@ export class BerkasSubmisiTugas {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @ManyToOne(() => SubmisiTugas, (submisi) => submisi.id)
+  @ManyToOne(() => SubmisiTugas, (submisi) => submisi.id, {
+    orphanedRowAction: "delete",
+  })
   submisiTugas: SubmisiTugas;
 
   @ApiProperty()
+  @IsString()
   @Column({ type: "text" })
   nama: string;
 
   @ApiProperty()
+  @IsUrl()
   @Column({ type: "text" })
   url: string;
 }

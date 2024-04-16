@@ -5,6 +5,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   Req,
   UseGuards,
 } from "@nestjs/common";
@@ -25,6 +26,7 @@ import {
   CreateTugasDto,
   UpdateTugasDto,
   GetTugasByIdRespDto,
+  GetTugasByKelasIdQueryDto,
 } from "./tugas.dto";
 import { Request } from "express";
 import { AuthDto } from "src/auth/auth.dto";
@@ -71,5 +73,20 @@ export class TugasController {
     }
 
     return this.tugasService.getTugasById(param.id, idMahasiswa, idPengajar);
+  }
+
+  @Roles(RoleEnum.S2_KULIAH)
+  @Get()
+  async getTugasByKelasId(
+    @Req() req: Request,
+    @Query() query: GetTugasByKelasIdQueryDto,
+  ) {
+    const { id } = req.user as AuthDto;
+
+    return this.tugasService.getTugasByKelasId(
+      query.kelasId,
+      id,
+      query.search || "",
+    );
   }
 }
