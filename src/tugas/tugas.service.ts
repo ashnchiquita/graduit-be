@@ -12,8 +12,8 @@ import {
   TugasIdDto,
   UpdateTugasDto,
 } from "./tugas.dto";
-import { BerkasTugas } from "src/entities/berkasTugas";
-import { SubmisiTugas } from "src/entities/submisiTugas";
+import { BerkasTugas } from "src/entities/berkasTugas.entity";
+import { SubmisiTugas } from "src/entities/submisiTugas.entity";
 import { PengajarKelas } from "src/entities/pengajarKelas.entity";
 import { MahasiswaKelas } from "src/entities/mahasiswaKelas";
 import { Kelas } from "src/entities/kelas.entity";
@@ -53,7 +53,7 @@ export class TugasService {
     return !!mahasiswaKelas;
   }
 
-  private async isPengajarTugas(pengajarId: string, tugasId: string) {
+  async isPengajarTugas(pengajarId: string, tugasId: string) {
     const tugas = await this.tugasRepo.findOne({
       where: { id: tugasId },
     });
@@ -65,7 +65,7 @@ export class TugasService {
     return await this.isPengajarKelas(pengajarId, tugas.kelasId);
   }
 
-  private async isMahasiswaTugas(mahasiswaId: string, tugasId: string) {
+  async isMahasiswaTugas(mahasiswaId: string, tugasId: string) {
     const tugas = await this.tugasRepo.findOne({
       where: { id: tugasId },
     });
@@ -77,29 +77,36 @@ export class TugasService {
     return await this.isMahasiswaKelas(mahasiswaId, tugas.kelasId);
   }
 
-  private async getTugas(tugasId: string) {
-    return this.tugasRepo.findOne({
-      select: {
-        id: true,
-        pembuat: {
-          id: true,
-          nama: true,
-        },
-        pengubah: {
-          id: true,
-          nama: true,
-        },
-        judul: true,
-        waktuMulai: true,
-        waktuSelesai: true,
-        deskripsi: true,
-        createdAt: true,
-        updatedAt: true,
-        berkasTugas: true,
-      },
-      where: { id: tugasId },
-      relations: ["berkasTugas", "pembuat", "pengubah"],
-    });
+  private async getTugas(tugasId: string): Promise<GetTugasByIdRespDto> {
+    const result: GetTugasByIdRespDto[] = await this.tugasRepo
+      .createQueryBuilder("tugas")
+      .leftJoinAndSelect("tugas.pembuat", "pembuat")
+      .leftJoinAndSelect("tugas.pengubah", "pengubah")
+      .leftJoinAndSelect("tugas.kelas", "kelas")
+      .leftJoinAndSelect("kelas.mataKuliah", "mataKuliah")
+      .leftJoinAndSelect("tugas.berkasTugas", "berkasTugas")
+      .select([
+        "tugas.id",
+        "pembuat.id",
+        "pembuat.nama",
+        "pengubah.id",
+        "pengubah.nama",
+        "tugas.judul",
+        "tugas.waktuMulai",
+        "tugas.waktuSelesai",
+        "tugas.deskripsi",
+        "tugas.createdAt",
+        "tugas.updatedAt",
+        "berkasTugas",
+        "kelas.id",
+        "kelas.nomor",
+        "mataKuliah.kode",
+        "mataKuliah.nama",
+      ])
+      .where("tugas.id = :tugasId", { tugasId })
+      .getMany();
+
+    return result[0];
   }
 
   async createTugas(
@@ -181,8 +188,6 @@ export class TugasService {
   }
 
   async getTugasById(id: string, idMahasiswa?: string, idPengajar?: string) {
-    console.log(idMahasiswa, idPengajar);
-
     if (idMahasiswa) {
       const isMahasiswaTugas = await this.isMahasiswaTugas(idMahasiswa, id);
 
@@ -199,15 +204,9 @@ export class TugasService {
       }
     }
 
-    const result: GetTugasByIdRespDto = await this.getTugas(id);
+    // const result: GetTugasByIdRespDto = await this.getTugas(id);
+    const result = await this.getTugas(id);
 
     return result;
-  }
-
-  async getSubmisiTugasById(id: string) {
-    return this.submisiTugasRepo.findOne({
-      where: { id },
-      relations: ["berkasSubmisiTugas"],
-    });
   }
 }

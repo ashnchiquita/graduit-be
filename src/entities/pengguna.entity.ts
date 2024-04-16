@@ -50,4 +50,8 @@ export class Pengguna {
     default: [],
   })
   roles: RoleEnum[];
+
+  @ApiPropertyOptional()
+  @Column({ type: "text", nullable: true })
+  kontak: string;
 }

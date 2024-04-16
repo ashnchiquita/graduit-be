@@ -24,7 +24,7 @@ import {
   UpdateStatusDto,
   UpdateStatusResDto,
 } from "./bimbingan.dto";
-import { BerkasBimbingan } from "src/entities/berkasBimbingan";
+import { BerkasBimbingan } from "src/entities/berkasBimbingan.entity";
 
 @Injectable()
 export class BimbinganService {

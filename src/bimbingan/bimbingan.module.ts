@@ -6,7 +6,7 @@ import { Bimbingan } from "src/entities/bimbingan.entity";
 import { PendaftaranTesis } from "src/entities/pendaftaranTesis.entity";
 import { Konfigurasi } from "src/entities/konfigurasi.entity";
 import { DosenBimbingan } from "src/entities/dosenBimbingan.entity";
-import { BerkasBimbingan } from "src/entities/berkasBimbingan";
+import { BerkasBimbingan } from "src/entities/berkasBimbingan.entity";
 
 @Module({
   imports: [

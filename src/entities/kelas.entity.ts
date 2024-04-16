@@ -36,6 +36,7 @@ export class Kelas {
   @Column({ type: "text" })
   periode: string;
 
+  @ApiProperty({ type: MataKuliah })
   @ManyToOne(() => MataKuliah, (mataKuliah) => mataKuliah.kode)
   @JoinColumn({ name: "mataKuliahKode" })
   mataKuliah: MataKuliah;

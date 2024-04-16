@@ -5,12 +5,12 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { PengajarKelas } from "src/entities/pengajarKelas.entity";
 import { MahasiswaKelas } from "src/entities/mahasiswaKelas";
 import { Tugas } from "src/entities/tugas.entity";
-import { SubmisiTugas } from "src/entities/submisiTugas";
+import { SubmisiTugas } from "src/entities/submisiTugas.entity";
 import { AuthModule } from "src/auth/auth.module";
 import { KonfigurasiModule } from "src/konfigurasi/konfigurasi.module";
 import { CustomStrategy } from "src/middlewares/custom.strategy";
-import { BerkasTugas } from "src/entities/berkasTugas";
-import { BerkasSubmisiTugas } from "src/entities/berkasSubmisiTugas";
+import { BerkasTugas } from "src/entities/berkasTugas.entity";
+import { BerkasSubmisiTugas } from "src/entities/berkasSubmisiTugas.entity";
 import { Kelas } from "src/entities/kelas.entity";
 import { Pengguna } from "src/entities/pengguna.entity";
 
@@ -31,5 +31,6 @@ import { Pengguna } from "src/entities/pengguna.entity";
   ],
   controllers: [TugasController],
   providers: [TugasService, CustomStrategy],
+  exports: [TugasService],
 })
 export class TugasModule {}

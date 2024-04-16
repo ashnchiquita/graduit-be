@@ -1,7 +1,8 @@
 import { ApiProperty, OmitType, PickType } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsUUID, ValidateNested } from "class-validator";
-import { BerkasTugas } from "src/entities/berkasTugas";
+import { BerkasTugas } from "src/entities/berkasTugas.entity";
+import { Kelas } from "src/entities/kelas.entity";
 import { Pengguna } from "src/entities/pengguna.entity";
 import { Tugas } from "src/entities/tugas.entity";
 
@@ -28,13 +29,15 @@ export class UpdateTugasDto extends OmitType(CreateTugasDto, [
   id: string;
 }
 
-export class TugasIdDto {
-  @ApiProperty({ example: "550e8400-e29b-41d4-a716-446655440000" })
-  @IsUUID()
-  id: string;
-}
+export class TugasIdDto extends PickType(Tugas, ["id"] as const) {}
 
 class PickedPengajarKelas extends PickType(Pengguna, ["id", "nama"] as const) {}
+
+class PickedTugasKelas extends PickType(Kelas, [
+  "id",
+  "nomor",
+  "mataKuliah",
+] as const) {}
 
 export class GetTugasByIdRespDto extends PickType(Tugas, [
   "id",
@@ -51,4 +54,7 @@ export class GetTugasByIdRespDto extends PickType(Tugas, [
 
   @ApiProperty({ type: PickedPengajarKelas })
   pengubah: PickedPengajarKelas;
+
+  @ApiProperty({ type: PickedTugasKelas })
+  kelas: PickedTugasKelas;
 }
