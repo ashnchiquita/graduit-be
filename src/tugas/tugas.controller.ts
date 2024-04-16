@@ -27,6 +27,7 @@ import {
   UpdateTugasDto,
   GetTugasByIdRespDto,
   GetTugasByKelasIdQueryDto,
+  GetTugasByKelasIdRespDto,
 } from "./tugas.dto";
 import { Request } from "express";
 import { AuthDto } from "src/auth/auth.dto";
@@ -75,6 +76,7 @@ export class TugasController {
     return this.tugasService.getTugasById(param.id, idMahasiswa, idPengajar);
   }
 
+  @ApiOkResponse({ type: GetTugasByKelasIdRespDto })
   @Roles(RoleEnum.S2_KULIAH)
   @Get()
   async getTugasByKelasId(
