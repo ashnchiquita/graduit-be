@@ -29,6 +29,7 @@ import { BimbinganModule } from "./bimbingan/bimbingan.module";
 import { Konfigurasi } from "./entities/konfigurasi.entity";
 import { KonfigurasiModule } from "./konfigurasi/konfigurasi.module";
 import { validate } from "./env.validation";
+import { BerkasBimbingan } from "./entities/berkasBimbingan";
 import { MataKuliah } from "./entities/mataKuliah";
 import { SubmisiTugas } from "./entities/submisiTugas";
 import { KelasModule } from "./kelas/kelas.module";
@@ -47,6 +48,7 @@ import { BerkasTugas } from "./entities/berkasTugas";
       database: process.env.POSTGRES_DATABASE,
       ssl: process.env.POSTGRES_HOST !== "localhost",
       entities: [
+        BerkasBimbingan,
         Bimbingan,
         Pengguna,
         RangeJadwalSeminar,
