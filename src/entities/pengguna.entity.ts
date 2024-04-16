@@ -3,7 +3,8 @@ import {
   ApiProperty,
   ApiPropertyOptional,
 } from "@nestjs/swagger";
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { PendaftaranTesis } from "./pendaftaranTesis.entity";
 
 export enum RoleEnum {
   ADMIN = "ADMIN",
@@ -54,4 +55,7 @@ export class Pengguna {
   @ApiPropertyOptional()
   @Column({ type: "text", nullable: true })
   kontak: string;
+
+  @OneToMany(() => PendaftaranTesis, (pendaftaran) => pendaftaran.mahasiswa)
+  pendaftaranTesis: PendaftaranTesis[];
 }

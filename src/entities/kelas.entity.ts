@@ -6,10 +6,10 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from "typeorm";
-import { MataKuliah } from "./mataKuliah";
+import { MataKuliah } from "./mataKuliah.entity";
 import { ApiProperty } from "@nestjs/swagger";
 import { PengajarKelas } from "./pengajarKelas.entity";
-import { MahasiswaKelas } from "./mahasiswaKelas";
+import { MahasiswaKelas } from "./mahasiswaKelas.entity";
 import {
   IsPositive,
   IsString,

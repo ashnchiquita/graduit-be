@@ -12,6 +12,7 @@ import { BerkasTugas } from "./berkasTugas.entity";
 import { ApiProperty } from "@nestjs/swagger";
 import { IsDateString, IsUUID, MaxLength } from "class-validator";
 import { IsString } from "@nestjs/class-validator";
+import { SubmisiTugas } from "./submisiTugas.entity";
 
 @Entity()
 export class Tugas {
@@ -81,4 +82,7 @@ export class Tugas {
   @IsUUID()
   @Column()
   kelasId: string;
+
+  @OneToMany(() => SubmisiTugas, (submisiTugas) => submisiTugas.tugas)
+  submisiTugas: SubmisiTugas[];
 }

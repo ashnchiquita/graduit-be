@@ -6,7 +6,7 @@ import {
   ApiPropertyOptional,
 } from "@nestjs/swagger";
 import { Kelas } from "src/entities/kelas.entity";
-import { MataKuliah } from "src/entities/mataKuliah";
+import { MataKuliah } from "src/entities/mataKuliah.entity";
 import { Pengguna, RoleEnum } from "src/entities/pengguna.entity";
 
 export class CreateKelasDto extends PickType(Kelas, [

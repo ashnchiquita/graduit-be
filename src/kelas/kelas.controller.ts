@@ -40,7 +40,7 @@ import { CustomAuthGuard } from "src/middlewares/custom-auth.guard";
 import { RolesGuard } from "src/middlewares/roles.guard";
 import { KelasService } from "./kelas.service";
 import { Roles } from "src/middlewares/roles.decorator";
-import { MataKuliah } from "src/entities/mataKuliah";
+import { MataKuliah } from "src/entities/mataKuliah.entity";
 import { Kelas } from "src/entities/kelas.entity";
 
 @ApiTags("Kelas")

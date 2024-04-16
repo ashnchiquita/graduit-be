@@ -16,7 +16,7 @@ import {
   UpdateKelasDto,
 } from "./kelas.dto";
 import { KonfigurasiService } from "src/konfigurasi/konfigurasi.service";
-import { MataKuliah } from "src/entities/mataKuliah";
+import { MataKuliah } from "src/entities/mataKuliah.entity";
 import { CARD_COLORS } from "./kelas.constant";
 
 @Injectable()
