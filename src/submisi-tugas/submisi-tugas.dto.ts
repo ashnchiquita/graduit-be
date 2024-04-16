@@ -5,8 +5,14 @@ import {
   OmitType,
   PickType,
 } from "@nestjs/swagger";
-import { Type } from "class-transformer";
-import { IsEnum, IsOptional, ValidateNested } from "class-validator";
+import { Transform, Type } from "class-transformer";
+import {
+  IsBoolean,
+  IsEnum,
+  IsNumberString,
+  IsOptional,
+  ValidateNested,
+} from "class-validator";
 import { BerkasSubmisiTugas } from "src/entities/berkasSubmisiTugas.entity";
 import { PendaftaranTesis } from "src/entities/pendaftaranTesis.entity";
 import { Pengguna } from "src/entities/pengguna.entity";
@@ -40,7 +46,28 @@ export class GetSubmisiTugasByTugasIdQueryDto extends PickType(SubmisiTugas, [
   @IsString()
   search?: string;
 
-  @ApiPropertyOptional({ enum: ["ASC", "DESC"] })
+  @IsOptional()
+  @IsNumberString()
+  @ApiPropertyOptional({ description: "default: 1" })
+  page?: number;
+
+  @IsOptional()
+  @IsNumberString()
+  @ApiPropertyOptional({ description: "default: 10" })
+  limit?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => value === "true")
+  @ApiPropertyOptional({
+    description: "if not specified, will return all submisi tugas",
+  })
+  isSubmitted?: boolean;
+
+  @ApiPropertyOptional({
+    enum: ["ASC", "DESC"],
+    description: "order by nim. default: ASC",
+  })
   @IsOptional()
   @IsEnum(["ASC", "DESC"])
   order?: "ASC" | "DESC";

@@ -233,6 +233,8 @@ export class TugasService {
     kelasId: string,
     idPengajar: string,
     search: string,
+    page: number,
+    limit: number,
   ): Promise<GetTugasByKelasIdRespDto> {
     await this.isPengajarKelasOrFail(idPengajar, kelasId);
 
@@ -257,6 +259,8 @@ export class TugasService {
       .andWhere("tugas.judul ILIKE :search", { search: `%${search}%` })
       .groupBy("tugas.id")
       .orderBy("tugas.createdAt", "DESC")
+      .limit(limit)
+      .skip((page - 1) * limit)
       .getRawMany();
 
     const [kelas, tugas] = await Promise.all([kelasQuery, tugasQuery]);

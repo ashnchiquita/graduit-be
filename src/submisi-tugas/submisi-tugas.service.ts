@@ -181,11 +181,14 @@ export class SubmisiTugasService {
     tugasId: string,
     idPenerima: string,
     search: string,
+    page: number,
+    limit: number,
     order: "ASC" | "DESC",
+    isSubmitted?: boolean,
   ) {
     await this.tugasService.isPengajarTugasOrFail(idPenerima, tugasId);
 
-    const submisiTugas = await this.mahasiswaKelasRepo
+    const baseQuery = await this.mahasiswaKelasRepo
       .createQueryBuilder("mk")
       .innerJoin("mk.kelas", "kelas", "kelas.id = mk.kelasId")
       .innerJoinAndSelect("mk.mahasiswa", "mahasiswa")
@@ -216,7 +219,25 @@ export class SubmisiTugasService {
           }).orWhere("mahasiswa.nim ILIKE :search", { search: `%${search}%` });
         }),
       )
-      .orderBy("mahasiswa.nim", order)
+      .orderBy("mahasiswa.nim", order);
+
+    if (isSubmitted !== undefined) {
+      if (isSubmitted) {
+        baseQuery.andWhere("submisiTugas.isSubmitted = true");
+      } else {
+        baseQuery.andWhere(
+          new Brackets((qb) =>
+            qb
+              .where("submisiTugas.isSubmitted <> true")
+              .orWhere("submisiTugas.isSubmitted IS NULL"),
+          ),
+        );
+      }
+    }
+
+    const submisiTugas = await baseQuery
+      .limit(limit)
+      .skip((page - 1) * limit)
       .getMany();
 
     const mappedResult: GetSubmisiTugasByTugasIdRespDto[] = submisiTugas.map(

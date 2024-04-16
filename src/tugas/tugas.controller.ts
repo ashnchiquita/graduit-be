@@ -98,6 +98,8 @@ export class TugasController {
       query.kelasId,
       id,
       query.search || "",
+      query.page || 1,
+      query.limit || 10,
     );
   }
 }

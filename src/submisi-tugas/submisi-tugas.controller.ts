@@ -95,7 +95,10 @@ export class SubmisiTugasController {
       query.tugasId,
       id,
       query.search || "",
+      query.page || 1,
+      query.limit || 10,
       query.order || "ASC",
+      query.isSubmitted,
     );
   }
 }

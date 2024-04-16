@@ -1,6 +1,17 @@
-import { ApiProperty, OmitType, PickType } from "@nestjs/swagger";
+import {
+  ApiProperty,
+  ApiPropertyOptional,
+  OmitType,
+  PickType,
+} from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
+import {
+  IsNumberString,
+  IsOptional,
+  IsString,
+  IsUUID,
+  ValidateNested,
+} from "class-validator";
 import { BerkasTugas } from "src/entities/berkasTugas.entity";
 import { Kelas } from "src/entities/kelas.entity";
 import { Pengguna } from "src/entities/pengguna.entity";
@@ -66,6 +77,16 @@ export class GetTugasByKelasIdQueryDto extends PickType(Tugas, [
   @IsOptional()
   @IsString()
   search?: string;
+
+  @IsOptional()
+  @IsNumberString()
+  @ApiPropertyOptional({ description: "default: 1" })
+  page?: number;
+
+  @IsOptional()
+  @IsNumberString()
+  @ApiPropertyOptional({ description: "default: 10" })
+  limit?: number;
 }
 
 export class GetTugasSummaryRespDto extends PickType(Tugas, [
