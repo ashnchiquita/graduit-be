@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -36,19 +35,7 @@ export class SubmisiTugasService {
     private tugasService: TugasService,
     private konfService: KonfigurasiService,
   ) {}
-  private async getPeriode() {
-    const currPeriod = await this.konfService.getKonfigurasiByKey(
-      process.env.KONF_PERIODE_KEY,
-    );
-
-    if (!currPeriod) {
-      throw new BadRequestException("Periode belum dikonfigurasi");
-    }
-
-    return currPeriod;
-  }
-
-  private async isMahasiswaSubmisiTugas(
+  private async isMahasiswaSubmisiTugasOrFail(
     submisiTugasId: string,
     mahasiswaId: string,
   ) {
@@ -60,10 +47,18 @@ export class SubmisiTugasService {
       throw new NotFoundException("Submisi tugas tidak ditemukan");
     }
 
-    return submisiTugas.mahasiswaId === mahasiswaId;
+    if (submisiTugas.mahasiswaId !== mahasiswaId) {
+      throw new ForbiddenException("Anda tidak memiliki akses");
+    }
+
+    // validate periode
+    await this.tugasService.isMahasiswaTugasOrFail(
+      mahasiswaId,
+      submisiTugas.tugasId,
+    );
   }
 
-  private async isPengajarSubmisiTugas(
+  private async isPengajarSubmisiTugasOrFail(
     submisiTugasId: string,
     pengajarId: string,
   ) {
@@ -76,26 +71,20 @@ export class SubmisiTugasService {
       throw new NotFoundException("Submisi tugas tidak ditemukan");
     }
 
-    const isPengajarTugas = await this.tugasService.isPengajarTugas(
+    await this.tugasService.isPengajarTugasOrFail(
       pengajarId,
       submisiTugas.tugas.id,
     );
-
-    return isPengajarTugas;
   }
 
   async createSubmisiTugas(
     createDto: CreateSubmisiTugasDto,
     mahasiswaId: string,
   ) {
-    const isMahasiswaTugas = await this.tugasService.isMahasiswaTugas(
+    await this.tugasService.isMahasiswaTugasOrFail(
       mahasiswaId,
       createDto.tugasId,
     );
-
-    if (!isMahasiswaTugas) {
-      throw new ForbiddenException("Mahasiswa tidak terdaftar pada kelas");
-    }
 
     const tugas = await this.tugasRepo.findOneBy({ id: createDto.tugasId });
     const mahasiswa = await this.penggunaRepo.findOneBy({ id: mahasiswaId });
@@ -137,27 +126,14 @@ export class SubmisiTugasService {
     pengajarId?: string,
   ) {
     if (mahasiswaId) {
-      const isMahasiswaSubmisiTugas = await this.isMahasiswaSubmisiTugas(
-        id,
-        mahasiswaId,
-      );
-      if (!isMahasiswaSubmisiTugas) {
-        throw new ForbiddenException("Anda tidak memiliki akses");
-      }
+      await this.isMahasiswaSubmisiTugasOrFail(id, mahasiswaId);
     }
 
     if (pengajarId) {
-      const isPengajarSubmisiTugas = await this.isPengajarSubmisiTugas(
-        id,
-        pengajarId,
-      );
-      if (!isPengajarSubmisiTugas) {
-        throw new ForbiddenException("Anda tidak memiliki akses");
-      }
+      await this.isPengajarSubmisiTugasOrFail(id, pengajarId);
     }
 
-    const currPeriod = await this.getPeriode();
-
+    const currPeriod = await this.konfService.getPeriodeOrFail();
     const submisiTugas = await this.getSubmisiTugas(id);
 
     const pendaftaranQuery = this.penggunaRepo
@@ -207,14 +183,7 @@ export class SubmisiTugasService {
     search: string,
     order: "ASC" | "DESC",
   ) {
-    const isPengajarTugas = await this.tugasService.isPengajarTugas(
-      idPenerima,
-      tugasId,
-    );
-
-    if (!isPengajarTugas) {
-      throw new ForbiddenException("Anda tidak memiliki akses");
-    }
+    await this.tugasService.isPengajarTugasOrFail(idPenerima, tugasId);
 
     const submisiTugas = await this.mahasiswaKelasRepo
       .createQueryBuilder("mk")

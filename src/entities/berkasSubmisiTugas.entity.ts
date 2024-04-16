@@ -21,7 +21,7 @@ export class BerkasSubmisiTugas {
   @Column({ type: "text" })
   nama: string;
 
-  @ApiProperty()
+  @ApiProperty({ example: "https://example.com/berkas.pdf" })
   @IsUrl()
   @Column({ type: "text" })
   url: string;

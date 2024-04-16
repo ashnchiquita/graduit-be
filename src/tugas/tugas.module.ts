@@ -16,6 +16,8 @@ import { Pengguna } from "src/entities/pengguna.entity";
 import { KelasModule } from "src/kelas/kelas.module";
 import { KelasService } from "src/kelas/kelas.service";
 import { MataKuliah } from "src/entities/mataKuliah.entity";
+import { KonfigurasiService } from "src/konfigurasi/konfigurasi.service";
+import { Konfigurasi } from "src/entities/konfigurasi.entity";
 
 @Module({
   imports: [
@@ -29,13 +31,14 @@ import { MataKuliah } from "src/entities/mataKuliah.entity";
       Kelas,
       Pengguna,
       MataKuliah,
+      Konfigurasi,
     ]),
     AuthModule,
     KonfigurasiModule,
     KelasModule,
   ],
   controllers: [TugasController],
-  providers: [TugasService, CustomStrategy, KelasService],
+  providers: [TugasService, CustomStrategy, KelasService, KonfigurasiService],
   exports: [TugasService],
 })
 export class TugasModule {}

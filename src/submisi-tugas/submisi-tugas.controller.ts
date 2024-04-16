@@ -13,6 +13,7 @@ import {
   ApiBearerAuth,
   ApiCookieAuth,
   ApiOkResponse,
+  ApiOperation,
   ApiTags,
 } from "@nestjs/swagger";
 import { CustomAuthGuard } from "src/middlewares/custom-auth.guard";
@@ -43,11 +44,16 @@ export class SubmisiTugasController {
     @Body() createDto: CreateSubmisiTugasDto,
     @Req() req: Request,
   ) {
+    // TODO: More validation
     const { id } = req.user as AuthDto;
 
     return await this.submisiTugasServ.createSubmisiTugas(createDto, id);
   }
 
+  @ApiOperation({
+    summary:
+      "Get submisi tugas by sumbisi tugas id. Roles: S2_KULIAH, S2_MAHASISWA",
+  })
   @ApiOkResponse({ type: GetSubmisiTugasByIdRespDto })
   @Roles(RoleEnum.S2_KULIAH, RoleEnum.S2_MAHASISWA)
   @Get("/:id")
@@ -73,6 +79,9 @@ export class SubmisiTugasController {
     );
   }
 
+  @ApiOperation({
+    summary: "Get list of submisi tugas summary by tugas id. Roles: S2_KULIAH",
+  })
   @ApiOkResponse({ type: [GetSubmisiTugasByTugasIdRespDto] })
   @Roles(RoleEnum.S2_KULIAH)
   @Get()

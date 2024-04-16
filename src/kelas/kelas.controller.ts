@@ -34,6 +34,7 @@ import {
   ApiInternalServerErrorResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
+  ApiOperation,
   ApiTags,
 } from "@nestjs/swagger";
 import { CustomAuthGuard } from "src/middlewares/custom-auth.guard";
@@ -51,6 +52,10 @@ import { Kelas } from "src/entities/kelas.entity";
 export class KelasController {
   constructor(private readonly kelasServ: KelasService) {}
 
+  @ApiOperation({
+    summary:
+      "Get list of kelas. Roles: S2_KULIAH, S2_MAHASISWA, S2_TIM_TESIS, ADMIN",
+  })
   @ApiOkResponse({ type: GetKelasRespDto, isArray: true })
   @Roles(
     RoleEnum.S2_KULIAH,
@@ -158,6 +163,10 @@ export class KelasController {
     RoleEnum.S2_MAHASISWA,
   )
   @ApiOkResponse({ type: GetKelasRespDto })
+  @ApiOperation({
+    summary:
+      "Get kelas general information by kelas id. Roles: S2_KULIAH, S2_MAHASISWA, S2_TIM_TESIS, ADMIN",
+  })
   @Get("/:id")
   async getById(
     @Param() param: ByIdKelasDto,
@@ -189,6 +198,10 @@ export class KelasController {
     RoleEnum.S2_KULIAH,
     RoleEnum.S2_MAHASISWA,
   )
+  @ApiOperation({
+    summary:
+      "Get kelas mahasiswa and pengajar list by kelas id. Roles: S2_KULIAH, S2_MAHASISWA, S2_TIM_TESIS, ADMIN",
+  })
   @ApiOkResponse({ type: GetKelasDetailRespDto })
   @Get("/:id/detail")
   async getKelasDetail(@Param() param: ByIdKelasDto, @Req() req: Request) {

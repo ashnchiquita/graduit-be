@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Konfigurasi } from "src/entities/konfigurasi.entity";
 import { Repository } from "typeorm";
@@ -28,5 +28,17 @@ export class KonfigurasiService {
     });
 
     return data?.value;
+  }
+
+  async getPeriodeOrFail() {
+    const currPeriod = await this.getKonfigurasiByKey(
+      process.env.KONF_PERIODE_KEY,
+    );
+
+    if (!currPeriod) {
+      throw new BadRequestException("Periode belum dikonfigurasi");
+    }
+
+    return currPeriod;
   }
 }

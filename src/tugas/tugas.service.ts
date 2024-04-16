@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -21,6 +22,8 @@ import { MahasiswaKelas } from "src/entities/mahasiswaKelas.entity";
 import { Kelas } from "src/entities/kelas.entity";
 import { Pengguna } from "src/entities/pengguna.entity";
 import { KelasService } from "src/kelas/kelas.service";
+import { KonfigurasiService } from "src/konfigurasi/konfigurasi.service";
+import * as dayjs from "dayjs";
 
 @Injectable()
 export class TugasService {
@@ -39,25 +42,48 @@ export class TugasService {
     @InjectRepository(Pengguna)
     private penggunaRepo: Repository<Pengguna>,
     private kelasService: KelasService,
+    private konfService: KonfigurasiService,
   ) {}
 
-  private async isPengajarKelas(pengajarId: string, kelasId: string) {
+  private async isPengajarKelasOrFail(pengajarId: string, kelasId: string) {
+    const periode = await this.konfService.getPeriodeOrFail();
+
     const doskel = await this.doskelRepo.findOne({
-      where: { pengajarId, kelasId },
+      where: {
+        pengajarId,
+        kelasId,
+        kelas: {
+          periode,
+        },
+      },
+      relations: ["kelas"],
     });
 
-    return !!doskel;
+    if (!doskel) {
+      throw new ForbiddenException("Anda tidak memiliki akses");
+    }
   }
 
-  private async isMahasiswaKelas(mahasiswaId: string, kelasId: string) {
+  private async isMahasiswaKelasOrFail(mahasiswaId: string, kelasId: string) {
+    const periode = await this.konfService.getPeriodeOrFail();
+
     const mahasiswaKelas = await this.mahasiswaKelasRepo.findOne({
-      where: { mahasiswaId, kelasId },
+      where: {
+        mahasiswaId,
+        kelasId,
+        kelas: {
+          periode,
+        },
+      },
+      relations: ["kelas"],
     });
 
-    return !!mahasiswaKelas;
+    if (!mahasiswaKelas) {
+      throw new ForbiddenException("Anda tidak memiliki akses");
+    }
   }
 
-  async isPengajarTugas(pengajarId: string, tugasId: string) {
+  async isPengajarTugasOrFail(pengajarId: string, tugasId: string) {
     const tugas = await this.tugasRepo.findOne({
       where: { id: tugasId },
     });
@@ -66,10 +92,10 @@ export class TugasService {
       throw new NotFoundException("Tugas tidak ditemukan");
     }
 
-    return await this.isPengajarKelas(pengajarId, tugas.kelasId);
+    await this.isPengajarKelasOrFail(pengajarId, tugas.kelasId);
   }
 
-  async isMahasiswaTugas(mahasiswaId: string, tugasId: string) {
+  async isMahasiswaTugasOrFail(mahasiswaId: string, tugasId: string) {
     const tugas = await this.tugasRepo.findOne({
       where: { id: tugasId },
     });
@@ -78,7 +104,7 @@ export class TugasService {
       throw new NotFoundException("Tugas tidak ditemukan");
     }
 
-    return await this.isMahasiswaKelas(mahasiswaId, tugas.kelasId);
+    return await this.isMahasiswaKelasOrFail(mahasiswaId, tugas.kelasId);
   }
 
   private async getTugas(tugasId: string): Promise<GetTugasByIdRespDto> {
@@ -117,13 +143,12 @@ export class TugasService {
     createDto: CreateTugasDto,
     pembuatId: string,
   ): Promise<TugasIdDto> {
-    const isPengajarKelas = await this.isPengajarKelas(
-      pembuatId,
-      createDto.kelasId,
-    );
+    await this.isPengajarKelasOrFail(pembuatId, createDto.kelasId);
 
-    if (!isPengajarKelas) {
-      throw new ForbiddenException("Anda bukan pengajar kelas ini");
+    if (dayjs(createDto.waktuMulai).isAfter(dayjs(createDto.waktuSelesai))) {
+      throw new BadRequestException(
+        "Waktu mulai tidak boleh setelah waktu selesai",
+      );
     }
 
     const kelas = await this.kelasRepo.findOne({
@@ -155,13 +180,12 @@ export class TugasService {
     updateDto: UpdateTugasDto,
     pengubahId: string,
   ): Promise<TugasIdDto> {
-    const isPengajarTugas = await this.isPengajarTugas(
-      pengubahId,
-      updateDto.id,
-    );
+    await this.isPengajarTugasOrFail(pengubahId, updateDto.id);
 
-    if (!isPengajarTugas) {
-      throw new ForbiddenException("Anda bukan pengajar kelas ini");
+    if (dayjs(updateDto.waktuMulai).isAfter(dayjs(updateDto.waktuSelesai))) {
+      throw new BadRequestException(
+        "Waktu mulai tidak boleh setelah waktu selesai",
+      );
     }
 
     const berkasTugas = updateDto.berkasTugas.map((berkas) =>
@@ -193,19 +217,11 @@ export class TugasService {
 
   async getTugasById(id: string, idMahasiswa?: string, idPengajar?: string) {
     if (idMahasiswa) {
-      const isMahasiswaTugas = await this.isMahasiswaTugas(idMahasiswa, id);
-
-      if (!isMahasiswaTugas) {
-        throw new ForbiddenException("Anda bukan mahasiswa kelas ini");
-      }
+      await this.isMahasiswaTugasOrFail(idMahasiswa, id);
     }
 
     if (idPengajar) {
-      const isPengajarTugas = await this.isPengajarTugas(idPengajar, id);
-
-      if (!isPengajarTugas) {
-        throw new ForbiddenException("Anda bukan pengajar kelas ini");
-      }
+      await this.isPengajarTugasOrFail(idPengajar, id);
     }
 
     const result = await this.getTugas(id);
@@ -218,11 +234,7 @@ export class TugasService {
     idPengajar: string,
     search: string,
   ): Promise<GetTugasByKelasIdRespDto> {
-    const isPengajarKelas = await this.isPengajarKelas(idPengajar, kelasId);
-
-    if (!isPengajarKelas) {
-      throw new ForbiddenException("Anda bukan pengajar kelas ini");
-    }
+    await this.isPengajarKelasOrFail(idPengajar, kelasId);
 
     const kelasQuery = this.kelasService.getById(kelasId);
     const tugasQuery = await this.tugasRepo

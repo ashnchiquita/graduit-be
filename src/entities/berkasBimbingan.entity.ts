@@ -21,6 +21,6 @@ export class BerkasBimbingan {
 
   @Column({ type: "text" })
   @IsUrl()
-  @ApiProperty()
+  @ApiProperty({ example: "https://example.com/berkas.pdf" })
   url: string;
 }

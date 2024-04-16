@@ -28,26 +28,13 @@ export class KelasService {
     private mataKuliahRepo: Repository<MataKuliah>,
     private konfService: KonfigurasiService,
   ) {}
-
-  async getPeriode() {
-    const currPeriod = await this.konfService.getKonfigurasiByKey(
-      process.env.KONF_PERIODE_KEY,
-    );
-
-    if (!currPeriod) {
-      throw new BadRequestException("Periode belum dikonfigurasi");
-    }
-
-    return currPeriod;
-  }
-
   async getListKelas(
     idMahasiswa?: string,
     idPengajar?: string,
     kodeMatkul?: string,
     search?: string,
   ) {
-    const currPeriod = await this.getPeriode();
+    const currPeriod = await this.konfService.getPeriodeOrFail();
 
     let baseQuery = this.kelasRepo
       .createQueryBuilder("kelas")
@@ -116,7 +103,7 @@ export class KelasService {
   }
 
   async getById(id: string, idMahasiswa?: string, idPengajar?: string) {
-    const currPeriod = await this.getPeriode();
+    const currPeriod = await this.konfService.getPeriodeOrFail();
 
     let baseQuery = this.kelasRepo
       .createQueryBuilder("kelas")
@@ -151,19 +138,19 @@ export class KelasService {
 
     const result = await baseQuery
       .groupBy("kelas.id, mataKuliah.kode")
-      .getRawMany();
+      .getRawOne();
 
-    if (result.length === 0) {
+    if (!result) {
       throw new NotFoundException("Kelas tidak ditemukan");
     }
 
     const mapped: GetKelasRespDto = {
-      id: result[0].id,
-      nomor: "K" + `${result[0].nomor}`.padStart(2, "0"),
-      kode_mata_kuliah: result[0].kode_mata_kuliah,
-      nama_mata_kuliah: result[0].nama_mata_kuliah,
-      jumlah_mahasiswa: parseInt(result[0].jumlah_mahasiswa),
-      warna: result[0].warna,
+      id: result.id,
+      nomor: "K" + `${result.nomor}`.padStart(2, "0"),
+      kode_mata_kuliah: result.kode_mata_kuliah,
+      nama_mata_kuliah: result.nama_mata_kuliah,
+      jumlah_mahasiswa: parseInt(result.jumlah_mahasiswa),
+      warna: result.warna,
     };
 
     return mapped;
@@ -174,7 +161,7 @@ export class KelasService {
     idMahasiswa?: string,
     idPengajar?: string,
   ) {
-    const currPeriod = await this.getPeriode();
+    const currPeriod = await this.konfService.getPeriodeOrFail();
 
     let baseQuery = this.kelasRepo
       .createQueryBuilder("kelas")
@@ -213,21 +200,21 @@ export class KelasService {
         });
     }
 
-    const result = await baseQuery.getMany();
+    const result = await baseQuery.getOne();
 
-    if (result.length === 0) {
+    if (!result) {
       throw new NotFoundException(
         "Kelas tidak ditemukan di antara kelas yang dapat Anda akses",
       );
     }
 
     const mapped: GetKelasDetailRespDto = {
-      id: result[0].id,
-      pengajar: result[0].pengajar.map((p) => ({
+      id: result.id,
+      pengajar: result.pengajar.map((p) => ({
         id: p.pengajar.id,
         nama: p.pengajar.nama,
       })),
-      mahasiswa: result[0].mahasiswa.map((m) => ({
+      mahasiswa: result.mahasiswa.map((m) => ({
         id: m.mahasiswa.id,
         nim: m.mahasiswa.nim,
         nama: m.mahasiswa.nama,
@@ -238,7 +225,7 @@ export class KelasService {
   }
 
   async create(createDto: CreateKelasDto): Promise<IdKelasResDto> {
-    const currPeriod = await this.getPeriode();
+    const currPeriod = await this.konfService.getPeriodeOrFail();
 
     let nomor = createDto.nomor;
     if (nomor) {
@@ -285,7 +272,7 @@ export class KelasService {
   }
 
   async updateOrCreate(dto: UpdateKelasDto): Promise<IdKelasResDto> {
-    const currPeriod = await this.getPeriode();
+    const currPeriod = await this.konfService.getPeriodeOrFail();
 
     if (!dto.id) {
       // Create kelas
@@ -327,7 +314,7 @@ export class KelasService {
   }
 
   async delete(dto: DeleteKelasDto): Promise<Kelas> {
-    const currPeriod = await this.getPeriode();
+    const currPeriod = await this.konfService.getPeriodeOrFail();
 
     const kelasQuery = this.kelasRepo
       .createQueryBuilder("kelas")
@@ -357,7 +344,7 @@ export class KelasService {
   }
 
   async getNextNomorKelas(kodeMatkul: string): Promise<number> {
-    const currPeriod = await this.getPeriode();
+    const currPeriod = await this.konfService.getPeriodeOrFail();
 
     const maxClass = await this.kelasRepo.findOne({
       where: {
