@@ -39,6 +39,7 @@ import { BerkasTugas } from "./entities/berkasTugas.entity";
 import { TugasModule } from "./tugas/tugas.module";
 import { KelasModule } from "./kelas/kelas.module";
 import { SubmisiTugasModule } from "./submisi-tugas/submisi-tugas.module";
+import { NilaiModule } from "./nilai/nilai.module";
 
 @Module({
   imports: [
@@ -90,6 +91,7 @@ import { SubmisiTugasModule } from "./submisi-tugas/submisi-tugas.module";
     KelasModule,
     TugasModule,
     SubmisiTugasModule,
+    NilaiModule,
   ],
   controllers: [AppController],
   providers: [AppService],

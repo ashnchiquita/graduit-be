@@ -74,6 +74,7 @@ export class GetTugasByIdRespDto extends PickType(Tugas, [
 export class GetTugasByKelasIdQueryDto extends PickType(Tugas, [
   "kelasId",
 ] as const) {
+  @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   search?: string;
