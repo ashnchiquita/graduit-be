@@ -22,7 +22,6 @@ async function bootstrap() {
     .setDescription("GraduIT API Documentation for S2 services")
     .setVersion("1.0")
     .addTag("Alokasi Topik")
-    .addTag("Approval")
     .addTag("Bimbingan")
     .addTag("Dashboard")
     .addTag("Dosen Bimbingan")

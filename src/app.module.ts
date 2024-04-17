@@ -22,10 +22,6 @@ import { DashboardModule } from "./dashboard/dashboard.module";
 import { BimbinganModule } from "./bimbingan/bimbingan.module";
 import { Konfigurasi } from "./entities/konfigurasi.entity";
 import { KonfigurasiModule } from "./konfigurasi/konfigurasi.module";
-import { DosenBimbinganModule } from "./dosen-bimbingan/dosen-bimbingan.module";
-import { ApprovalModule } from "./approval/approval.module";
-import { PendaftaranSidsem } from "./entities/pendaftaranSidsem";
-import { Ketersediaan } from "./entities/ketersediaan.entity";
 import { validate } from "./env.validation";
 import { BerkasBimbingan } from "./entities/berkasBimbingan";
 import { MataKuliah } from "./entities/mataKuliah";
@@ -33,6 +29,7 @@ import { SubmisiTugas } from "./entities/submisiTugas";
 import { KelasModule } from "./kelas/kelas.module";
 import { BerkasSubmisiTugas } from "./entities/berkasSubmisiTugas";
 import { BerkasTugas } from "./entities/berkasTugas";
+import { PendaftaranSidsem } from "./entities/pendaftaranSidsem";
 
 @Module({
   imports: [
@@ -61,7 +58,6 @@ import { BerkasTugas } from "./entities/berkasTugas";
         Tugas,
         PengujiSidang,
         Konfigurasi,
-        Ketersediaan,
         MataKuliah,
         SubmisiTugas,
         BerkasSubmisiTugas,
@@ -75,8 +71,6 @@ import { BerkasTugas } from "./entities/berkasTugas";
     DashboardModule,
     BimbinganModule,
     KonfigurasiModule,
-    DosenBimbinganModule,
-    ApprovalModule,
     KelasModule,
   ],
   controllers: [AppController],
