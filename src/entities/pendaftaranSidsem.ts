@@ -42,6 +42,10 @@ export class PendaftaranSidsem {
   @Column({ type: "timestamptz", nullable: true })
   waktuSelesai: Date;
 
+  @ApiProperty()
+  @Column({ type: "text", nullable: true })
+  linkw2m: string;
+
   @ManyToOne(() => PendaftaranTesis, (pendaftaranTesis) => pendaftaranTesis.id)
   pendaftaranTesis: PendaftaranTesis;
 
