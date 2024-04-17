@@ -6,10 +6,14 @@ import {
   IsString,
   IsUUID,
 } from "@nestjs/class-validator";
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional, PickType } from "@nestjs/swagger";
 import { ArrayMinSize, ArrayUnique, IsArray } from "class-validator";
-import { JalurEnum, RegStatus } from "src/entities/pendaftaranTesis.entity";
-import { RoleEnum } from "src/entities/pengguna.entity";
+import {
+  JalurEnum,
+  PendaftaranTesis,
+  RegStatus,
+} from "src/entities/pendaftaranTesis.entity";
+import { Pengguna, RoleEnum } from "src/entities/pengguna.entity";
 
 export class RegDto {
   @IsUUID()
@@ -39,13 +43,21 @@ export class RegByMhsParamDto {
   mahasiswaId: string;
 }
 
-export class RegParamDto {
+export class IdDto {
   @IsUUID()
   @ApiProperty()
   id: string;
 }
 
-export class RegQueryDto {
+export class ViewQueryDto {
+  @IsEnum([RoleEnum.S2_PEMBIMBING, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS])
+  @ApiProperty({
+    enum: [RoleEnum.S2_PEMBIMBING, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS],
+  })
+  view: RoleEnum.S2_PEMBIMBING | RoleEnum.ADMIN | RoleEnum.S2_TIM_TESIS;
+}
+
+export class RegQueryDto extends ViewQueryDto {
   @IsOptional()
   @IsNumberString()
   @ApiPropertyOptional()
@@ -75,35 +87,29 @@ export class RegQueryDto {
   @IsEnum(["ASC", "DESC"])
   @ApiPropertyOptional({ enum: ["ASC", "DESC"] })
   sort?: "ASC" | "DESC";
-
-  @IsEnum([RoleEnum.S2_PEMBIMBING, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS])
-  @ApiProperty({
-    enum: [RoleEnum.S2_PEMBIMBING, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS],
-  })
-  view: RoleEnum.S2_PEMBIMBING | RoleEnum.ADMIN | RoleEnum.S2_TIM_TESIS;
-}
-
-export class ViewQueryDto {
-  @IsEnum([RoleEnum.S2_PEMBIMBING, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS])
-  @ApiProperty({
-    enum: [RoleEnum.S2_PEMBIMBING, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS],
-  })
-  view: RoleEnum.S2_PEMBIMBING | RoleEnum.ADMIN | RoleEnum.S2_TIM_TESIS;
 }
 
 export class FindAllNewestRegRespDataDto {
   @ApiProperty()
   pendaftaran_id: string;
+
   @ApiProperty()
   nim: string;
+
   @ApiProperty()
   mahasiswa_nama: string;
+
   @ApiProperty()
   mahasiswa_id: string;
+
   @ApiProperty()
   pembimbing_nama: string;
+
   @ApiProperty()
   status: string;
+
+  @ApiProperty()
+  jadwal_interview: Date;
 }
 
 export class FindAllNewestRegRespDto {
@@ -157,4 +163,27 @@ export class UpdatePembimbingBodyDto {
   @ArrayMinSize(1)
   @ArrayUnique()
   pembimbing_ids: string[];
+}
+
+class DosenPembimbingDto extends PickType(Pengguna, [
+  "id",
+  "nama",
+  "kontak",
+] as const) {}
+
+export class GetByIdRespDto extends PickType(PendaftaranTesis, [
+  "id",
+  "jadwalInterview",
+  "status",
+  "jalurPilihan",
+  "waktuPengiriman",
+] as const) {
+  @ApiProperty()
+  judulTopik: string;
+
+  @ApiProperty()
+  deskripsiTopik: string;
+
+  @ApiProperty({ type: [DosenPembimbingDto] })
+  dosenPembimbing: DosenPembimbingDto[];
 }

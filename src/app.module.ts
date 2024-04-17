@@ -28,8 +28,6 @@ import { DashboardModule } from "./dashboard/dashboard.module";
 import { BimbinganModule } from "./bimbingan/bimbingan.module";
 import { Konfigurasi } from "./entities/konfigurasi.entity";
 import { KonfigurasiModule } from "./konfigurasi/konfigurasi.module";
-import { DosenBimbinganModule } from "./dosen-bimbingan/dosen-bimbingan.module";
-import { ApprovalModule } from "./approval/approval.module";
 import { validate } from "./env.validation";
 import { BerkasBimbingan } from "./entities/berkasBimbingan";
 import { MataKuliah } from "./entities/mataKuliah";
@@ -83,8 +81,6 @@ import { BerkasTugas } from "./entities/berkasTugas";
     DashboardModule,
     BimbinganModule,
     KonfigurasiModule,
-    DosenBimbinganModule,
-    ApprovalModule,
     KelasModule,
   ],
   controllers: [AppController],
