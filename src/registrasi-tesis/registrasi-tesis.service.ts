@@ -14,7 +14,6 @@ import {
 import { Pengguna, RoleEnum } from "src/entities/pengguna.entity";
 import { Topik } from "src/entities/topik.entity";
 import { generateQueryBuilderOrderByObj } from "src/helper/sorting";
-import { validateId } from "src/helper/validation";
 import { ArrayContains, Brackets, DataSource, In, Repository } from "typeorm";
 import {
   FindAllNewestRegRespDto,
@@ -44,47 +43,77 @@ export class RegistrasiTesisService {
   async createTopicRegistration(
     userId: string,
     topicRegistrationDto: RegDto,
-  ): Promise<PendaftaranTesis> {
-    // TODO: Proper validations
-
-    // Validate id
-    validateId([
-      { id: userId, object: "Pengguna" },
-      { id: topicRegistrationDto.idPenerima, object: "Pembimbing" },
-    ]);
-
-    // Validate user id, supervisor id
-    const [user, supervisor, topic] = await Promise.all([
-      this.penggunaRepository.findOne({
-        where: { id: userId },
-      }),
+    periode: string,
+  ): Promise<IdDto> {
+    const queries: (
+      | Promise<PendaftaranTesis>
+      | Promise<Pengguna>
+      | Promise<Topik>
+    )[] = [
+      this.getNewestRegByMhs(userId, periode),
       this.penggunaRepository.findOne({
         where: { id: topicRegistrationDto.idPenerima },
       }),
-      this.topicRepostitory.findOne({
-        where: { judul: topicRegistrationDto.judulTopik },
-      }),
-    ]);
+    ];
 
-    if (!user) {
-      throw new NotFoundException("User not found.");
-    } else if (!supervisor) {
-      throw new NotFoundException("Supervisor not found.");
-    } else if (!topic) {
+    if (topicRegistrationDto.idTopik) {
+      queries.push(
+        this.topicRepostitory.findOne({
+          where: { id: topicRegistrationDto.idTopik },
+        }),
+      );
+    }
+
+    const queryResult = await Promise.all(queries);
+    const lastPendaftaran = queryResult[0] as PendaftaranTesis;
+    const penerima = queryResult[1] as Pengguna;
+    let topik = topicRegistrationDto.idTopik ? (queryResult[2] as Topik) : null;
+
+    if (!penerima) {
+      throw new NotFoundException("Penerima not found.");
+    }
+
+    if (topicRegistrationDto.idTopik && !topik) {
       throw new NotFoundException("Topic not found.");
+    }
+
+    if (lastPendaftaran && lastPendaftaran.status !== RegStatus.REJECTED) {
+      throw new BadRequestException(
+        "Mahasiswa already has pending registration in this period",
+      );
+    }
+
+    if (!topik) {
+      if (
+        !topicRegistrationDto.judulTopik ||
+        !topicRegistrationDto.deskripsiTopik
+      ) {
+        throw new BadRequestException(
+          "Judul dan deskripsi topik tidak boleh kosong.",
+        );
+      }
+
+      topik = this.topicRepostitory.create({
+        judul: topicRegistrationDto.judulTopik,
+        deskripsi: topicRegistrationDto.deskripsiTopik,
+        idPengaju: userId,
+        periode,
+      });
     }
 
     // Create new registration
     const createdRegistration = this.pendaftaranTesisRepository.create({
       ...topicRegistrationDto,
-      mahasiswa: user,
-      penerima: supervisor,
-      topik: topic,
+      mahasiswaId: userId,
+      penerima,
+      topik,
     });
 
     await this.pendaftaranTesisRepository.save(createdRegistration);
 
-    return createdRegistration;
+    return {
+      id: createdRegistration.id,
+    };
   }
 
   async findByUserId(

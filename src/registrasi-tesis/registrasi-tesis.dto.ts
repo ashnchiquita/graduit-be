@@ -18,23 +18,26 @@ import { Pengguna, RoleEnum } from "src/entities/pengguna.entity";
 export class RegDto {
   @IsUUID()
   @ApiProperty()
-  idMahasiswa: string;
-
-  @IsUUID()
-  @ApiProperty()
   idPenerima: string;
 
-  @IsString()
-  @ApiProperty()
-  judulTopik: string;
-
-  @IsString()
-  @ApiProperty()
-  deskripsi: string;
+  @IsUUID()
+  @IsOptional()
+  @ApiPropertyOptional()
+  idTopik?: string;
 
   @IsEnum(JalurEnum)
   @ApiProperty({ enum: JalurEnum })
   jalurPilihan: JalurEnum;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional()
+  judulTopik?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional()
+  deskripsiTopik?: string;
 }
 
 export class RegByMhsParamDto {
