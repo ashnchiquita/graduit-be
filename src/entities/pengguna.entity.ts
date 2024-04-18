@@ -1,3 +1,4 @@
+import { IsString } from "@nestjs/class-validator";
 import {
   ApiHideProperty,
   ApiProperty,
@@ -54,6 +55,7 @@ export class Pengguna {
   roles: RoleEnum[];
 
   @ApiPropertyOptional()
+  @IsString()
   @Column({ type: "text", nullable: true })
   kontak: string;
 

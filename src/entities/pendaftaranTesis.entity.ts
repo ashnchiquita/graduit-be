@@ -59,9 +59,11 @@ export class PendaftaranTesis {
   @ManyToOne(() => Topik, (topik) => topik.id)
   topik: Topik;
 
+  @ApiProperty()
   @ManyToOne(() => Pengguna, (pengguna) => pengguna.id)
   mahasiswa: Pengguna;
 
+  @ApiProperty()
   @ManyToOne(() => Pengguna, (pengguna) => pengguna.id)
   penerima: Pengguna;
 

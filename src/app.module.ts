@@ -4,8 +4,6 @@ import { AppService } from "./app.service";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { Bimbingan } from "./entities/bimbingan.entity";
 import { Pengguna } from "./entities/pengguna.entity";
-import { RangeJadwalSeminar } from "./entities/rangeJadwalSeminar.entity";
-import { Seminar } from "./entities/seminar.entity";
 import { Topik } from "./entities/topik.entity";
 import { AuditLog } from "./entities/auditLog.entity";
 import { DosenBimbingan } from "./entities/dosenBimbingan.entity";
@@ -13,13 +11,9 @@ import { Kelas } from "./entities/kelas.entity";
 import { MahasiswaKelas } from "./entities/mahasiswaKelas.entity";
 import { PengajarKelas } from "./entities/pengajarKelas.entity";
 import { PendaftaranTesis } from "./entities/pendaftaranTesis.entity";
-import { RangeJadwalSidang } from "./entities/rangeJadwalSidang.entity";
-import { Ruangan } from "./entities/ruangan.entity";
-import { Sidang } from "./entities/sidang.entity";
+// import { Ruangan } from "./entities/ruangan.entity";
 import { Tugas } from "./entities/tugas.entity";
-import { PembimbingSeminar } from "./entities/pembimbingSeminar.entity";
-import { PembimbingSidang } from "./entities/pembimbingSidang.entity";
-import { PengujiSidang } from "./entities/pengujiSidang.entity";
+import { PengujiSidsem } from "./entities/pengujiSidsem.entity";
 import { RegistrasiTesisModule } from "./registrasi-tesis/registrasi-tesis.module";
 import { ConfigModule } from "@nestjs/config";
 import { AuthModule } from "./auth/auth.module";
@@ -38,6 +32,8 @@ import { TugasModule } from "./tugas/tugas.module";
 import { KelasModule } from "./kelas/kelas.module";
 import { SubmisiTugasModule } from "./submisi-tugas/submisi-tugas.module";
 import { NilaiModule } from "./nilai/nilai.module";
+import { PendaftaranSidsem } from "./entities/pendaftaranSidsem";
+import { DosenBimbinganModule } from "./dosen-bimbingan/dosen-bimbingan.module";
 
 @Module({
   imports: [
@@ -54,8 +50,7 @@ import { NilaiModule } from "./nilai/nilai.module";
         BerkasBimbingan,
         Bimbingan,
         Pengguna,
-        RangeJadwalSeminar,
-        Seminar,
+        PendaftaranSidsem,
         Topik,
         AuditLog,
         DosenBimbingan,
@@ -63,13 +58,9 @@ import { NilaiModule } from "./nilai/nilai.module";
         MahasiswaKelas,
         PengajarKelas,
         PendaftaranTesis,
-        RangeJadwalSidang,
-        Ruangan,
-        Sidang,
+        // Ruangan,
         Tugas,
-        PembimbingSeminar,
-        PembimbingSidang,
-        PengujiSidang,
+        PengujiSidsem,
         Konfigurasi,
         MataKuliah,
         SubmisiTugas,
@@ -88,6 +79,7 @@ import { NilaiModule } from "./nilai/nilai.module";
     TugasModule,
     SubmisiTugasModule,
     NilaiModule,
+    DosenBimbinganModule,
   ],
   controllers: [AppController],
   providers: [AppService],
