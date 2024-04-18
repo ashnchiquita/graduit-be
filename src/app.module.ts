@@ -11,9 +11,9 @@ import { Kelas } from "./entities/kelas.entity";
 import { MahasiswaKelas } from "./entities/mahasiswaKelas";
 import { PengajarKelas } from "./entities/pengajarKelas.entity";
 import { PendaftaranTesis } from "./entities/pendaftaranTesis.entity";
-import { Ruangan } from "./entities/ruangan.entity";
+// import { Ruangan } from "./entities/ruangan.entity";
 import { Tugas } from "./entities/tugas.entity";
-import { PengujiSidang } from "./entities/pengujiSidsem.entity";
+import { PengujiSidsem } from "./entities/pengujiSidsem.entity";
 import { RegistrasiTesisModule } from "./registrasi-tesis/registrasi-tesis.module";
 import { ConfigModule } from "@nestjs/config";
 import { AuthModule } from "./auth/auth.module";
@@ -54,9 +54,9 @@ import { PendaftaranSidsem } from "./entities/pendaftaranSidsem";
         MahasiswaKelas,
         PengajarKelas,
         PendaftaranTesis,
-        Ruangan,
+        // Ruangan,
         Tugas,
-        PengujiSidang,
+        PengujiSidsem,
         Konfigurasi,
         MataKuliah,
         SubmisiTugas,

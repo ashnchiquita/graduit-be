@@ -6,9 +6,9 @@ import {
   PrimaryGeneratedColumn,
 } from "typeorm";
 import { PendaftaranTesis } from "./pendaftaranTesis.entity";
-import { Ruangan } from "./ruangan.entity";
+// import { Ruangan } from "./ruangan.entity";
 import { ApiProperty } from "@nestjs/swagger";
-import { PengujiSidang } from "./pengujiSidsem.entity";
+import { PengujiSidsem } from "./pengujiSidsem.entity";
 
 export enum TipeSidsemEnum {
   SEMINAR_1 = "SEMINAR_1",
@@ -27,11 +27,11 @@ export class PendaftaranSidsem {
   tipe: TipeSidsemEnum;
 
   @ApiProperty()
-  @Column({ type: "boolean" })
+  @Column({ type: "boolean", default: false })
   ditolak: boolean;
 
   @ApiProperty()
-  @Column({ type: "boolean" })
+  @Column({ type: "boolean", nullable: true })
   lulus: boolean;
 
   @ApiProperty()
@@ -49,10 +49,14 @@ export class PendaftaranSidsem {
   @ManyToOne(() => PendaftaranTesis, (pendaftaranTesis) => pendaftaranTesis.id)
   pendaftaranTesis: PendaftaranTesis;
 
-  @ApiProperty({ type: Ruangan, nullable: true })
-  @ManyToOne(() => Ruangan, (ruangan) => ruangan.id)
-  ruangan: Ruangan;
+  // @ApiProperty({ type: Ruangan, nullable: true })
+  // @ManyToOne(() => Ruangan, (ruangan) => ruangan.id)
+  // ruangan: Ruangan;
 
-  @OneToMany(() => PengujiSidang, (pengujiSidsem) => pengujiSidsem.sidsem)
-  penguji: PengujiSidang[];
+  @ApiProperty()
+  @Column({ type: "text", nullable: true })
+  ruangan: string;
+
+  @OneToMany(() => PengujiSidsem, (pengujiSidsem) => pengujiSidsem.sidsem)
+  penguji: PengujiSidsem[];
 }
