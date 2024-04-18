@@ -30,6 +30,7 @@ import { KelasModule } from "./kelas/kelas.module";
 import { BerkasSubmisiTugas } from "./entities/berkasSubmisiTugas";
 import { BerkasTugas } from "./entities/berkasTugas";
 import { PendaftaranSidsem } from "./entities/pendaftaranSidsem";
+import { DosenBimbinganModule } from "./dosen-bimbingan/dosen-bimbingan.module";
 
 @Module({
   imports: [
@@ -72,6 +73,7 @@ import { PendaftaranSidsem } from "./entities/pendaftaranSidsem";
     BimbinganModule,
     KonfigurasiModule,
     KelasModule,
+    DosenBimbinganModule,
   ],
   controllers: [AppController],
   providers: [AppService],
