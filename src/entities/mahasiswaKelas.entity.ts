@@ -28,5 +28,5 @@ export class MahasiswaKelas {
   mahasiswaId: string;
 
   @Column({ type: "real", nullable: true })
-  nilaiAkhir: number;
+  nilaiAkhir?: number;
 }

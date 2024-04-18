@@ -14,7 +14,7 @@ import {
   PickType,
 } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { BerkasBimbingan } from "src/entities/berkasBimbingan";
+import { BerkasBimbingan } from "src/entities/berkasBimbingan.entity";
 import { Bimbingan, BimbinganStatus } from "src/entities/bimbingan.entity";
 import {
   JalurEnum,

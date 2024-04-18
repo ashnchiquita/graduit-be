@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsString, Length, MaxLength } from "class-validator";
-import { Column, Entity, PrimaryColumn } from "typeorm";
+import { Column, Entity, OneToMany, PrimaryColumn } from "typeorm";
+import { Kelas } from "./kelas.entity";
 
 @Entity()
 export class MataKuliah {
@@ -15,4 +16,7 @@ export class MataKuliah {
   @MaxLength(256)
   @Column({ type: "varchar", length: 256 })
   nama: string;
+
+  @OneToMany(() => Kelas, (kelas) => kelas.mataKuliah)
+  kelas: Kelas[];
 }

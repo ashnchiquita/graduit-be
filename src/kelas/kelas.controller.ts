@@ -12,10 +12,12 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import {
+  ByIdKelasDto,
   CreateKelasDto,
   DeleteKelasDto,
+  GetKelasDetailRespDto,
   GetKelasQueryDto,
-  GetListKelasRespDto,
+  GetKelasRespDto,
   GetNextNomorResDto,
   IdKelasResDto,
   KodeRespDto,
@@ -32,13 +34,14 @@ import {
   ApiInternalServerErrorResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
+  ApiOperation,
   ApiTags,
 } from "@nestjs/swagger";
 import { CustomAuthGuard } from "src/middlewares/custom-auth.guard";
 import { RolesGuard } from "src/middlewares/roles.guard";
 import { KelasService } from "./kelas.service";
 import { Roles } from "src/middlewares/roles.decorator";
-import { MataKuliah } from "src/entities/mataKuliah";
+import { MataKuliah } from "src/entities/mataKuliah.entity";
 import { Kelas } from "src/entities/kelas.entity";
 
 @ApiTags("Kelas")
@@ -49,7 +52,11 @@ import { Kelas } from "src/entities/kelas.entity";
 export class KelasController {
   constructor(private readonly kelasServ: KelasService) {}
 
-  @ApiOkResponse({ type: GetListKelasRespDto, isArray: true })
+  @ApiOperation({
+    summary:
+      "Get list of kelas. Roles: S2_KULIAH, S2_MAHASISWA, S2_TIM_TESIS, ADMIN",
+  })
+  @ApiOkResponse({ type: GetKelasRespDto, isArray: true })
   @Roles(
     RoleEnum.S2_KULIAH,
     RoleEnum.S2_MAHASISWA,
@@ -147,5 +154,78 @@ export class KelasController {
   @Delete()
   async delete(@Body() body: DeleteKelasDto): Promise<Kelas> {
     return await this.kelasServ.delete(body);
+  }
+
+  @Roles(
+    RoleEnum.S2_TIM_TESIS,
+    RoleEnum.ADMIN,
+    RoleEnum.S2_KULIAH,
+    RoleEnum.S2_MAHASISWA,
+  )
+  @ApiOkResponse({ type: GetKelasRespDto })
+  @ApiOperation({
+    summary:
+      "Get kelas general information by kelas id. Roles: S2_KULIAH, S2_MAHASISWA, S2_TIM_TESIS, ADMIN",
+  })
+  @Get("/:id")
+  async getById(
+    @Param() param: ByIdKelasDto,
+    @Req() req: Request,
+  ): Promise<GetKelasRespDto> {
+    let idMahasiswa = undefined;
+    let idPengajar = undefined;
+
+    const { id, roles } = req.user as AuthDto;
+
+    if (
+      !roles.includes(RoleEnum.S2_TIM_TESIS) &&
+      !roles.includes(RoleEnum.ADMIN)
+    ) {
+      if (roles.includes(RoleEnum.S2_KULIAH)) {
+        idPengajar = id;
+      } else {
+        // requester only has S2_MAHASISWA access
+        idMahasiswa = id;
+      }
+    }
+
+    return await this.kelasServ.getById(param.id, idMahasiswa, idPengajar);
+  }
+
+  @Roles(
+    RoleEnum.S2_TIM_TESIS,
+    RoleEnum.ADMIN,
+    RoleEnum.S2_KULIAH,
+    RoleEnum.S2_MAHASISWA,
+  )
+  @ApiOperation({
+    summary:
+      "Get kelas mahasiswa and pengajar list by kelas id. Roles: S2_KULIAH, S2_MAHASISWA, S2_TIM_TESIS, ADMIN",
+  })
+  @ApiOkResponse({ type: GetKelasDetailRespDto })
+  @Get("/:id/detail")
+  async getKelasDetail(@Param() param: ByIdKelasDto, @Req() req: Request) {
+    let idMahasiswa = undefined;
+    let idPengajar = undefined;
+
+    const { id, roles } = req.user as AuthDto;
+
+    if (
+      !roles.includes(RoleEnum.S2_TIM_TESIS) &&
+      !roles.includes(RoleEnum.ADMIN)
+    ) {
+      if (roles.includes(RoleEnum.S2_KULIAH)) {
+        idPengajar = id;
+      } else {
+        // requester only has S2_MAHASISWA access
+        idMahasiswa = id;
+      }
+    }
+
+    return await this.kelasServ.getKelasDetail(
+      param.id,
+      idMahasiswa,
+      idPengajar,
+    );
   }
 }

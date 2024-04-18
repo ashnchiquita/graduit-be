@@ -10,12 +10,13 @@ import { Brackets, Repository } from "typeorm";
 import {
   CreateKelasDto,
   DeleteKelasDto,
-  GetListKelasRespDto,
+  GetKelasDetailRespDto,
+  GetKelasRespDto,
   IdKelasResDto,
   UpdateKelasDto,
 } from "./kelas.dto";
 import { KonfigurasiService } from "src/konfigurasi/konfigurasi.service";
-import { MataKuliah } from "src/entities/mataKuliah";
+import { MataKuliah } from "src/entities/mataKuliah.entity";
 import { CARD_COLORS } from "./kelas.constant";
 
 @Injectable()
@@ -27,20 +28,13 @@ export class KelasService {
     private mataKuliahRepo: Repository<MataKuliah>,
     private konfService: KonfigurasiService,
   ) {}
-
   async getListKelas(
     idMahasiswa?: string,
     idPengajar?: string,
     kodeMatkul?: string,
     search?: string,
   ) {
-    const currPeriod = await this.konfService.getKonfigurasiByKey(
-      process.env.KONF_PERIODE_KEY,
-    );
-
-    if (!currPeriod) {
-      throw new BadRequestException("Periode belum dikonfigurasi");
-    }
+    const currPeriod = await this.konfService.getPeriodeOrFail();
 
     let baseQuery = this.kelasRepo
       .createQueryBuilder("kelas")
@@ -49,6 +43,7 @@ export class KelasService {
       .select([
         "kelas.id AS id",
         "kelas.nomor AS nomor",
+        "kelas.warna AS warna",
         "mataKuliah.kode AS kode_mata_kuliah",
         "mataKuliah.nama AS nama_mata_kuliah",
         "COUNT(mahasiswa) AS jumlah_mahasiswa",
@@ -95,24 +90,142 @@ export class KelasService {
       .groupBy("kelas.id, mataKuliah.kode")
       .getRawMany();
 
-    const mapped: GetListKelasRespDto[] = result.map((r) => ({
+    const mapped: GetKelasRespDto[] = result.map((r) => ({
       id: r.id,
       nomor: "K" + `${r.nomor}`.padStart(2, "0"),
-      mata_kuliah: `${r.kode_mata_kuliah} ${r.nama_mata_kuliah}`,
+      kode_mata_kuliah: r.kode_mata_kuliah,
+      nama_mata_kuliah: r.nama_mata_kuliah,
       jumlah_mahasiswa: parseInt(r.jumlah_mahasiswa),
+      warna: r.warna,
     }));
 
     return mapped;
   }
 
-  async create(createDto: CreateKelasDto): Promise<IdKelasResDto> {
-    const currPeriod = await this.konfService.getKonfigurasiByKey(
-      process.env.KONF_PERIODE_KEY,
-    );
+  async getById(id: string, idMahasiswa?: string, idPengajar?: string) {
+    const currPeriod = await this.konfService.getPeriodeOrFail();
 
-    if (!currPeriod) {
-      throw new BadRequestException("Periode belum dikonfigurasi");
+    let baseQuery = this.kelasRepo
+      .createQueryBuilder("kelas")
+      .leftJoinAndSelect("kelas.mahasiswa", "mahasiswa")
+      .leftJoinAndSelect("kelas.mataKuliah", "mataKuliah")
+      .select([
+        "kelas.id AS id",
+        "kelas.nomor AS nomor",
+        "kelas.warna AS warna",
+        "mataKuliah.kode AS kode_mata_kuliah",
+        "mataKuliah.nama AS nama_mata_kuliah",
+        "COUNT(mahasiswa) AS jumlah_mahasiswa",
+      ])
+      .where("kelas.id = :id", { id })
+      .andWhere("kelas.periode = :periode", { periode: currPeriod });
+
+    if (idMahasiswa) {
+      baseQuery = baseQuery
+        .innerJoin("kelas.mahasiswa", "mahasiswa_filter")
+        .andWhere("mahasiswa_filter.mahasiswaId = :idMahasiswa", {
+          idMahasiswa,
+        });
     }
+
+    if (idPengajar) {
+      baseQuery = baseQuery
+        .innerJoin("kelas.pengajar", "pengajar")
+        .andWhere("pengajar.pengajarId = :idPengajar", {
+          idPengajar,
+        });
+    }
+
+    const result = await baseQuery
+      .groupBy("kelas.id, mataKuliah.kode")
+      .getRawOne();
+
+    if (!result) {
+      throw new NotFoundException("Kelas tidak ditemukan");
+    }
+
+    const mapped: GetKelasRespDto = {
+      id: result.id,
+      nomor: "K" + `${result.nomor}`.padStart(2, "0"),
+      kode_mata_kuliah: result.kode_mata_kuliah,
+      nama_mata_kuliah: result.nama_mata_kuliah,
+      jumlah_mahasiswa: parseInt(result.jumlah_mahasiswa),
+      warna: result.warna,
+    };
+
+    return mapped;
+  }
+
+  async getKelasDetail(
+    idKelas: string,
+    idMahasiswa?: string,
+    idPengajar?: string,
+  ) {
+    const currPeriod = await this.konfService.getPeriodeOrFail();
+
+    let baseQuery = this.kelasRepo
+      .createQueryBuilder("kelas")
+      .leftJoinAndSelect("kelas.mahasiswa", "mahasiswaKelas")
+      .leftJoinAndSelect("mahasiswaKelas.mahasiswa", "mahasiswa")
+      .leftJoinAndSelect("kelas.pengajar", "pengajarKelas")
+      .leftJoinAndSelect("pengajarKelas.pengajar", "pengajar")
+      .select([
+        "kelas.id",
+        "mahasiswaKelas.id",
+        "mahasiswa.id",
+        "mahasiswa.nim",
+        "mahasiswa.nama",
+        "pengajarKelas.id",
+        "pengajar.id",
+        "pengajar.nama",
+      ])
+      .orderBy("pengajar.nama", "ASC")
+      .addOrderBy("mahasiswa.nim", "ASC")
+      .where("kelas.id = :idKelas", { idKelas })
+      .andWhere("kelas.periode = :periode", { periode: currPeriod });
+
+    if (idMahasiswa) {
+      baseQuery = baseQuery
+        .innerJoin("kelas.mahasiswa", "mahasiswaFilter")
+        .andWhere("mahasiswaFilter.mahasiswaId = :idMahasiswa", {
+          idMahasiswa,
+        });
+    }
+
+    if (idPengajar) {
+      baseQuery = baseQuery
+        .innerJoin("kelas.pengajar", "pengajarFilter")
+        .andWhere("pengajarFilter.pengajarId = :idPengajar", {
+          idPengajar,
+        });
+    }
+
+    const result = await baseQuery.getOne();
+
+    if (!result) {
+      throw new NotFoundException(
+        "Kelas tidak ditemukan di antara kelas yang dapat Anda akses",
+      );
+    }
+
+    const mapped: GetKelasDetailRespDto = {
+      id: result.id,
+      pengajar: result.pengajar.map((p) => ({
+        id: p.pengajar.id,
+        nama: p.pengajar.nama,
+      })),
+      mahasiswa: result.mahasiswa.map((m) => ({
+        id: m.mahasiswa.id,
+        nim: m.mahasiswa.nim,
+        nama: m.mahasiswa.nama,
+      })),
+    };
+
+    return mapped;
+  }
+
+  async create(createDto: CreateKelasDto): Promise<IdKelasResDto> {
+    const currPeriod = await this.konfService.getPeriodeOrFail();
 
     let nomor = createDto.nomor;
     if (nomor) {
@@ -159,13 +272,7 @@ export class KelasService {
   }
 
   async updateOrCreate(dto: UpdateKelasDto): Promise<IdKelasResDto> {
-    const currPeriod = await this.konfService.getKonfigurasiByKey(
-      process.env.KONF_PERIODE_KEY,
-    );
-
-    if (!currPeriod) {
-      throw new BadRequestException("Periode belum dikonfigurasi");
-    }
+    const currPeriod = await this.konfService.getPeriodeOrFail();
 
     if (!dto.id) {
       // Create kelas
@@ -207,13 +314,7 @@ export class KelasService {
   }
 
   async delete(dto: DeleteKelasDto): Promise<Kelas> {
-    const currPeriod = await this.konfService.getKonfigurasiByKey(
-      process.env.KONF_PERIODE_KEY,
-    );
-
-    if (!currPeriod) {
-      throw new BadRequestException("Periode belum dikonfigurasi");
-    }
+    const currPeriod = await this.konfService.getPeriodeOrFail();
 
     const kelasQuery = this.kelasRepo
       .createQueryBuilder("kelas")
@@ -243,13 +344,7 @@ export class KelasService {
   }
 
   async getNextNomorKelas(kodeMatkul: string): Promise<number> {
-    const currPeriod = await this.konfService.getKonfigurasiByKey(
-      process.env.KONF_PERIODE_KEY,
-    );
-
-    if (!currPeriod) {
-      throw new BadRequestException("Periode belum dikonfigurasi");
-    }
+    const currPeriod = await this.konfService.getPeriodeOrFail();
 
     const maxClass = await this.kelasRepo.findOne({
       where: {

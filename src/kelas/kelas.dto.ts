@@ -6,8 +6,8 @@ import {
   ApiPropertyOptional,
 } from "@nestjs/swagger";
 import { Kelas } from "src/entities/kelas.entity";
-import { MataKuliah } from "src/entities/mataKuliah";
-import { RoleEnum } from "src/entities/pengguna.entity";
+import { MataKuliah } from "src/entities/mataKuliah.entity";
+import { Pengguna, RoleEnum } from "src/entities/pengguna.entity";
 
 export class CreateKelasDto extends PickType(Kelas, [
   "mataKuliahKode",
@@ -43,18 +43,26 @@ export class GetKelasQueryDto {
   search: string;
 }
 
-export class GetListKelasRespDto {
+export class ByIdKelasDto extends PickType(Kelas, ["id"] as const) {}
+
+export class GetKelasRespDto {
   @ApiProperty()
   id: string;
 
   @ApiProperty({ example: "K02" })
   nomor: string;
 
-  @ApiProperty({ example: "IF4031 Pengembangan Aplikasi Terdistribusi" })
-  mata_kuliah: string;
+  @ApiProperty({ example: "IF3270" })
+  kode_mata_kuliah: string;
+
+  @ApiProperty({ example: "Pengembangan Aplikasi Terdistribusi" })
+  nama_mata_kuliah: string;
 
   @ApiProperty()
   jumlah_mahasiswa: number;
+
+  @ApiProperty({ example: "bg-blue-600/20" })
+  warna: string;
 }
 
 export class KodeRespDto extends PickType(MataKuliah, ["kode"] as const) {}
@@ -62,4 +70,23 @@ export class KodeRespDto extends PickType(MataKuliah, ["kode"] as const) {}
 export class GetNextNomorResDto {
   @ApiProperty({ example: 2 })
   nomor: number;
+}
+
+class PickedPengajarKelasDto extends PickType(Pengguna, [
+  "id",
+  "nama",
+] as const) {}
+
+class PickedMahasiswaKelasDto extends PickType(Pengguna, [
+  "id",
+  "nama",
+  "nim",
+] as const) {}
+
+export class GetKelasDetailRespDto extends PickType(Kelas, ["id"] as const) {
+  @ApiProperty({ type: [PickedPengajarKelasDto] })
+  pengajar: PickedPengajarKelasDto[];
+
+  @ApiProperty({ type: [PickedMahasiswaKelasDto] })
+  mahasiswa: PickedMahasiswaKelasDto[];
 }
