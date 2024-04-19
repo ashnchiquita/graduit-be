@@ -24,6 +24,7 @@ export class AlokasiRuanganService {
     private dosenBimbinganRepo: Repository<DosenBimbingan>,
   ) {}
 
+  // TODO only show pendaftaran belom lulus?
   async findAll(
     query: GetAllPengajuanSidangReqQueryDto,
   ): Promise<GetAllPengajuanSidangRespDto> {
@@ -34,9 +35,10 @@ export class AlokasiRuanganService {
         tipe: true,
         ruangan: true,
         pendaftaranTesis: {
+          id: true,
           mahasiswa: {
-            nim: true,
             nama: true,
+            nim: true,
           },
         },
       },
@@ -45,14 +47,14 @@ export class AlokasiRuanganService {
           mahasiswa: true,
         },
       },
-      take: query.limit,
-      skip: (query.page - 1) * query.limit,
+      take: query.limit || undefined,
+      skip: (query.page - 1) * query.limit || undefined,
       where: {
         tipe: query.jenisSidang,
         pendaftaranTesis: {
           mahasiswa: [
-            { nim: Like(`%${query.search}%`) },
-            { nama: Like(`%${query.search}%`) },
+            { nim: Like(`%${query.search ?? ""}%`) },
+            { nama: Like(`%${query.search ?? ""}%`) },
           ],
         },
       },
@@ -152,6 +154,7 @@ export class AlokasiRuanganService {
     return data;
   }
 
+  // TODO bisa set lagi ke null atau tidak?
   async update(
     id: string,
     updateAlokasiRuanganDto: UpdateAlokasiRuanganReqDto,
@@ -162,6 +165,7 @@ export class AlokasiRuanganService {
         waktuMulai: true,
         tipe: true,
         pendaftaranTesis: {
+          id: true,
           mahasiswa: {
             nama: true,
             nim: true,
