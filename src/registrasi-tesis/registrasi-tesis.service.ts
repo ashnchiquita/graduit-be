@@ -46,11 +46,18 @@ export class RegistrasiTesisService {
     periode: string,
   ): Promise<IdDto> {
     const queries: (
-      | Promise<PendaftaranTesis>
+      | Promise<void | PendaftaranTesis>
       | Promise<Pengguna>
       | Promise<Topik>
     )[] = [
-      this.getNewestRegByMhs(userId, periode),
+      this.getNewestRegByMhsOrFail(userId, periode).catch(
+        (ex: BadRequestException) => {
+          if (ex.message === "No mahasiswa user with given id exists") {
+            throw ex;
+          }
+          // else: mahasiswa does not have pending registration -> allowed
+        },
+      ),
       this.penggunaRepository.findOne({
         where: { id: topicRegistrationDto.idPenerima },
       }),
@@ -353,7 +360,7 @@ export class RegistrasiTesisService {
     return resData;
   }
 
-  private async getNewestRegByMhs(mahasiswaId: string, periode: string) {
+  private async getNewestRegByMhsOrFail(mahasiswaId: string, periode: string) {
     const mahasiswa = await this.penggunaRepository.findOne({
       select: {
         id: true,
@@ -422,7 +429,7 @@ export class RegistrasiTesisService {
       );
     }
 
-    const newestReg = await this.getNewestRegByMhs(mahasiswaId, periode);
+    const newestReg = await this.getNewestRegByMhsOrFail(mahasiswaId, periode);
 
     if (newestReg && idPenerima && newestReg.penerima.id !== idPenerima) {
       throw new ForbiddenException();
@@ -456,7 +463,7 @@ export class RegistrasiTesisService {
     dto: UpdateStatusBodyDto,
     idPenerima?: string,
   ) {
-    const newestReg = await this.getNewestRegByMhs(mahasiswaId, periode);
+    const newestReg = await this.getNewestRegByMhsOrFail(mahasiswaId, periode);
 
     if (newestReg && idPenerima && newestReg.penerima.id !== idPenerima) {
       throw new ForbiddenException();
@@ -502,7 +509,7 @@ export class RegistrasiTesisService {
     periode: string,
     { pembimbing_ids: dosen_ids }: UpdatePembimbingBodyDto,
   ) {
-    const newestReg = await this.getNewestRegByMhs(mahasiswaId, periode);
+    const newestReg = await this.getNewestRegByMhsOrFail(mahasiswaId, periode);
 
     if (newestReg.status !== RegStatus.APPROVED)
       throw new BadRequestException(
