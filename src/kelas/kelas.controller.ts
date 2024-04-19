@@ -153,6 +153,14 @@ export class KelasController {
     return await this.kelasServ.createMatkul(body);
   }
 
+  @ApiOkResponse({ type: Kelas })
+  @ApiNotFoundResponse({ description: "Kelas tidak ditemukan" })
+  @ApiInternalServerErrorResponse({ description: "Gagal menghapus kelas" })
+  @Delete()
+  async delete(@Body() body: DeleteKelasDto): Promise<Kelas> {
+    return await this.kelasServ.delete(body);
+  }
+
   @Roles(RoleEnum.S2_TIM_TESIS, RoleEnum.ADMIN)
   @ApiOkResponse({ type: UserKelasResDto, isArray: true })
   @Get("/mahasiswa")
@@ -205,14 +213,6 @@ export class KelasController {
     @Body() body: UnassignKelasDto,
   ): Promise<MessageResDto> {
     return await this.kelasServ.unassignKelasDosen(body);
-  }
-
-  @ApiOkResponse({ type: Kelas })
-  @ApiNotFoundResponse({ description: "Kelas tidak ditemukan" })
-  @ApiInternalServerErrorResponse({ description: "Gagal menghapus kelas" })
-  @Delete()
-  async delete(@Body() body: DeleteKelasDto): Promise<Kelas> {
-    return await this.kelasServ.delete(body);
   }
 
   @Roles(
