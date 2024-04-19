@@ -35,8 +35,8 @@ export class GetAllPengajuanSidangItemDto {
   @ApiProperty()
   namaMahasiswa: string;
 
-  @ApiProperty()
-  jadwalSidang: string;
+  @ApiProperty({ nullable: true })
+  jadwalSidang: string | null;
 
   @ApiProperty({ enum: TipeSidsemEnum })
   jenisSidang: TipeSidsemEnum;
