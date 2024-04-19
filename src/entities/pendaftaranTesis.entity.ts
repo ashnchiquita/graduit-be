@@ -1,6 +1,7 @@
 import {
   Column,
   Entity,
+  JoinColumn,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -56,12 +57,16 @@ export class PendaftaranTesis {
   status: RegStatus;
 
   @ApiProperty({ type: Topik })
-  @ManyToOne(() => Topik, (topik) => topik.id)
+  @ManyToOne(() => Topik, (topik) => topik.id, { cascade: true })
   topik: Topik;
 
   @ApiProperty()
   @ManyToOne(() => Pengguna, (pengguna) => pengguna.id)
+  @JoinColumn({ name: "mahasiswaId" })
   mahasiswa: Pengguna;
+
+  @Column()
+  mahasiswaId: string;
 
   @ApiProperty()
   @ManyToOne(() => Pengguna, (pengguna) => pengguna.id)

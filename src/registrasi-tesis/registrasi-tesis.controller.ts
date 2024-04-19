@@ -12,8 +12,11 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import {
+  ApiBadRequestResponse,
   ApiBearerAuth,
   ApiCookieAuth,
+  ApiCreatedResponse,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
@@ -52,21 +55,35 @@ export class RegistrasiTesisController {
   ) {}
 
   @ApiOperation({
-    summary:
-      "Create new registration. Roles: S2_MAHASISWA, ADMIN, S2_TIM_TESIS",
+    summary: "Create new registration. Roles: S2_MAHASISWA, ADMIN",
+  })
+  @ApiCreatedResponse({ type: IdDto })
+  @ApiNotFoundResponse({ description: "Penerima atau topik tidak ditemukan" })
+  @ApiBadRequestResponse({
+    description:
+      "Mahasiswa sedang memiliki pendaftaran aktif atau judul dan deskripsi topik baru tidak ada",
   })
   @UseGuards(CustomAuthGuard, RolesGuard)
-  @Roles(RoleEnum.S2_MAHASISWA, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)
+  @Roles(RoleEnum.S2_MAHASISWA, RoleEnum.ADMIN)
   @Post()
   async createTopicRegistration(
     @Body() topicRegistrationDto: RegDto,
     @Req() req: Request,
-  ) {
+  ): Promise<IdDto> {
     const { id } = req.user as AuthDto;
+
+    const periode = await this.konfService.getKonfigurasiByKey(
+      process.env.KONF_PERIODE_KEY,
+    );
+
+    if (!periode) {
+      throw new BadRequestException("Periode belum dikonfigurasi.");
+    }
 
     return this.registrasiTesisService.createTopicRegistration(
       id,
       topicRegistrationDto,
+      periode,
     );
   }
 
