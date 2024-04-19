@@ -1,30 +1,16 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  NotFoundException,
-  Put,
-  Query,
-  UseGuards,
-} from "@nestjs/common";
+import { Controller, Get, UseGuards } from "@nestjs/common";
 import {
   ApiBearerAuth,
   ApiCookieAuth,
   ApiOkResponse,
+  ApiOperation,
   ApiTags,
 } from "@nestjs/swagger";
 import { RoleEnum } from "src/entities/pengguna.entity";
 import { CustomAuthGuard } from "src/middlewares/custom-auth.guard";
 import { Roles } from "src/middlewares/roles.decorator";
 import { RolesGuard } from "src/middlewares/roles.guard";
-import {
-  DosbimOptQueryDto,
-  DosbimQueryDto,
-  GetDosbimResDto,
-  SuccessResDto,
-  UpdateDosbimDto,
-} from "./dosen-bimbingan.dto";
+import { GetDosbimResDto } from "./dosen-bimbingan.dto";
 import { DosenBimbinganService } from "./dosen-bimbingan.service";
 
 @ApiTags("Dosen Bimbingan")
@@ -32,49 +18,17 @@ import { DosenBimbinganService } from "./dosen-bimbingan.service";
 @ApiBearerAuth()
 @Controller("dosen-bimbingan")
 @UseGuards(CustomAuthGuard, RolesGuard)
+@Roles(RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS, RoleEnum.S2_MAHASISWA)
 export class DosenBimbinganController {
   constructor(private readonly dosbimService: DosenBimbinganService) {}
 
   @ApiOkResponse({ type: [GetDosbimResDto] })
-  @Roles(
-    RoleEnum.ADMIN,
-    RoleEnum.S2_TIM_TESIS,
-    RoleEnum.S2_MAHASISWA,
-    RoleEnum.S2_TIM_TESIS,
-  )
+  @ApiOperation({
+    summary:
+      "Get all available dosen bimbingan. Roles: ADMIN, S2_TIM_TESIS, S2_MAHASISWA",
+  })
   @Get()
-  async get(@Query() query: DosbimOptQueryDto) {
-    if (!query.regId) return await this.dosbimService.getAll();
-
-    const res = await this.dosbimService.findByRegId(query.regId);
-    const mappedRes: GetDosbimResDto[] = res.map((r) => r.dosen);
-    return mappedRes;
-  }
-
-  @ApiOkResponse({ type: SuccessResDto })
-  @Roles(RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)
-  @Put()
-  async updateByRegId(
-    @Query() query: DosbimQueryDto,
-    @Body() body: UpdateDosbimDto,
-  ): Promise<SuccessResDto> {
-    await this.dosbimService.updateByRegId(query.regId, body.dosbimIds);
-
-    return {
-      status: "ok",
-    };
-  }
-
-  @ApiOkResponse({ type: SuccessResDto })
-  @Roles(RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)
-  @Delete()
-  async deleteByRegId(@Query() query: DosbimQueryDto): Promise<SuccessResDto> {
-    const res = await this.dosbimService.removeByRegId(query.regId);
-
-    if (!res.affected) throw new NotFoundException();
-
-    return {
-      status: "ok",
-    };
+  async get() {
+    return await this.dosbimService.getAll();
   }
 }

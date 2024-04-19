@@ -6,10 +6,23 @@ import { PendaftaranTesis } from "../entities/pendaftaranTesis.entity";
 import { Pengguna } from "../entities/pengguna.entity";
 import { Topik } from "../entities/topik.entity";
 import { Konfigurasi } from "src/entities/konfigurasi.entity";
+import { Bimbingan } from "src/entities/bimbingan.entity";
+import { PendaftaranSidsem } from "src/entities/pendaftaranSidsem";
+import { DosenBimbingan } from "src/entities/dosenBimbingan.entity";
+import { BimbinganModule } from "src/bimbingan/bimbingan.module";
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([PendaftaranTesis, Pengguna, Topik, Konfigurasi]),
+    TypeOrmModule.forFeature([
+      PendaftaranTesis,
+      Pengguna,
+      Topik,
+      Konfigurasi,
+      Bimbingan,
+      PendaftaranSidsem,
+      DosenBimbingan,
+    ]),
+    BimbinganModule,
   ],
   controllers: [DashboardController],
   providers: [DashboardService],

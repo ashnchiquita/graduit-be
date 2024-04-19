@@ -1,6 +1,19 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from "typeorm";
 import { PendaftaranTesis } from "./pendaftaranTesis.entity";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { BerkasBimbingan } from "./berkasBimbingan.entity";
+
+export enum BimbinganStatus {
+  LANCAR = "LANCAR",
+  BUTUH_BIMBINGAN = "BUTUH_BIMBINGAN",
+  TERKENDALA = "TERKENDALA",
+}
 
 @Entity()
 export class Bimbingan {
@@ -24,10 +37,20 @@ export class Bimbingan {
   @Column({ type: "date", nullable: true })
   bimbinganBerikutnya: string;
 
-  @ApiProperty({ type: [String] })
-  @Column({ type: "simple-array" })
-  berkasLinks: string[];
+  @ApiProperty()
+  @Column({ type: "boolean", default: true })
+  disahkan: boolean;
 
   @ManyToOne(() => PendaftaranTesis, (pendaftaranTesis) => pendaftaranTesis.id)
   pendaftaran: PendaftaranTesis;
+
+  @ApiProperty({ type: [BerkasBimbingan] })
+  @OneToMany(
+    () => BerkasBimbingan,
+    (berkasBimbingan) => berkasBimbingan.bimbingan,
+    {
+      cascade: true,
+    },
+  )
+  berkas: BerkasBimbingan[];
 }

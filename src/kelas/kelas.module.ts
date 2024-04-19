@@ -6,9 +6,9 @@ import { AuthModule } from "src/auth/auth.module";
 import { KonfigurasiModule } from "src/konfigurasi/konfigurasi.module";
 import { KelasController } from "./kelas.controller";
 import { CustomStrategy } from "src/middlewares/custom.strategy";
-import { MataKuliah } from "src/entities/mataKuliah";
+import { MataKuliah } from "src/entities/mataKuliah.entity";
 import { Pengguna } from "src/entities/pengguna.entity";
-import { MahasiswaKelas } from "src/entities/mahasiswaKelas";
+import { MahasiswaKelas } from "src/entities/mahasiswaKelas.entity";
 import { PengajarKelas } from "src/entities/pengajarKelas.entity";
 
 @Module({

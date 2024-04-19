@@ -1,7 +1,14 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from "typeorm";
 import { Pengguna } from "./pengguna.entity";
 import { Topik } from "./topik.entity";
 import { ApiProperty } from "@nestjs/swagger";
+import { DosenBimbingan } from "./dosenBimbingan.entity";
 
 export enum RegStatus {
   NOT_ASSIGNED = "NOT_ASSIGNED",
@@ -48,12 +55,21 @@ export class PendaftaranTesis {
   @Column({ type: "enum", enum: RegStatus, default: RegStatus.NOT_ASSIGNED })
   status: RegStatus;
 
+  @ApiProperty({ type: Topik })
   @ManyToOne(() => Topik, (topik) => topik.id)
   topik: Topik;
 
+  @ApiProperty()
   @ManyToOne(() => Pengguna, (pengguna) => pengguna.id)
   mahasiswa: Pengguna;
 
+  @ApiProperty()
   @ManyToOne(() => Pengguna, (pengguna) => pengguna.id)
   penerima: Pengguna;
+
+  @OneToMany(
+    () => DosenBimbingan,
+    (dosenBimbingan) => dosenBimbingan.pendaftaran,
+  )
+  dosenBimbingan: DosenBimbingan[];
 }
