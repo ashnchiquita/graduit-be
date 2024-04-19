@@ -1,3 +1,4 @@
+import { ApiProperty } from "@nestjs/swagger";
 import {
   Column,
   Entity,
@@ -6,7 +7,6 @@ import {
   PrimaryGeneratedColumn,
 } from "typeorm";
 import { Pengguna } from "./pengguna.entity";
-import { ApiProperty } from "@nestjs/swagger";
 
 @Entity()
 export class Topik {
@@ -22,7 +22,7 @@ export class Topik {
   @Column({ type: "text" })
   deskripsi: string;
 
-  @ApiProperty({ type: Pengguna })
+  @ApiProperty({ type: () => Pengguna })
   @ManyToOne(() => Pengguna, (pengguna) => pengguna.id)
   @JoinColumn({ name: "idPengaju" })
   pengaju: Pengguna;
