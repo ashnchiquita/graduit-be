@@ -29,6 +29,7 @@ import {
 } from "./submisi-tugas.dto";
 import { AuthDto } from "src/auth/auth.dto";
 import { Request } from "express";
+import { SubmisiTugas } from "src/entities/submisiTugas.entity";
 
 @ApiTags("Submisi Tugas")
 @ApiBearerAuth()
@@ -38,13 +39,15 @@ import { Request } from "express";
 export class SubmisiTugasController {
   constructor(private submisiTugasServ: SubmisiTugasService) {}
 
+  @ApiOperation({
+    summary: "Create submisi tugas. Roles: S2_MAHASISWA",
+  })
   @Roles(RoleEnum.S2_MAHASISWA)
   @Post()
   async createSubmisiTugas(
     @Body() createDto: CreateSubmisiTugasDto,
     @Req() req: Request,
   ) {
-    // TODO: More validation
     const { id } = req.user as AuthDto;
 
     return await this.submisiTugasServ.createSubmisiTugas(createDto, id);
@@ -52,7 +55,7 @@ export class SubmisiTugasController {
 
   @ApiOperation({
     summary:
-      "Get submisi tugas by sumbisi tugas id. Roles: S2_KULIAH, S2_MAHASISWA",
+      "Get submisi tugas by submisi tugas id. Roles: S2_KULIAH, S2_MAHASISWA",
   })
   @ApiOkResponse({ type: GetSubmisiTugasByIdRespDto })
   @Roles(RoleEnum.S2_KULIAH, RoleEnum.S2_MAHASISWA)
@@ -99,6 +102,23 @@ export class SubmisiTugasController {
       query.limit || 10,
       query.order || "ASC",
       query.isSubmitted,
+    );
+  }
+
+  @ApiOperation({
+    summary:
+      "Get a specific submisi tugas by mahasiswa ID and tugas ID. Roles: S2_KULIAH, S2_MAHASISWA",
+  })
+  @ApiOkResponse({ type: SubmisiTugas })
+  @Roles(RoleEnum.S2_KULIAH, RoleEnum.S2_MAHASISWA)
+  @Get(":mahasiswaId/:tugasId")
+  async getSubmisiTugasByMahasiswaAndTugasId(
+    @Param("mahasiswaId") mahasiswaId: string,
+    @Param("tugasId") tugasId: string,
+  ): Promise<SubmisiTugas> {
+    return await this.submisiTugasServ.getSubmisiTugasByMahasiswaAndTugasId(
+      mahasiswaId,
+      tugasId,
     );
   }
 }

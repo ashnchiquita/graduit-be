@@ -77,6 +77,38 @@ export class SubmisiTugasService {
     );
   }
 
+  private async isTugasBeforeDeadlineOrFail(tugasId: string) {
+    const tugas = await this.tugasRepo.findOne({
+      where: { id: tugasId },
+    });
+
+    if (!tugas) {
+      throw new NotFoundException("Tugas tidak ditemukan");
+    }
+
+    const currDate = new Date();
+    if (tugas.waktuSelesai < currDate) {
+      throw new ForbiddenException("Tugas sudah melewati deadline");
+    }
+  }
+
+  private async isDuplicateSubmissionOrFail(
+    tugasId: string,
+    mahasiswaId: string,
+  ) {
+    const submisiTugas = await this.submisiTugasRepo.findOne({
+      where: {
+        id: tugasId,
+        mahasiswaId: mahasiswaId,
+        isSubmitted: true,
+      },
+    });
+
+    if (submisiTugas) {
+      throw new ForbiddenException("Anda sudah mengumpulkan tugas ini");
+    }
+  }
+
   async createSubmisiTugas(
     createDto: CreateSubmisiTugasDto,
     mahasiswaId: string,
@@ -85,6 +117,10 @@ export class SubmisiTugasService {
       mahasiswaId,
       createDto.tugasId,
     );
+
+    await this.isTugasBeforeDeadlineOrFail(createDto.tugasId);
+
+    await this.isDuplicateSubmissionOrFail(createDto.tugasId, mahasiswaId);
 
     const tugas = await this.tugasRepo.findOneBy({ id: createDto.tugasId });
     const mahasiswa = await this.penggunaRepo.findOneBy({ id: mahasiswaId });
@@ -253,5 +289,28 @@ export class SubmisiTugasService {
     );
 
     return mappedResult;
+  }
+
+  async getSubmisiTugasByMahasiswaAndTugasId(
+    mahasiswaId: string,
+    tugasId: string,
+  ): Promise<SubmisiTugas> {
+    await this.tugasService.isMahasiswaTugasOrFail(mahasiswaId, tugasId);
+
+    const submisiTugas = await this.submisiTugasRepo.findOne({
+      where: {
+        mahasiswaId: mahasiswaId,
+        tugasId: tugasId,
+      },
+      relations: ["berkasSubmisiTugas", "tugas"],
+    });
+
+    if (!submisiTugas) {
+      throw new NotFoundException(
+        `Submisi tugas tidak ditemukan untuk mahasiswa ID: ${mahasiswaId} dan tugas ID: ${tugasId}`,
+      );
+    }
+
+    return submisiTugas;
   }
 }
