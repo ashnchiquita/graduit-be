@@ -8,6 +8,7 @@ import { AuthDto } from "src/auth/auth.dto";
 import { Request } from "express";
 import {
   DashboardDto,
+  DashboardMahasiswaResDto,
   GetDashboardDosbimQueryDto,
   JalurStatisticDto,
 } from "./dashboard.dto";
@@ -44,6 +45,18 @@ export class DashboardController {
   @Get("/dosbim/statistics")
   async getStatisticsByJalurPilihan(@Req() request: Request) {
     return this.dashboardService.getStatisticsByJalurPilihan(
+      (request.user as AuthDto).id,
+    );
+  }
+
+  @UseGuards(CustomAuthGuard, RolesGuard)
+  @Roles(RoleEnum.S2_MAHASISWA)
+  @ApiOkResponse({ type: DashboardMahasiswaResDto })
+  @Get("/mahasiswa")
+  async getDashboardMahasiswa(
+    @Req() request: Request,
+  ): Promise<DashboardMahasiswaResDto> {
+    return this.dashboardService.getDashboardMahasiswa(
       (request.user as AuthDto).id,
     );
   }

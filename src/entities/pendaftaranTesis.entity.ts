@@ -1,6 +1,7 @@
 import {
   Column,
   Entity,
+  JoinColumn,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -55,12 +56,19 @@ export class PendaftaranTesis {
   @Column({ type: "enum", enum: RegStatus, default: RegStatus.NOT_ASSIGNED })
   status: RegStatus;
 
-  @ManyToOne(() => Topik, (topik) => topik.id)
+  @ApiProperty({ type: Topik })
+  @ManyToOne(() => Topik, (topik) => topik.id, { cascade: true })
   topik: Topik;
 
+  @ApiProperty()
   @ManyToOne(() => Pengguna, (pengguna) => pengguna.id)
+  @JoinColumn({ name: "mahasiswaId" })
   mahasiswa: Pengguna;
 
+  @Column()
+  mahasiswaId: string;
+
+  @ApiProperty()
   @ManyToOne(() => Pengguna, (pengguna) => pengguna.id)
   penerima: Pengguna;
 

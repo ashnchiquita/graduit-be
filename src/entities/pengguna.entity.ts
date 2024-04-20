@@ -1,9 +1,12 @@
+import { IsString } from "@nestjs/class-validator";
 import {
   ApiHideProperty,
   ApiProperty,
   ApiPropertyOptional,
 } from "@nestjs/swagger";
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { PendaftaranTesis } from "./pendaftaranTesis.entity";
+import { SubmisiTugas } from "./submisiTugas.entity";
 
 export enum RoleEnum {
   ADMIN = "ADMIN",
@@ -50,4 +53,15 @@ export class Pengguna {
     default: [],
   })
   roles: RoleEnum[];
+
+  @ApiPropertyOptional()
+  @IsString()
+  @Column({ type: "text", nullable: true })
+  kontak: string;
+
+  @OneToMany(() => PendaftaranTesis, (pendaftaran) => pendaftaran.mahasiswa)
+  pendaftaranTesis: PendaftaranTesis[];
+
+  @OneToMany(() => SubmisiTugas, (submisiTugas) => submisiTugas.mahasiswa)
+  submisiTugas: SubmisiTugas[];
 }

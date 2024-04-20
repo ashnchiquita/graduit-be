@@ -13,9 +13,9 @@ export class ForbiddenExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const status = exception.getStatus();
 
-    response.clearCookie(process.env.COOKIE_NAME).status(status).json({
-      message: "Forbidden",
-      status,
-    });
+    response
+      .clearCookie(process.env.COOKIE_NAME)
+      .status(status)
+      .json(exception.getResponse());
   }
 }

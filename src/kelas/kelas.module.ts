@@ -6,7 +6,7 @@ import { AuthModule } from "src/auth/auth.module";
 import { KonfigurasiModule } from "src/konfigurasi/konfigurasi.module";
 import { KelasController } from "./kelas.controller";
 import { CustomStrategy } from "src/middlewares/custom.strategy";
-import { MataKuliah } from "src/entities/mataKuliah";
+import { MataKuliah } from "src/entities/mataKuliah.entity";
 
 @Module({
   imports: [

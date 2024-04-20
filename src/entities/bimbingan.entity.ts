@@ -7,7 +7,7 @@ import {
 } from "typeorm";
 import { PendaftaranTesis } from "./pendaftaranTesis.entity";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { BerkasBimbingan } from "./berkasBimbingan";
+import { BerkasBimbingan } from "./berkasBimbingan.entity";
 
 export enum BimbinganStatus {
   LANCAR = "LANCAR",

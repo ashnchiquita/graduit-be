@@ -6,10 +6,10 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from "typeorm";
-import { MataKuliah } from "./mataKuliah";
+import { MataKuliah } from "./mataKuliah.entity";
 import { ApiProperty } from "@nestjs/swagger";
 import { PengajarKelas } from "./pengajarKelas.entity";
-import { MahasiswaKelas } from "./mahasiswaKelas";
+import { MahasiswaKelas } from "./mahasiswaKelas.entity";
 import {
   IsPositive,
   IsString,
@@ -17,6 +17,7 @@ import {
   Length,
   MaxLength,
 } from "@nestjs/class-validator";
+import { Tugas } from "./tugas.entity";
 
 @Entity()
 export class Kelas {
@@ -35,6 +36,7 @@ export class Kelas {
   @Column({ type: "text" })
   periode: string;
 
+  @ApiProperty({ type: MataKuliah })
   @ManyToOne(() => MataKuliah, (mataKuliah) => mataKuliah.kode)
   @JoinColumn({ name: "mataKuliahKode" })
   mataKuliah: MataKuliah;
@@ -56,4 +58,7 @@ export class Kelas {
 
   @OneToMany(() => MahasiswaKelas, (mahasiswa) => mahasiswa.kelas)
   mahasiswa: MahasiswaKelas[];
+
+  @OneToMany(() => Tugas, (tugas) => tugas.kelas)
+  tugas: Tugas[];
 }
