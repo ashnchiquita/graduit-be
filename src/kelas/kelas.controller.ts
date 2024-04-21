@@ -12,6 +12,7 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import {
+  AssignKelasDto,
   ByIdKelasDto,
   CreateKelasDto,
   DeleteKelasDto,
@@ -21,7 +22,12 @@ import {
   GetNextNomorResDto,
   IdKelasResDto,
   KodeRespDto,
+  MessageResDto,
+  UnassignKelasDto,
+  UserKelasResDto,
   UpdateKelasDto,
+  SearchQueryDto,
+  UpdateKelasPenggunaDto,
 } from "./kelas.dto";
 import { Request } from "express";
 import { AuthDto } from "src/auth/auth.dto";
@@ -147,13 +153,66 @@ export class KelasController {
     return await this.kelasServ.createMatkul(body);
   }
 
-  @Roles(RoleEnum.S2_TIM_TESIS, RoleEnum.ADMIN)
   @ApiOkResponse({ type: Kelas })
   @ApiNotFoundResponse({ description: "Kelas tidak ditemukan" })
   @ApiInternalServerErrorResponse({ description: "Gagal menghapus kelas" })
   @Delete()
   async delete(@Body() body: DeleteKelasDto): Promise<Kelas> {
     return await this.kelasServ.delete(body);
+  }
+
+  @Roles(RoleEnum.S2_TIM_TESIS, RoleEnum.ADMIN)
+  @ApiOkResponse({ type: UserKelasResDto, isArray: true })
+  @Get("/mahasiswa")
+  async getMahasiswa(
+    @Query() query: SearchQueryDto,
+  ): Promise<UserKelasResDto[]> {
+    return await this.kelasServ.getKelasPengguna("MAHASISWA", query.search);
+  }
+
+  @Roles(RoleEnum.S2_TIM_TESIS, RoleEnum.ADMIN)
+  @ApiCreatedResponse({ type: MessageResDto })
+  @ApiInternalServerErrorResponse({ description: "Gagal menambahkan kelas" })
+  @Post("/mahasiswa/assign")
+  async assignKelasMahasiswa(
+    @Body() body: AssignKelasDto,
+  ): Promise<MessageResDto> {
+    return await this.kelasServ.assignKelasMahasiswa(body);
+  }
+
+  @Roles(RoleEnum.S2_TIM_TESIS, RoleEnum.ADMIN)
+  @ApiOkResponse({ type: MessageResDto })
+  @ApiInternalServerErrorResponse({ description: "Gagal menghapus kelas" })
+  @Delete("/mahasiswa/unassign")
+  async unassignKelasMahasiswa(
+    @Body() body: UnassignKelasDto,
+  ): Promise<MessageResDto> {
+    return await this.kelasServ.unassignKelasMahasiswa(body);
+  }
+
+  @Roles(RoleEnum.S2_TIM_TESIS, RoleEnum.ADMIN)
+  @ApiOkResponse({ type: UserKelasResDto, isArray: true })
+  @Get("/dosen")
+  async getDosen(@Query() query: SearchQueryDto): Promise<UserKelasResDto[]> {
+    return await this.kelasServ.getKelasPengguna("DOSEN", query.search);
+  }
+
+  @Roles(RoleEnum.S2_TIM_TESIS, RoleEnum.ADMIN)
+  @ApiCreatedResponse({ type: MessageResDto })
+  @ApiInternalServerErrorResponse({ description: "Gagal menambahkan kelas" })
+  @Post("/dosen/assign")
+  async assignKelasDosen(@Body() body: AssignKelasDto): Promise<MessageResDto> {
+    return await this.kelasServ.assignKelasDosen(body);
+  }
+
+  @Roles(RoleEnum.S2_TIM_TESIS, RoleEnum.ADMIN)
+  @ApiOkResponse({ type: MessageResDto })
+  @ApiInternalServerErrorResponse({ description: "Gagal menghapus kelas" })
+  @Delete("/dosen/unassign")
+  async unassignKelasDosen(
+    @Body() body: UnassignKelasDto,
+  ): Promise<MessageResDto> {
+    return await this.kelasServ.unassignKelasDosen(body);
   }
 
   @Roles(
@@ -227,5 +286,29 @@ export class KelasController {
       idMahasiswa,
       idPengajar,
     );
+  }
+
+  @Roles(RoleEnum.S2_TIM_TESIS, RoleEnum.ADMIN)
+  @ApiOperation({
+    summary: "Update kelas mahasiswa. Roles: S2_TIM_TESIS, ADMIN",
+  })
+  @ApiOkResponse({ type: ByIdKelasDto })
+  @Put("/mahasiswa")
+  async updateKelasMahasiswa(
+    @Body() body: UpdateKelasPenggunaDto,
+  ): Promise<ByIdKelasDto> {
+    return await this.kelasServ.updateKelas(body, "MAHASISWA");
+  }
+
+  @Roles(RoleEnum.S2_TIM_TESIS, RoleEnum.ADMIN)
+  @ApiOperation({
+    summary: "Update kelas dosen. Roles: S2_TIM_TESIS, ADMIN",
+  })
+  @ApiOkResponse({ type: ByIdKelasDto })
+  @Put("/dosen")
+  async updateKelasDosen(
+    @Body() body: UpdateKelasPenggunaDto,
+  ): Promise<ByIdKelasDto> {
+    return await this.kelasServ.updateKelas(body, "DOSEN");
   }
 }

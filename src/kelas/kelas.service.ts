@@ -6,18 +6,26 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Kelas } from "src/entities/kelas.entity";
-import { Brackets, Repository } from "typeorm";
+import { Brackets, DataSource, Repository } from "typeorm";
 import {
   CreateKelasDto,
+  AssignKelasDto,
   DeleteKelasDto,
   GetKelasDetailRespDto,
   GetKelasRespDto,
   IdKelasResDto,
   UpdateKelasDto,
+  MessageResDto,
+  UnassignKelasDto,
+  UpdateKelasPenggunaDto,
+  ByIdKelasDto,
 } from "./kelas.dto";
 import { KonfigurasiService } from "src/konfigurasi/konfigurasi.service";
 import { MataKuliah } from "src/entities/mataKuliah.entity";
 import { CARD_COLORS } from "./kelas.constant";
+import { Pengguna } from "src/entities/pengguna.entity";
+import { MahasiswaKelas } from "src/entities/mahasiswaKelas.entity";
+import { PengajarKelas } from "src/entities/pengajarKelas.entity";
 
 @Injectable()
 export class KelasService {
@@ -27,6 +35,13 @@ export class KelasService {
     @InjectRepository(MataKuliah)
     private mataKuliahRepo: Repository<MataKuliah>,
     private konfService: KonfigurasiService,
+    @InjectRepository(Pengguna)
+    private penggunaRepo: Repository<Pengguna>,
+    @InjectRepository(MahasiswaKelas)
+    private mahasiswaKelasRepo: Repository<MahasiswaKelas>,
+    @InjectRepository(PengajarKelas)
+    private pengajarKelasRepo: Repository<PengajarKelas>,
+    private datasource: DataSource,
   ) {}
   async getListKelas(
     idMahasiswa?: string,
@@ -271,6 +286,253 @@ export class KelasService {
     return { kode: createDto.kode };
   }
 
+  async getKelasPengguna(
+    mode: "MAHASISWA" | "DOSEN",
+    search?: string,
+    id?: string,
+  ) {
+    const currPeriod = await this.konfService.getKonfigurasiByKey(
+      process.env.KONF_PERIODE_KEY,
+    );
+
+    if (!currPeriod) {
+      throw new BadRequestException("Periode belum dikonfigurasi");
+    }
+
+    const relation = mode === "MAHASISWA" ? "mahasiswaKelas" : "pengajarKelas";
+
+    let penggunaQuery = this.penggunaRepo
+      .createQueryBuilder("pengguna")
+      .select(["pengguna.id", "pengguna.nama", "pengguna.email"])
+      .leftJoinAndSelect(`pengguna.${relation}`, relation)
+      .leftJoinAndSelect(
+        `${relation}.kelas`,
+        "kelas",
+        "kelas.periode = :periode",
+        {
+          periode: currPeriod,
+        },
+      )
+      .leftJoinAndSelect("kelas.mataKuliah", "mataKuliah")
+      .where("pengguna.roles @> :role", {
+        role: [mode === "MAHASISWA" ? "S2_MAHASISWA" : "S2_KULIAH"],
+      });
+
+    if (search) {
+      penggunaQuery = penggunaQuery.andWhere(
+        new Brackets((qb) => {
+          qb.where("pengguna.nama ILIKE :search", { search: `%${search}%` });
+          qb.orWhere("pengguna.email ILIKE :search", { search: `%${search}%` });
+        }),
+      );
+    }
+
+    if (id) {
+      penggunaQuery = penggunaQuery.andWhere("pengguna.id = :id", { id });
+    }
+
+    const mhs = await penggunaQuery.getMany();
+
+    return mhs.map((m) => ({
+      id: m.id,
+      nama: m.nama,
+      email: m.email,
+      kelas: m?.[relation].map((k) => ({
+        id: k.kelas.id,
+        nomor: k.kelas.nomor,
+        mataKuliahKode: k.kelas.mataKuliahKode,
+        mataKuliahNama: k.kelas.mataKuliah.nama,
+      })),
+    }));
+  }
+
+  async assignKelasMahasiswa(dto: AssignKelasDto): Promise<MessageResDto> {
+    const currPeriod = await this.konfService.getKonfigurasiByKey(
+      process.env.KONF_PERIODE_KEY,
+    );
+
+    if (!currPeriod) {
+      throw new BadRequestException("Periode belum dikonfigurasi");
+    }
+
+    const queryRunner = this.datasource.createQueryRunner();
+
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      for (const mhsId of dto.penggunaIds) {
+        const currKelasQuery = queryRunner.manager
+          .createQueryBuilder(MahasiswaKelas, "mahasiswaKelas")
+          .leftJoinAndSelect("mahasiswaKelas.kelas", "kelas")
+          .where("mahasiswaKelas.mahasiswaId = :mhsId", { mhsId })
+          .andWhere("kelas.periode = :periode", { periode: currPeriod });
+
+        const currKelas = (await currKelasQuery.getMany()).map(
+          (k) => k.kelasId,
+        );
+
+        for (const kelasId of dto.kelasIds) {
+          if (currKelas.includes(kelasId)) {
+            continue;
+          }
+
+          await queryRunner.manager.insert(MahasiswaKelas, {
+            mahasiswaId: mhsId,
+            kelasId,
+          });
+        }
+      }
+
+      await queryRunner.commitTransaction();
+    } catch {
+      await queryRunner.rollbackTransaction();
+
+      throw new InternalServerErrorException("Gagal menambahkan kelas");
+    } finally {
+      await queryRunner.release();
+    }
+
+    return { message: "Kelas berhasil diassign" };
+  }
+
+  async unassignKelasMahasiswa(dto: UnassignKelasDto): Promise<MessageResDto> {
+    const currPeriod = await this.konfService.getKonfigurasiByKey(
+      process.env.KONF_PERIODE_KEY,
+    );
+
+    if (!currPeriod) {
+      throw new BadRequestException("Periode belum dikonfigurasi");
+    }
+
+    const queryRunner = this.datasource.createQueryRunner();
+
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      for (const mhsId of dto.penggunaIds) {
+        const currKelasQuery = queryRunner.manager
+          .createQueryBuilder(MahasiswaKelas, "mahasiswaKelas")
+          .leftJoinAndSelect("mahasiswaKelas.kelas", "kelas")
+          .where("mahasiswaKelas.mahasiswaId = :mhsId", { mhsId })
+          .andWhere("kelas.periode = :periode", { periode: currPeriod });
+
+        const currKelas = (await currKelasQuery.getMany()).map(
+          (k) => k.kelasId,
+        );
+
+        for (const kelasId of currKelas) {
+          await queryRunner.manager.delete(MahasiswaKelas, {
+            mahasiswaId: mhsId,
+            kelasId,
+          });
+        }
+      }
+
+      await queryRunner.commitTransaction();
+    } catch {
+      await queryRunner.rollbackTransaction();
+
+      throw new InternalServerErrorException("Gagal menghapus kelas");
+    } finally {
+      await queryRunner.release();
+    }
+
+    return { message: "Kelas berhasil dihapus" };
+  }
+
+  async assignKelasDosen(dto: AssignKelasDto): Promise<MessageResDto> {
+    const currPeriod = await this.konfService.getKonfigurasiByKey(
+      process.env.KONF_PERIODE_KEY,
+    );
+
+    if (!currPeriod) {
+      throw new BadRequestException("Periode belum dikonfigurasi");
+    }
+
+    const queryRunner = this.datasource.createQueryRunner();
+
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      for (const dosenId of dto.penggunaIds) {
+        const currKelasQuery = queryRunner.manager
+          .createQueryBuilder(PengajarKelas, "pengajarKelas")
+          .leftJoinAndSelect("pengajarKelas.kelas", "kelas")
+          .where("pengajarKelas.pengajarId = :dosenId", { dosenId })
+          .andWhere("kelas.periode = :periode", { periode: currPeriod });
+
+        const currKelas = (await currKelasQuery.getMany()).map(
+          (k) => k.kelasId,
+        );
+
+        for (const kelasId of dto.kelasIds) {
+          if (currKelas.includes(kelasId)) {
+            continue;
+          }
+
+          await queryRunner.manager.insert(PengajarKelas, {
+            pengajarId: dosenId,
+            kelasId,
+          });
+        }
+      }
+
+      await queryRunner.commitTransaction();
+    } catch {
+      await queryRunner.rollbackTransaction();
+
+      throw new InternalServerErrorException("Gagal menambahkan kelas");
+    } finally {
+      await queryRunner.release();
+    }
+
+    return { message: "Kelas berhasil diassign" };
+  }
+
+  async unassignKelasDosen(dto: UnassignKelasDto): Promise<MessageResDto> {
+    const currPeriod = await this.konfService.getKonfigurasiByKey(
+      process.env.KONF_PERIODE_KEY,
+    );
+
+    if (!currPeriod) {
+      throw new BadRequestException("Periode belum dikonfigurasi");
+    }
+
+    const queryRunner = this.datasource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      for (const dosenId of dto.penggunaIds) {
+        const currKelasQuery = queryRunner.manager
+          .createQueryBuilder(PengajarKelas, "pengajarKelas")
+          .leftJoinAndSelect("pengajarKelas.kelas", "kelas")
+          .where("pengajarKelas.pengajarId = :dosenId", { dosenId })
+          .andWhere("kelas.periode = :periode", { periode: currPeriod });
+
+        const currKelas = (await currKelasQuery.getMany()).map(
+          (k) => k.kelasId,
+        );
+
+        for (const kelasId of currKelas) {
+          await queryRunner.manager.delete(PengajarKelas, {
+            pengajarId: dosenId,
+            kelasId,
+          });
+        }
+      }
+
+      await queryRunner.commitTransaction();
+    } catch {
+      await queryRunner.rollbackTransaction();
+
+      throw new InternalServerErrorException("Gagal menghapus kelas");
+    } finally {
+      await queryRunner.release();
+    }
+
+    return { message: "Kelas berhasil dihapus" };
+  }
+
   async updateOrCreate(dto: UpdateKelasDto): Promise<IdKelasResDto> {
     const currPeriod = await this.konfService.getPeriodeOrFail();
 
@@ -357,5 +619,90 @@ export class KelasService {
     });
 
     return maxClass ? maxClass.nomor + 1 : 1;
+  }
+
+  async updateKelas(
+    dto: UpdateKelasPenggunaDto,
+    mode: "MAHASISWA" | "DOSEN",
+  ): Promise<ByIdKelasDto> {
+    const currPeriod = await this.konfService.getKonfigurasiByKey(
+      process.env.KONF_PERIODE_KEY,
+    );
+
+    if (!currPeriod) {
+      throw new BadRequestException("Periode belum dikonfigurasi");
+    }
+
+    const queryRunner = this.datasource.createQueryRunner();
+
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      if (mode === "MAHASISWA") {
+        const currKelasQuery = queryRunner.manager
+          .createQueryBuilder(MahasiswaKelas, "mahasiswaKelas")
+          .leftJoinAndSelect("mahasiswaKelas.kelas", "kelas")
+          .where("mahasiswaKelas.mahasiswaId = :mhsId", {
+            mhsId: dto.penggunaId,
+          })
+          .andWhere("kelas.periode = :periode", { periode: currPeriod });
+
+        const currKelas = (await currKelasQuery.getMany()).map(
+          (k) => k.kelasId,
+        );
+
+        // Delete all kelas mahasiswa
+        for (const kelasId of currKelas) {
+          await queryRunner.manager.delete(MahasiswaKelas, {
+            mahasiswaId: dto.penggunaId,
+            kelasId,
+          });
+        }
+
+        // Assign kelas mahasiswa
+        for (const kelasId of dto.kelasIds) {
+          await queryRunner.manager.insert(MahasiswaKelas, {
+            mahasiswaId: dto.penggunaId,
+            kelasId,
+          });
+        }
+      } else {
+        const currKelasQuery = queryRunner.manager
+          .createQueryBuilder(PengajarKelas, "pengajarKelas")
+          .leftJoinAndSelect("pengajarKelas.kelas", "kelas")
+          .where("pengajarKelas.pengajarId = :dosenId", {
+            dosenId: dto.penggunaId,
+          })
+          .andWhere("kelas.periode = :periode", { periode: currPeriod });
+
+        const currKelas = (await currKelasQuery.getMany()).map(
+          (k) => k.kelasId,
+        );
+
+        for (const kelasId of currKelas) {
+          await queryRunner.manager.delete(PengajarKelas, {
+            pengajarId: dto.penggunaId,
+            kelasId,
+          });
+        }
+
+        for (const kelasId of dto.kelasIds) {
+          await queryRunner.manager.insert(PengajarKelas, {
+            pengajarId: dto.penggunaId,
+            kelasId,
+          });
+        }
+      }
+
+      await queryRunner.commitTransaction();
+    } catch {
+      await queryRunner.rollbackTransaction();
+
+      throw new InternalServerErrorException("Gagal mengupdate kelas pengguna");
+    } finally {
+      await queryRunner.release();
+    }
+
+    return { id: dto.penggunaId };
   }
 }
