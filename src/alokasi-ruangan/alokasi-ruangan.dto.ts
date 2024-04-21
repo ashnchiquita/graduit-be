@@ -69,8 +69,10 @@ export class GetOnePengajuanSidangRespDto extends GetAllPengajuanSidangItemDto {
 }
 
 export class UpdateAlokasiRuanganReqDto {
-  @ApiProperty()
   @IsString()
+  @ApiProperty({
+    description: "Can send empty string, will update DB to set as null",
+  })
   ruangan: string;
 }
 

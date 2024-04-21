@@ -26,7 +26,6 @@ import {
 } from "./alokasi-ruangan.dto";
 import { AlokasiRuanganService } from "./alokasi-ruangan.service";
 
-// TODO test if role guard works
 @ApiTags("Alokasi Ruangan")
 @ApiBearerAuth()
 @ApiCookieAuth()

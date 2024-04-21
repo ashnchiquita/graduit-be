@@ -3,7 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { DosenBimbingan } from "src/entities/dosenBimbingan.entity";
 import { PendaftaranSidsem } from "src/entities/pendaftaranSidsem";
 import { PengujiSidsem } from "src/entities/pengujiSidsem.entity";
-import { Like, Repository } from "typeorm";
+import { IsNull, Like, Repository } from "typeorm";
 import {
   GetAllPengajuanSidangItemDto,
   GetAllPengajuanSidangReqQueryDto,
@@ -33,6 +33,7 @@ export class AlokasiRuanganService {
         id: true,
         waktuMulai: true,
         tipe: true,
+        lulus: true,
         ruangan: true,
         pendaftaranTesis: {
           id: true,
@@ -51,6 +52,7 @@ export class AlokasiRuanganService {
       skip: (query.page - 1) * query.limit || undefined,
       where: {
         tipe: query.jenisSidang,
+        lulus: IsNull(),
         pendaftaranTesis: {
           mahasiswa: [
             { nim: Like(`%${query.search ?? ""}%`) },
@@ -73,7 +75,6 @@ export class AlokasiRuanganService {
   }
 
   async findOne(id: string): Promise<GetOnePengajuanSidangRespDto> {
-    // TODO handle errors
     const sidsemQueryData = await this.pendaftaranSidsemRepo.findOne({
       select: {
         id: true,
@@ -104,6 +105,11 @@ export class AlokasiRuanganService {
         id,
       },
     });
+
+    if (sidsemQueryData === null)
+      throw new BadRequestException(
+        "Pendaftaran sidang with given id does not exist",
+      );
 
     const pengujiQueryData = await this.pengujiSidsemRepo.find({
       select: {
@@ -139,7 +145,6 @@ export class AlokasiRuanganService {
       idPengajuanSidsem: sidsemQueryData.id,
       nimMahasiswa: sidsemQueryData.pendaftaranTesis.mahasiswa.nim,
       namaMahasiswa: sidsemQueryData.pendaftaranTesis.mahasiswa.nama,
-      // TODO jadwal sidang pake column apa
       jadwalSidang: sidsemQueryData.waktuMulai.toISOString(),
       jenisSidang: sidsemQueryData.tipe,
       ruangan: sidsemQueryData.ruangan,
@@ -154,7 +159,6 @@ export class AlokasiRuanganService {
     return data;
   }
 
-  // TODO bisa set lagi ke null atau tidak?
   async update(
     id: string,
     updateAlokasiRuanganDto: UpdateAlokasiRuanganReqDto,
@@ -187,7 +191,10 @@ export class AlokasiRuanganService {
         "Pendaftaran sidang/seminar with diven id does not exist",
       );
 
-    pendaftaranSidsem.ruangan = updateAlokasiRuanganDto.ruangan;
+    pendaftaranSidsem.ruangan =
+      updateAlokasiRuanganDto.ruangan === ""
+        ? null
+        : updateAlokasiRuanganDto.ruangan;
     await this.pendaftaranSidsemRepo.save(pendaftaranSidsem);
 
     return {
