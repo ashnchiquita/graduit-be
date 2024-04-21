@@ -12,10 +12,19 @@ import { NilaiService } from "./nilai.service";
 import { CustomStrategy } from "src/middlewares/custom.strategy";
 import { KonfigurasiService } from "src/konfigurasi/konfigurasi.service";
 import { KelasService } from "src/kelas/kelas.service";
+import { Pengguna } from "src/entities/pengguna.entity";
+import { PengajarKelas } from "src/entities/pengajarKelas.entity";
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([MahasiswaKelas, Kelas, MataKuliah, Konfigurasi]),
+    TypeOrmModule.forFeature([
+      MahasiswaKelas,
+      Kelas,
+      MataKuliah,
+      Konfigurasi,
+      Pengguna,
+      PengajarKelas,
+    ]),
     AuthModule,
     KonfigurasiModule,
     KelasModule,

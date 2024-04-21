@@ -7,10 +7,19 @@ import { KonfigurasiModule } from "src/konfigurasi/konfigurasi.module";
 import { KelasController } from "./kelas.controller";
 import { CustomStrategy } from "src/middlewares/custom.strategy";
 import { MataKuliah } from "src/entities/mataKuliah.entity";
+import { Pengguna } from "src/entities/pengguna.entity";
+import { MahasiswaKelas } from "src/entities/mahasiswaKelas.entity";
+import { PengajarKelas } from "src/entities/pengajarKelas.entity";
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Kelas, MataKuliah]),
+    TypeOrmModule.forFeature([
+      Kelas,
+      MataKuliah,
+      Pengguna,
+      MahasiswaKelas,
+      PengajarKelas,
+    ]),
     AuthModule,
     KonfigurasiModule,
   ],

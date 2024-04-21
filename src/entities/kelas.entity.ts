@@ -26,6 +26,7 @@ export class Kelas {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
+  @ApiProperty({ example: 1 })
   @Column({ type: "smallint" })
   @ApiProperty({ example: 1 })
   @IsPositive()

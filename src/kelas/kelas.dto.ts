@@ -1,4 +1,9 @@
-import { IsEnum, IsOptional, IsPositive } from "@nestjs/class-validator";
+import {
+  IsEnum,
+  IsOptional,
+  IsPositive,
+  IsUUID,
+} from "@nestjs/class-validator";
 import {
   ApiProperty,
   PickType,
@@ -43,6 +48,12 @@ export class GetKelasQueryDto {
   search: string;
 }
 
+export class SearchQueryDto {
+  @ApiPropertyOptional({ example: "Intelegensi Buatan" })
+  @IsOptional()
+  search: string;
+}
+
 export class ByIdKelasDto extends PickType(Kelas, ["id"] as const) {}
 
 export class GetKelasRespDto {
@@ -67,6 +78,42 @@ export class GetKelasRespDto {
 
 export class KodeRespDto extends PickType(MataKuliah, ["kode"] as const) {}
 
+export class AssignKelasDto {
+  @ApiProperty()
+  @IsUUID("all", { each: true })
+  kelasIds: string[];
+
+  @ApiProperty()
+  @IsUUID("all", { each: true })
+  penggunaIds: string[];
+}
+
+export class UnassignKelasDto extends PickType(AssignKelasDto, [
+  "penggunaIds",
+] as const) {}
+
+export class MessageResDto {
+  @ApiProperty()
+  message: string;
+}
+
+class KelasUser extends PickType(Kelas, [
+  "id",
+  "nomor",
+  "mataKuliahKode",
+] as const) {
+  @ApiProperty()
+  mataKuliahNama: string;
+}
+
+export class UserKelasResDto extends PickType(Pengguna, [
+  "id",
+  "nama",
+  "email",
+] as const) {
+  @ApiProperty({ type: [KelasUser] })
+  kelas: KelasUser[];
+}
 export class GetNextNomorResDto {
   @ApiProperty({ example: 2 })
   nomor: number;
@@ -89,4 +136,12 @@ export class GetKelasDetailRespDto extends PickType(Kelas, ["id"] as const) {
 
   @ApiProperty({ type: [PickedMahasiswaKelasDto] })
   mahasiswa: PickedMahasiswaKelasDto[];
+}
+
+export class UpdateKelasPenggunaDto extends PickType(AssignKelasDto, [
+  "kelasIds" as const,
+]) {
+  @ApiProperty({ example: "550e8400-e29b-41d4-a716-446655440000" })
+  @IsUUID()
+  penggunaId: string;
 }
