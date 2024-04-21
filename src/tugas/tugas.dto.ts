@@ -4,8 +4,9 @@ import {
   OmitType,
   PickType,
 } from "@nestjs/swagger";
-import { Type } from "class-transformer";
+import { Transform, Type } from "class-transformer";
 import {
+  IsBoolean,
   IsNumberString,
   IsOptional,
   IsString,
@@ -88,6 +89,31 @@ export class GetTugasByKelasIdQueryDto extends PickType(Tugas, [
   @IsNumberString()
   @ApiPropertyOptional({ description: "default: 10" })
   limit?: number;
+}
+
+export class GetTugasByMahasiswaIdQueryDto {
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  search?: string;
+
+  @IsOptional()
+  @IsNumberString()
+  @ApiPropertyOptional({ description: "default: 1" })
+  page?: number;
+
+  @IsOptional()
+  @IsNumberString()
+  @ApiPropertyOptional({ description: "default: 10" })
+  limit?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => value === "true")
+  @ApiPropertyOptional({
+    description: "if not specified, will return all submisi tugas",
+  })
+  isSubmitted?: boolean;
 }
 
 export class GetTugasSummaryRespDto extends PickType(Tugas, [

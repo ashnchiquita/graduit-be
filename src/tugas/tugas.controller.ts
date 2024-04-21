@@ -29,6 +29,7 @@ import {
   GetTugasByIdRespDto,
   GetTugasByKelasIdQueryDto,
   GetTugasByKelasIdRespDto,
+  GetTugasByMahasiswaIdQueryDto,
 } from "./tugas.dto";
 import { Request } from "express";
 import { AuthDto } from "src/auth/auth.dto";
@@ -100,6 +101,44 @@ export class TugasController {
       query.search || "",
       query.page || 1,
       query.limit || 10,
+    );
+  }
+
+  @ApiOperation({
+    summary:
+      "Get a specific submisi tugas by mahasiswa ID and tugas ID. Roles: S2_MAHASISWA",
+  })
+  @Roles(RoleEnum.S2_MAHASISWA)
+  @Get("/:id/submisi-tugas")
+  async getSubmisiTugasByMahasiswaAndTugasId(
+    @Req() req: Request,
+    @Param() param: TugasIdDto,
+  ) {
+    const { id: mahasiswaId } = req.user as AuthDto;
+
+    return await this.tugasService.getSubmisiTugasByMahasiswaAndTugasId(
+      mahasiswaId,
+      param.id,
+    );
+  }
+
+  @ApiOperation({
+    summary: "Get Tugas list by mahasiswa Id. Roles: S2_MAHASISWA",
+  })
+  @Roles(RoleEnum.S2_MAHASISWA)
+  @Get("/-/daftar-tugas")
+  async getTugasByMahasiswaId(
+    @Query() query: GetTugasByMahasiswaIdQueryDto,
+    @Req() req: Request,
+  ) {
+    const { id } = req.user as AuthDto;
+
+    return this.tugasService.getDaftarTugasByMahasiswa(
+      id,
+      query.search || "",
+      query.page || 1,
+      query.limit || 10,
+      query.isSubmitted || undefined,
     );
   }
 }

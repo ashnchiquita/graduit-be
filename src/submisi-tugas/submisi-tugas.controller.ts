@@ -3,7 +3,7 @@ import {
   Controller,
   Get,
   Param,
-  Post,
+  Put,
   Query,
   Req,
   UseGuards,
@@ -21,7 +21,7 @@ import { RolesGuard } from "src/middlewares/roles.guard";
 import { Roles } from "src/middlewares/roles.decorator";
 import { RoleEnum } from "src/entities/pengguna.entity";
 import {
-  CreateSubmisiTugasDto,
+  CreateOrUpdateSubmisiTugasDto,
   GetSubmisiTugasByIdRespDto,
   GetSubmisiTugasByTugasIdQueryDto,
   GetSubmisiTugasByTugasIdRespDto,
@@ -29,7 +29,6 @@ import {
 } from "./submisi-tugas.dto";
 import { AuthDto } from "src/auth/auth.dto";
 import { Request } from "express";
-import { SubmisiTugas } from "src/entities/submisiTugas.entity";
 
 @ApiTags("Submisi Tugas")
 @ApiBearerAuth()
@@ -42,15 +41,16 @@ export class SubmisiTugasController {
   @ApiOperation({
     summary: "Create submisi tugas. Roles: S2_MAHASISWA",
   })
+  @ApiOkResponse({ type: SubmisiTugasIdDto })
   @Roles(RoleEnum.S2_MAHASISWA)
-  @Post()
-  async createSubmisiTugas(
-    @Body() createDto: CreateSubmisiTugasDto,
+  @Put()
+  async upsertSubmisiTugas(
+    @Body() dto: CreateOrUpdateSubmisiTugasDto,
     @Req() req: Request,
   ) {
     const { id } = req.user as AuthDto;
 
-    return await this.submisiTugasServ.createSubmisiTugas(createDto, id);
+    return await this.submisiTugasServ.upsertSubmisiTugas(dto, id);
   }
 
   @ApiOperation({
@@ -102,23 +102,6 @@ export class SubmisiTugasController {
       query.limit || 10,
       query.order || "ASC",
       query.isSubmitted,
-    );
-  }
-
-  @ApiOperation({
-    summary:
-      "Get a specific submisi tugas by mahasiswa ID and tugas ID. Roles: S2_KULIAH, S2_MAHASISWA",
-  })
-  @ApiOkResponse({ type: SubmisiTugas })
-  @Roles(RoleEnum.S2_KULIAH, RoleEnum.S2_MAHASISWA)
-  @Get(":mahasiswaId/:tugasId")
-  async getSubmisiTugasByMahasiswaAndTugasId(
-    @Param("mahasiswaId") mahasiswaId: string,
-    @Param("tugasId") tugasId: string,
-  ): Promise<SubmisiTugas> {
-    return await this.submisiTugasServ.getSubmisiTugasByMahasiswaAndTugasId(
-      mahasiswaId,
-      tugasId,
     );
   }
 }
