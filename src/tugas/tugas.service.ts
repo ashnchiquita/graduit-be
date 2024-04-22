@@ -327,11 +327,13 @@ export class TugasService {
       )
       .select([
         "mk.id",
-        "kelas.id",
+        "kelas.id AS kelas_id",
         "mataKuliah.kode AS kode_mata_kuliah",
         "mataKuliah.nama AS nama_mata_kuliah",
         "tugas.id AS tugas_id",
         "tugas.judul AS tugas_judul",
+        "tugas.waktuMulai AS tugas_waktu_mulai",
+        "tugas.waktuSelesai AS tugas_waktu_selesai",
         "submisiTugas.id AS submisi_tugas_id",
         "submisiTugas.isSubmitted AS submisi_tugas_is_submitted",
       ])
@@ -364,8 +366,11 @@ export class TugasService {
       daftarTugas.map((tugas) => ({
         kodeMataKuliah: tugas.kode_mata_kuliah,
         namaMataKuliah: tugas.nama_mata_kuliah,
+        kelasId: tugas.kelas_id,
         id: tugas.tugas_id,
         judul: tugas.tugas_judul,
+        waktuMulai: tugas.tugas_waktu_mulai,
+        waktuSelesai: tugas.tugas_waktu_selesai,
         submisiTugasId: tugas.submisi_tugas_id || undefined,
         isSubmitted:
           tugas.submisi_tugas_is_submitted === null
