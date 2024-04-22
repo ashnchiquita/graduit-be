@@ -30,9 +30,11 @@ import {
   GetTugasByKelasIdQueryDto,
   GetTugasByKelasIdRespDto,
   GetTugasByMahasiswaIdQueryDto,
+  GetDaftarTugasByMahasiswaIdRespDto,
 } from "./tugas.dto";
 import { Request } from "express";
 import { AuthDto } from "src/auth/auth.dto";
+import { PickedSubmisiTugasExtended } from "src/submisi-tugas/submisi-tugas.dto";
 
 @ApiCookieAuth()
 @ApiBearerAuth()
@@ -108,6 +110,7 @@ export class TugasController {
     summary:
       "Get a specific submisi tugas by mahasiswa ID and tugas ID. Roles: S2_MAHASISWA",
   })
+  @ApiOkResponse({ type: PickedSubmisiTugasExtended })
   @Roles(RoleEnum.S2_MAHASISWA)
   @Get("/:id/submisi-tugas")
   async getSubmisiTugasByMahasiswaAndTugasId(
@@ -125,6 +128,7 @@ export class TugasController {
   @ApiOperation({
     summary: "Get Tugas list by mahasiswa Id. Roles: S2_MAHASISWA",
   })
+  @ApiOkResponse({ type: [GetDaftarTugasByMahasiswaIdRespDto] })
   @Roles(RoleEnum.S2_MAHASISWA)
   @Get("/-/daftar-tugas")
   async getTugasByMahasiswaId(

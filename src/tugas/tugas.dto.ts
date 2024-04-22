@@ -133,3 +133,26 @@ export class GetTugasByKelasIdRespDto {
   @ApiProperty({ type: GetKelasRespDto })
   kelas: GetKelasRespDto;
 }
+
+export class GetDaftarTugasByMahasiswaIdRespDto {
+  @ApiProperty({ example: "IF4031" })
+  kodeMataKuliah: string;
+
+  @ApiProperty({ example: "Pengembangan Aplikasi" })
+  namaMataKuliah: string;
+
+  @ApiProperty({
+    example: "550e8400-e29b-41d4-a716-446655440000",
+    description: "tugas id",
+  })
+  id: string;
+
+  @ApiProperty()
+  judul: string;
+
+  @ApiPropertyOptional({ example: "550e8400-e29b-41d4-a716-446655440000" })
+  submisiTugasId: string;
+
+  @ApiPropertyOptional()
+  isSubmitted: boolean;
+}

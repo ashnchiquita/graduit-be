@@ -34,7 +34,7 @@ export class CreateOrUpdateSubmisiTugasDto extends PickType(SubmisiTugas, [
   @Type(() => BerkasSubmisiTugasWithoutId)
   berkasSubmisiTugas: BerkasSubmisiTugasWithoutId[];
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ example: "550e8400-e29b-41d4-a716-446655440000" })
   @IsOptional()
   @IsUUID()
   id?: string;
@@ -85,7 +85,7 @@ class PickedSubmisiTugas extends PickType(SubmisiTugas, [
   "berkasSubmisiTugas",
 ] as const) {}
 
-class PickedSubmisiTugasExtended extends PickType(SubmisiTugas, [
+export class PickedSubmisiTugasExtended extends PickType(SubmisiTugas, [
   "id",
   "isSubmitted",
   "jawaban",

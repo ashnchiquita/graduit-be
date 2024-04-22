@@ -9,6 +9,7 @@ import { Tugas } from "src/entities/tugas.entity";
 import { Brackets, Repository } from "typeorm";
 import {
   CreateTugasDto,
+  GetDaftarTugasByMahasiswaIdRespDto,
   GetTugasByIdRespDto,
   GetTugasByKelasIdRespDto,
   GetTugasSummaryRespDto,
@@ -24,6 +25,7 @@ import { KelasService } from "src/kelas/kelas.service";
 import { KonfigurasiService } from "src/konfigurasi/konfigurasi.service";
 import * as dayjs from "dayjs";
 import { SubmisiTugas } from "src/entities/submisiTugas.entity";
+import { PickedSubmisiTugasExtended } from "src/submisi-tugas/submisi-tugas.dto";
 
 @Injectable()
 export class TugasService {
@@ -278,10 +280,17 @@ export class TugasService {
   async getSubmisiTugasByMahasiswaAndTugasId(
     mahasiswaId: string,
     tugasId: string,
-  ): Promise<SubmisiTugas> {
+  ): Promise<PickedSubmisiTugasExtended> {
     await this.isMahasiswaTugasOrFail(mahasiswaId, tugasId);
 
     const submisiTugas = await this.submisiTugasRepo.findOne({
+      select: [
+        "id",
+        "isSubmitted",
+        "jawaban",
+        "submittedAt",
+        "berkasSubmisiTugas",
+      ],
       where: {
         mahasiswaId: mahasiswaId,
         tugasId: tugasId,
@@ -304,7 +313,7 @@ export class TugasService {
     page: number,
     limit: number,
     isSubmitted?: boolean,
-  ) {
+  ): Promise<GetDaftarTugasByMahasiswaIdRespDto[]> {
     const baseQuery = this.mahasiswaKelasRepo
       .createQueryBuilder("mk")
       .innerJoin("mk.kelas", "kelas", "kelas.id = mk.kelasId")
@@ -319,11 +328,12 @@ export class TugasService {
       .select([
         "mk.id",
         "kelas.id",
-        "mataKuliah.kode",
-        "mataKuliah.nama",
-        "tugas.id",
-        "submisiTugas.id",
-        "submisiTugas.isSubmitted",
+        "mataKuliah.kode AS kode_mata_kuliah",
+        "mataKuliah.nama AS nama_mata_kuliah",
+        "tugas.id AS tugas_id",
+        "tugas.judul AS tugas_judul",
+        "submisiTugas.id AS submisi_tugas_id",
+        "submisiTugas.isSubmitted AS submisi_tugas_is_submitted",
       ])
       .where("mk.mahasiswaId = :mahasiswaId", {
         mahasiswaId,
@@ -348,8 +358,21 @@ export class TugasService {
     const daftarTugas = await baseQuery
       .limit(limit)
       .skip((page - 1) * limit)
-      .getMany();
+      .getRawMany();
 
-    return daftarTugas;
+    const mappedDaftarTugas: GetDaftarTugasByMahasiswaIdRespDto[] =
+      daftarTugas.map((tugas) => ({
+        kodeMataKuliah: tugas.kode_mata_kuliah,
+        namaMataKuliah: tugas.nama_mata_kuliah,
+        id: tugas.tugas_id,
+        judul: tugas.tugas_judul,
+        submisiTugasId: tugas.submisi_tugas_id || undefined,
+        isSubmitted:
+          tugas.submisi_tugas_is_submitted === null
+            ? undefined
+            : tugas.submisi_tugas_is_submitted,
+      }));
+
+    return mappedDaftarTugas;
   }
 }

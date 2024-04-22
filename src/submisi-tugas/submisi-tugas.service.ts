@@ -86,12 +86,23 @@ export class SubmisiTugasService {
   ): Promise<SubmisiTugasIdDto> {
     await this.tugasService.isMahasiswaTugasOrFail(mahasiswaId, dto.tugasId);
 
-    const tugas = await this.tugasRepo.findOne({
-      where: { id: dto.tugasId, submisiTugas: { mahasiswaId } },
-      relations: {
-        submisiTugas: true,
-      },
-    });
+    // const tugas = await this.tugasRepo.findOne({
+    //   where: { id: dto.tugasId, submisiTugas: { mahasiswaId } },
+    //   relations: {
+    //     submisiTugas: true,
+    //   },
+    // });
+
+    const tugas = await this.tugasRepo
+      .createQueryBuilder("tugas")
+      .leftJoinAndSelect(
+        "tugas.submisiTugas",
+        "submisiTugas",
+        "submisiTugas.mahasiswaId = :mahasiswaId",
+        { mahasiswaId },
+      )
+      .where("tugas.id = :id", { id: dto.tugasId })
+      .getOne();
 
     const mahasiswa = await this.penggunaRepo.findOneBy({ id: mahasiswaId });
 
@@ -145,6 +156,7 @@ export class SubmisiTugasService {
 
       const data = {
         ...tugas.submisiTugas[0],
+        ...dto,
         berkasSubmisiTugas,
         mahasiswa,
         tugas: omittedTugas,
