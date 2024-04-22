@@ -141,6 +141,9 @@ export class GetDaftarTugasByMahasiswaIdRespDto {
   @ApiProperty({ example: "Pengembangan Aplikasi" })
   namaMataKuliah: string;
 
+  @ApiProperty({ example: "550e8400-e29b-41d4-a716-446655440000" })
+  kelasId: string;
+
   @ApiProperty({
     example: "550e8400-e29b-41d4-a716-446655440000",
     description: "tugas id",
@@ -149,6 +152,12 @@ export class GetDaftarTugasByMahasiswaIdRespDto {
 
   @ApiProperty()
   judul: string;
+
+  @ApiProperty()
+  waktuMulai: Date;
+
+  @ApiProperty()
+  waktuSelesai: Date;
 
   @ApiPropertyOptional({ example: "550e8400-e29b-41d4-a716-446655440000" })
   submisiTugasId: string;
