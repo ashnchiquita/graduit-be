@@ -11,6 +11,7 @@ import {
   IsEnum,
   IsNumberString,
   IsOptional,
+  IsUUID,
   ValidateNested,
 } from "class-validator";
 import { BerkasSubmisiTugas } from "src/entities/berkasSubmisiTugas.entity";
@@ -23,7 +24,7 @@ class BerkasSubmisiTugasWithoutId extends OmitType(BerkasSubmisiTugas, [
   "id",
 ] as const) {}
 
-export class CreateSubmisiTugasDto extends PickType(SubmisiTugas, [
+export class CreateOrUpdateSubmisiTugasDto extends PickType(SubmisiTugas, [
   "jawaban",
   "isSubmitted",
   "tugasId",
@@ -32,6 +33,11 @@ export class CreateSubmisiTugasDto extends PickType(SubmisiTugas, [
   @ValidateNested({ each: true })
   @Type(() => BerkasSubmisiTugasWithoutId)
   berkasSubmisiTugas: BerkasSubmisiTugasWithoutId[];
+
+  @ApiPropertyOptional({ example: "550e8400-e29b-41d4-a716-446655440000" })
+  @IsOptional()
+  @IsUUID()
+  id?: string;
 }
 
 export class SubmisiTugasIdDto extends PickType(SubmisiTugas, [
@@ -79,7 +85,7 @@ class PickedSubmisiTugas extends PickType(SubmisiTugas, [
   "berkasSubmisiTugas",
 ] as const) {}
 
-class PickedSubmisiTugasExtended extends PickType(SubmisiTugas, [
+export class PickedSubmisiTugasExtended extends PickType(SubmisiTugas, [
   "id",
   "isSubmitted",
   "jawaban",

@@ -41,7 +41,6 @@ export class NilaiService {
     search: string,
   ) {
     const currPeriode = await this.konfServ.getPeriodeOrFail();
-    console.log(limit);
 
     const baseQuery = this.mataKuliahRepo
       .createQueryBuilder("matkul")

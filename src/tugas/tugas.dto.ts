@@ -4,8 +4,9 @@ import {
   OmitType,
   PickType,
 } from "@nestjs/swagger";
-import { Type } from "class-transformer";
+import { Transform, Type } from "class-transformer";
 import {
+  IsBoolean,
   IsNumberString,
   IsOptional,
   IsString,
@@ -90,6 +91,31 @@ export class GetTugasByKelasIdQueryDto extends PickType(Tugas, [
   limit?: number;
 }
 
+export class GetTugasByMahasiswaIdQueryDto {
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  search?: string;
+
+  @IsOptional()
+  @IsNumberString()
+  @ApiPropertyOptional({ description: "default: 1" })
+  page?: number;
+
+  @IsOptional()
+  @IsNumberString()
+  @ApiPropertyOptional({ description: "default: 10" })
+  limit?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => value === "true")
+  @ApiPropertyOptional({
+    description: "if not specified, will return all submisi tugas",
+  })
+  isSubmitted?: boolean;
+}
+
 export class GetTugasSummaryRespDto extends PickType(Tugas, [
   "id",
   "judul",
@@ -106,4 +132,27 @@ export class GetTugasByKelasIdRespDto {
 
   @ApiProperty({ type: GetKelasRespDto })
   kelas: GetKelasRespDto;
+}
+
+export class GetDaftarTugasByMahasiswaIdRespDto {
+  @ApiProperty({ example: "IF4031" })
+  kodeMataKuliah: string;
+
+  @ApiProperty({ example: "Pengembangan Aplikasi" })
+  namaMataKuliah: string;
+
+  @ApiProperty({
+    example: "550e8400-e29b-41d4-a716-446655440000",
+    description: "tugas id",
+  })
+  id: string;
+
+  @ApiProperty()
+  judul: string;
+
+  @ApiPropertyOptional({ example: "550e8400-e29b-41d4-a716-446655440000" })
+  submisiTugasId: string;
+
+  @ApiPropertyOptional()
+  isSubmitted: boolean;
 }

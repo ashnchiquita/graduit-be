@@ -3,7 +3,7 @@ import {
   Controller,
   Get,
   Param,
-  Post,
+  Put,
   Query,
   Req,
   UseGuards,
@@ -21,7 +21,7 @@ import { RolesGuard } from "src/middlewares/roles.guard";
 import { Roles } from "src/middlewares/roles.decorator";
 import { RoleEnum } from "src/entities/pengguna.entity";
 import {
-  CreateSubmisiTugasDto,
+  CreateOrUpdateSubmisiTugasDto,
   GetSubmisiTugasByIdRespDto,
   GetSubmisiTugasByTugasIdQueryDto,
   GetSubmisiTugasByTugasIdRespDto,
@@ -38,21 +38,24 @@ import { Request } from "express";
 export class SubmisiTugasController {
   constructor(private submisiTugasServ: SubmisiTugasService) {}
 
+  @ApiOperation({
+    summary: "Create submisi tugas. Roles: S2_MAHASISWA",
+  })
+  @ApiOkResponse({ type: SubmisiTugasIdDto })
   @Roles(RoleEnum.S2_MAHASISWA)
-  @Post()
-  async createSubmisiTugas(
-    @Body() createDto: CreateSubmisiTugasDto,
+  @Put()
+  async upsertSubmisiTugas(
+    @Body() dto: CreateOrUpdateSubmisiTugasDto,
     @Req() req: Request,
   ) {
-    // TODO: More validation
     const { id } = req.user as AuthDto;
 
-    return await this.submisiTugasServ.createSubmisiTugas(createDto, id);
+    return await this.submisiTugasServ.upsertSubmisiTugas(dto, id);
   }
 
   @ApiOperation({
     summary:
-      "Get submisi tugas by sumbisi tugas id. Roles: S2_KULIAH, S2_MAHASISWA",
+      "Get submisi tugas by submisi tugas id. Roles: S2_KULIAH, S2_MAHASISWA",
   })
   @ApiOkResponse({ type: GetSubmisiTugasByIdRespDto })
   @Roles(RoleEnum.S2_KULIAH, RoleEnum.S2_MAHASISWA)

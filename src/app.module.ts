@@ -75,6 +75,7 @@ import { DosenBimbinganModule } from "./dosen-bimbingan/dosen-bimbingan.module";
     DashboardModule,
     BimbinganModule,
     KonfigurasiModule,
+    DosenBimbinganModule,
     KelasModule,
     TugasModule,
     SubmisiTugasModule,

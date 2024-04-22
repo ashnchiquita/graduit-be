@@ -6,9 +6,10 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Tugas } from "src/entities/tugas.entity";
-import { Repository } from "typeorm";
+import { Brackets, Repository } from "typeorm";
 import {
   CreateTugasDto,
+  GetDaftarTugasByMahasiswaIdRespDto,
   GetTugasByIdRespDto,
   GetTugasByKelasIdRespDto,
   GetTugasSummaryRespDto,
@@ -16,7 +17,6 @@ import {
   UpdateTugasDto,
 } from "./tugas.dto";
 import { BerkasTugas } from "src/entities/berkasTugas.entity";
-import { SubmisiTugas } from "src/entities/submisiTugas.entity";
 import { PengajarKelas } from "src/entities/pengajarKelas.entity";
 import { MahasiswaKelas } from "src/entities/mahasiswaKelas.entity";
 import { Kelas } from "src/entities/kelas.entity";
@@ -24,6 +24,8 @@ import { Pengguna } from "src/entities/pengguna.entity";
 import { KelasService } from "src/kelas/kelas.service";
 import { KonfigurasiService } from "src/konfigurasi/konfigurasi.service";
 import * as dayjs from "dayjs";
+import { SubmisiTugas } from "src/entities/submisiTugas.entity";
+import { PickedSubmisiTugasExtended } from "src/submisi-tugas/submisi-tugas.dto";
 
 @Injectable()
 export class TugasService {
@@ -239,7 +241,7 @@ export class TugasService {
     await this.isPengajarKelasOrFail(idPengajar, kelasId);
 
     const kelasQuery = this.kelasService.getById(kelasId);
-    const tugasQuery = await this.tugasRepo
+    const tugasQuery = this.tugasRepo
       .createQueryBuilder("tugas")
       .leftJoinAndSelect(
         "tugas.submisiTugas",
@@ -273,5 +275,104 @@ export class TugasService {
     }));
 
     return { kelas, tugas: mappedTugas };
+  }
+
+  async getSubmisiTugasByMahasiswaAndTugasId(
+    mahasiswaId: string,
+    tugasId: string,
+  ): Promise<PickedSubmisiTugasExtended> {
+    await this.isMahasiswaTugasOrFail(mahasiswaId, tugasId);
+
+    const submisiTugas = await this.submisiTugasRepo.findOne({
+      select: [
+        "id",
+        "isSubmitted",
+        "jawaban",
+        "submittedAt",
+        "berkasSubmisiTugas",
+      ],
+      where: {
+        mahasiswaId: mahasiswaId,
+        tugasId: tugasId,
+      },
+      relations: ["berkasSubmisiTugas"],
+    });
+
+    if (!submisiTugas) {
+      throw new NotFoundException(
+        `Submisi tugas tidak ditemukan untuk mahasiswa ID: ${mahasiswaId} dan tugas ID: ${tugasId}`,
+      );
+    }
+
+    return submisiTugas;
+  }
+
+  async getDaftarTugasByMahasiswa(
+    mahasiswaId: string,
+    search: string,
+    page: number,
+    limit: number,
+    isSubmitted?: boolean,
+  ): Promise<GetDaftarTugasByMahasiswaIdRespDto[]> {
+    const baseQuery = this.mahasiswaKelasRepo
+      .createQueryBuilder("mk")
+      .innerJoin("mk.kelas", "kelas", "kelas.id = mk.kelasId")
+      .innerJoin("kelas.mataKuliah", "mataKuliah")
+      .innerJoin("kelas.tugas", "tugas")
+      .leftJoinAndSelect(
+        "tugas.submisiTugas",
+        "submisiTugas",
+        "submisiTugas.mahasiswaId = :mahasiswaId",
+        { mahasiswaId },
+      )
+      .select([
+        "mk.id",
+        "kelas.id",
+        "mataKuliah.kode AS kode_mata_kuliah",
+        "mataKuliah.nama AS nama_mata_kuliah",
+        "tugas.id AS tugas_id",
+        "tugas.judul AS tugas_judul",
+        "submisiTugas.id AS submisi_tugas_id",
+        "submisiTugas.isSubmitted AS submisi_tugas_is_submitted",
+      ])
+      .where("mk.mahasiswaId = :mahasiswaId", {
+        mahasiswaId,
+      })
+      .andWhere("tugas.judul ILIKE :search", { search: `%${search}%` })
+      .orderBy("tugas.createdAt", "DESC");
+
+    if (isSubmitted !== undefined) {
+      if (isSubmitted) {
+        baseQuery.andWhere("submisiTugas.isSubmitted = true");
+      } else {
+        baseQuery.andWhere(
+          new Brackets((qb) =>
+            qb
+              .where("submisiTugas.isSubmitted <> true")
+              .orWhere("submisiTugas.isSubmitted IS NULL"),
+          ),
+        );
+      }
+    }
+
+    const daftarTugas = await baseQuery
+      .limit(limit)
+      .skip((page - 1) * limit)
+      .getRawMany();
+
+    const mappedDaftarTugas: GetDaftarTugasByMahasiswaIdRespDto[] =
+      daftarTugas.map((tugas) => ({
+        kodeMataKuliah: tugas.kode_mata_kuliah,
+        namaMataKuliah: tugas.nama_mata_kuliah,
+        id: tugas.tugas_id,
+        judul: tugas.tugas_judul,
+        submisiTugasId: tugas.submisi_tugas_id || undefined,
+        isSubmitted:
+          tugas.submisi_tugas_is_submitted === null
+            ? undefined
+            : tugas.submisi_tugas_is_submitted,
+      }));
+
+    return mappedDaftarTugas;
   }
 }
