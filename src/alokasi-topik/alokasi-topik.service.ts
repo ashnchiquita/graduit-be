@@ -5,7 +5,7 @@ import { Topik } from "src/entities/topik.entity";
 import { ArrayContains, Like, Repository } from "typeorm";
 import {
   CreateBulkTopikDto,
-  CreateRespDto,
+  TopikIdRespDto,
   CreateTopikDto,
   GetAllRespDto,
   UpdateTopikDto,
@@ -18,7 +18,7 @@ export class AlokasiTopikService {
 
   async create(
     createDto: CreateTopikDto & { periode: string },
-  ): Promise<CreateRespDto> {
+  ): Promise<TopikIdRespDto> {
     const ids = (await this.topikRepo.insert(createDto)).identifiers;
 
     return { id: ids[0].id };
@@ -37,8 +37,7 @@ export class AlokasiTopikService {
     return { ids: ids.map(({ id }) => id) };
   }
 
-  async findById(id: string) {
-    // not periode-protected
+  async findById(id: string, periode: string) {
     return await this.topikRepo.findOne({
       select: {
         id: true,
@@ -54,6 +53,7 @@ export class AlokasiTopikService {
       },
       where: {
         id,
+        periode,
       },
       relations: {
         pengaju: true,
@@ -142,13 +142,18 @@ export class AlokasiTopikService {
     }
   }
 
-  async update(id: string, updateDto: UpdateTopikDto) {
-    // not periode-protected
-    return await this.topikRepo.update(id, updateDto);
+  async update(
+    id: string,
+    updateDto: UpdateTopikDto,
+    periode: string,
+    idPengaju?: string,
+  ) {
+    const findOpt = idPengaju ? { id, periode, idPengaju } : { id, periode };
+    return await this.topikRepo.update(findOpt, updateDto);
   }
 
-  async remove(id: string) {
-    // not periode-protected
-    return await this.topikRepo.delete({ id }); // TODO: manage relation cascading option
+  async remove(id: string, periode: string, idPengaju?: string) {
+    const findOpt = idPengaju ? { id, periode, idPengaju } : { id, periode };
+    return await this.topikRepo.delete(findOpt);
   }
 }
