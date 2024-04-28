@@ -24,7 +24,6 @@ export class AlokasiRuanganService {
     private dosenBimbinganRepo: Repository<DosenBimbingan>,
   ) {}
 
-  // TODO only show pendaftaran belom lulus?
   async findAll(
     query: GetAllPengajuanSidangReqQueryDto,
   ): Promise<GetAllPengajuanSidangRespDto> {
