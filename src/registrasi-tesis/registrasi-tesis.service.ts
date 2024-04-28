@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import * as dayjs from "dayjs";
 import { DosenBimbingan } from "src/entities/dosenBimbingan.entity";
 import {
   PendaftaranTesis,
@@ -24,7 +25,6 @@ import {
   UpdatePembimbingBodyDto,
   UpdateStatusBodyDto,
 } from "./registrasi-tesis.dto";
-import * as dayjs from "dayjs";
 
 @Injectable()
 export class RegistrasiTesisService {
@@ -196,7 +196,7 @@ export class RegistrasiTesisService {
     periode: string;
     idPenerima?: string;
   }): Promise<RegStatisticsRespDto> {
-    const totalMahasiswa = this.penggunaRepository.count({
+    let totalMahasiswa = this.penggunaRepository.count({
       where: { roles: ArrayContains([RoleEnum.S2_MAHASISWA]) },
     });
 
@@ -222,6 +222,8 @@ export class RegistrasiTesisService {
       baseQuery.andWhere("pt.penerimaId = :idPenerima", {
         idPenerima: options.idPenerima,
       });
+
+      totalMahasiswa = baseQuery.getCount();
     }
 
     const totalDiterima = baseQuery
