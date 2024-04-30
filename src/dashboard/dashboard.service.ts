@@ -1,25 +1,28 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Brackets, Repository } from "typeorm";
-import {
-  PendaftaranTesis,
-  RegStatus,
-} from "../entities/pendaftaranTesis.entity";
-import { Pengguna } from "../entities/pengguna.entity";
-import { Konfigurasi } from "src/entities/konfigurasi.entity";
+import { BimbinganService } from "src/bimbingan/bimbingan.service";
 import { Bimbingan } from "src/entities/bimbingan.entity";
-import {
-  DashboardDto,
-  DashboardMahasiswaResDto,
-  JalurStatisticDto,
-  NoNIMUserDashboard,
-} from "./dashboard.dto";
+import { DosenBimbingan } from "src/entities/dosenBimbingan.entity";
+import { Konfigurasi } from "src/entities/konfigurasi.entity";
 import {
   PendaftaranSidsem,
   TipeSidsemEnum,
 } from "src/entities/pendaftaranSidsem";
-import { DosenBimbingan } from "src/entities/dosenBimbingan.entity";
-import { BimbinganService } from "src/bimbingan/bimbingan.service";
+import { ArrayContains, Brackets, In, Like, Repository } from "typeorm";
+import {
+  PendaftaranTesis,
+  RegStatus,
+} from "../entities/pendaftaranTesis.entity";
+import { Pengguna, RoleEnum } from "../entities/pengguna.entity";
+import {
+  DashboardDto,
+  DashboardMahasiswaResDto,
+  DashboardTimTesisStatusEnum,
+  GetDashboardTimTesisReqQueryDto,
+  GetDashboardTimTesisRespDto,
+  JalurStatisticDto,
+  NoNIMUserDashboard,
+} from "./dashboard.dto";
 
 @Injectable()
 export class DashboardService {
@@ -268,6 +271,174 @@ export class DashboardService {
           email: p.dosen.email,
         })),
       },
+    };
+  }
+
+  async getDashboardTimTesis(
+    query: GetDashboardTimTesisReqQueryDto,
+  ): Promise<GetDashboardTimTesisRespDto> {
+    const [foundMahasiswa, total] = await this.penggunaRepository.findAndCount({
+      select: {
+        id: true,
+        nama: true,
+        nim: true,
+      },
+      take: query.limit || undefined,
+      skip: (query.page - 1) * query.limit || undefined,
+      where: [
+        {
+          nim: Like(`%${query.search ?? ""}%`),
+          roles: ArrayContains([RoleEnum.S2_MAHASISWA]),
+        },
+        {
+          nama: Like(`%${query.search ?? ""}%`),
+          roles: ArrayContains([RoleEnum.S2_MAHASISWA]),
+        },
+      ],
+      order: {
+        nim: "ASC",
+      },
+    });
+
+    const dosbimQuery = this.dosenBimbinganRepository.find({
+      select: {
+        pendaftaran: {
+          id: true,
+          mahasiswaId: true,
+        },
+        dosen: {
+          id: true,
+          nama: true,
+        },
+      },
+      relations: {
+        pendaftaran: true,
+        dosen: true,
+      },
+      where: {
+        pendaftaran: {
+          mahasiswaId: In(foundMahasiswa.map(({ id }) => id)),
+        },
+      },
+    });
+
+    const topicAcceptedQuery = this.pendaftaranTesisRepository.find({
+      select: {
+        id: true,
+        mahasiswaId: true,
+      },
+      where: {
+        status: RegStatus.APPROVED,
+        mahasiswaId: In(foundMahasiswa.map(({ id }) => id)),
+      },
+    });
+
+    const mhsSemProAcceptedQuery = this.pendaftaranSidsemRepository.find({
+      select: {
+        pendaftaranTesis: {
+          mahasiswaId: true,
+        },
+      },
+      relations: {
+        pendaftaranTesis: true,
+      },
+      where: {
+        tipe: TipeSidsemEnum.SEMINAR_1,
+        ditolak: false,
+        pendaftaranTesis: {
+          mahasiswaId: In(foundMahasiswa.map(({ id }) => id)),
+        },
+      },
+    });
+
+    const mhsSemTesAcceptedQuery = this.pendaftaranSidsemRepository.find({
+      select: {
+        pendaftaranTesis: {
+          mahasiswaId: true,
+        },
+      },
+      relations: {
+        pendaftaranTesis: true,
+      },
+      where: {
+        tipe: TipeSidsemEnum.SEMINAR_2,
+        ditolak: false,
+        pendaftaranTesis: {
+          mahasiswaId: In(foundMahasiswa.map(({ id }) => id)),
+        },
+      },
+    });
+
+    const mhsSidangAcceptedQuery = this.pendaftaranSidsemRepository.find({
+      select: {
+        pendaftaranTesis: {
+          mahasiswaId: true,
+        },
+      },
+      relations: {
+        pendaftaranTesis: true,
+      },
+      where: {
+        tipe: TipeSidsemEnum.SIDANG,
+        ditolak: false,
+        pendaftaranTesis: {
+          mahasiswaId: In(foundMahasiswa.map(({ id }) => id)),
+        },
+      },
+    });
+
+    const [
+      foundDosbim,
+      topicAccepted,
+      mhsSemProAccepted,
+      mhsSemTesAccepted,
+      mhsSidangAccepted,
+    ] = await Promise.all([
+      dosbimQuery,
+      topicAcceptedQuery,
+      mhsSemProAcceptedQuery,
+      mhsSemTesAcceptedQuery,
+      mhsSidangAcceptedQuery,
+    ]);
+
+    const mhsStatusMap: Record<string, DashboardTimTesisStatusEnum[]> = {};
+    const dosbimMap: Record<string, string[]> = {};
+
+    foundMahasiswa.forEach(({ id }) => {
+      mhsStatusMap[id] = [];
+      dosbimMap[id] = [];
+    });
+
+    foundDosbim.forEach(({ pendaftaran: { mahasiswaId }, dosen: { nama } }) => {
+      dosbimMap[mahasiswaId].push(nama);
+    });
+
+    topicAccepted.forEach(({ mahasiswaId }) => {
+      mhsStatusMap[mahasiswaId].push(
+        DashboardTimTesisStatusEnum.PENGAJUAN_TOPIK,
+      );
+    });
+
+    mhsSemProAccepted.forEach(({ pendaftaranTesis: { mahasiswaId } }) => {
+      mhsStatusMap[mahasiswaId].push(DashboardTimTesisStatusEnum.SEMINAR_1);
+    });
+
+    mhsSemTesAccepted.forEach(({ pendaftaranTesis: { mahasiswaId } }) => {
+      mhsStatusMap[mahasiswaId].push(DashboardTimTesisStatusEnum.SEMINAR_2);
+    });
+
+    mhsSidangAccepted.forEach(({ pendaftaranTesis: { mahasiswaId } }) => {
+      mhsStatusMap[mahasiswaId].push(DashboardTimTesisStatusEnum.SEMINAR_2);
+    });
+
+    return {
+      maxPage: !!query.limit ? Math.ceil(total / query.limit) : 1,
+      data: foundMahasiswa.map(({ nim, id, nama }) => ({
+        nim_mahasiswa: nim,
+        nama_mahasiswa: nama,
+        status: mhsStatusMap[id] ?? [],
+        dosen_pembimbing: dosbimMap[id] ?? [],
+      })),
     };
   }
 }
