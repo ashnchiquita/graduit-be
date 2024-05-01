@@ -16,35 +16,26 @@ import {
 export class AlokasiTopikService {
   constructor(@InjectRepository(Topik) private topikRepo: Repository<Topik>) {}
 
-  async create(
-    createDto: CreateTopikDto & { periode: string },
-  ): Promise<CreateRespDto> {
+  async create(createDto: CreateTopikDto): Promise<CreateRespDto> {
     const ids = (await this.topikRepo.insert(createDto)).identifiers;
 
     return { id: ids[0].id };
   }
 
-  async createBulk(
-    createDto: CreateBulkTopikDto,
-    periode: string,
-  ): Promise<createBulkRespDto> {
+  async createBulk(createDto: CreateBulkTopikDto): Promise<createBulkRespDto> {
     const ids = (
-      await this.topikRepo.insert(
-        createDto.data.map((dto) => ({ ...dto, periode })),
-      )
+      await this.topikRepo.insert(createDto.data.map((dto) => ({ ...dto })))
     ).identifiers;
 
     return { ids: ids.map(({ id }) => id) };
   }
 
   async findById(id: string) {
-    // not periode-protected
     return await this.topikRepo.findOne({
       select: {
         id: true,
         judul: true,
         deskripsi: true,
-        periode: true,
         pengaju: {
           id: true,
           nama: true,
@@ -66,14 +57,12 @@ export class AlokasiTopikService {
     limit?: number;
     search?: string;
     idPembimbing?: string;
-    periode: string;
   }): Promise<GetAllRespDto> {
     const dataQuery = this.topikRepo.find({
       select: {
         id: true,
         judul: true,
         deskripsi: true,
-        periode: true,
         pengaju: {
           id: true,
           nama: true,
@@ -82,7 +71,6 @@ export class AlokasiTopikService {
         },
       },
       where: {
-        periode: options.periode,
         pengaju: {
           id: options.idPembimbing || undefined,
           roles: ArrayContains([RoleEnum.S2_PEMBIMBING]),
@@ -107,8 +95,7 @@ export class AlokasiTopikService {
         .createQueryBuilder("topik")
         .select("topik.id")
         .innerJoinAndSelect("topik.pengaju", "pengaju")
-        .where("topik.periode = :periode", { periode: options.periode })
-        .andWhere("pengaju.roles @> :role", {
+        .where("pengaju.roles @> :role", {
           role: [RoleEnum.S2_PEMBIMBING],
         });
 
@@ -143,12 +130,10 @@ export class AlokasiTopikService {
   }
 
   async update(id: string, updateDto: UpdateTopikDto) {
-    // not periode-protected
     return await this.topikRepo.update(id, updateDto);
   }
 
   async remove(id: string) {
-    // not periode-protected
-    return await this.topikRepo.delete({ id }); // TODO: manage relation cascading option
+    return await this.topikRepo.delete({ id }); // TODO: cascade?
   }
 }

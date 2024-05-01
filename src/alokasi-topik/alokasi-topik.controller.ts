@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -18,7 +17,6 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 import { RoleEnum } from "src/entities/pengguna.entity";
-import { KonfigurasiService } from "src/konfigurasi/konfigurasi.service";
 import { CustomAuthGuard } from "src/middlewares/custom-auth.guard";
 import { Roles } from "src/middlewares/roles.decorator";
 import { RolesGuard } from "src/middlewares/roles.guard";
@@ -41,35 +39,20 @@ import { AlokasiTopikService } from "./alokasi-topik.service";
 @Controller("alokasi-topik")
 @UseGuards(CustomAuthGuard, RolesGuard)
 export class AlokasiTopikController {
-  constructor(
-    private alokasiTopikService: AlokasiTopikService,
-    private konfService: KonfigurasiService,
-  ) {}
+  constructor(private alokasiTopikService: AlokasiTopikService) {}
 
   @ApiOkResponse({ type: CreateRespDto })
   @Roles(RoleEnum.S2_TIM_TESIS, RoleEnum.ADMIN)
   @Post()
   async create(@Body() createDto: CreateTopikDto) {
-    const periode = await this.konfService.getKonfigurasiByKey(
-      process.env.KONF_PERIODE_KEY,
-    );
-
-    if (!periode) throw new BadRequestException("Periode belum dikonfigurasi.");
-
-    return await this.alokasiTopikService.create({ ...createDto, periode });
+    return await this.alokasiTopikService.create({ ...createDto });
   }
 
   @ApiOkResponse({ type: createBulkRespDto })
   @Roles(RoleEnum.S2_TIM_TESIS, RoleEnum.ADMIN)
   @Post("/bulk")
   async createBulk(@Body() createDto: CreateBulkTopikDto) {
-    const periode = await this.konfService.getKonfigurasiByKey(
-      process.env.KONF_PERIODE_KEY,
-    );
-
-    if (!periode) throw new BadRequestException("Periode belum dikonfigurasi.");
-
-    return await this.alokasiTopikService.createBulk(createDto, periode);
+    return await this.alokasiTopikService.createBulk(createDto);
   }
 
   @ApiOkResponse({ type: OmittedTopik })
@@ -88,16 +71,9 @@ export class AlokasiTopikController {
     @Query()
     query: TopikQueryDto,
   ) {
-    const periode = await this.konfService.getKonfigurasiByKey(
-      process.env.KONF_PERIODE_KEY,
-    );
-
-    if (!periode) throw new BadRequestException("Periode belum dikonfigurasi.");
-
     return await this.alokasiTopikService.findAllCreatedByPembimbing({
       page: query.page || 1,
       ...query,
-      periode,
     });
   }
 

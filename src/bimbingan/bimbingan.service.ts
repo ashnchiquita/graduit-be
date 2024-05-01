@@ -9,7 +9,6 @@ import * as dayjs from "dayjs";
 import { AuthDto } from "src/auth/auth.dto";
 import { Bimbingan, BimbinganStatus } from "src/entities/bimbingan.entity";
 import { DosenBimbingan } from "src/entities/dosenBimbingan.entity";
-import { Konfigurasi } from "src/entities/konfigurasi.entity";
 import {
   PendaftaranTesis,
   RegStatus,
@@ -33,8 +32,6 @@ export class BimbinganService {
     private bimbinganRepository: Repository<Bimbingan>,
     @InjectRepository(PendaftaranTesis)
     private pendaftaranTesisRepository: Repository<PendaftaranTesis>,
-    @InjectRepository(Konfigurasi)
-    private konfigurasiRepository: Repository<Konfigurasi>,
     @InjectRepository(DosenBimbingan)
     private dosenBimbinganRepository: Repository<DosenBimbingan>,
     @InjectRepository(BerkasBimbingan)
@@ -45,17 +42,10 @@ export class BimbinganService {
     mahasiswaId: string,
     user: AuthDto,
   ): Promise<GetByMahasiswaIdResDto> {
-    const currentPeriode = await this.konfigurasiRepository.findOne({
-      where: { key: process.env.KONF_PERIODE_KEY },
-    });
-
     const pendaftaran = await this.pendaftaranTesisRepository.findOne({
       where: {
         mahasiswa: { id: mahasiswaId },
         status: RegStatus.APPROVED,
-        topik: {
-          periode: currentPeriode.value,
-        },
       },
       relations: {
         mahasiswa: true,
@@ -65,9 +55,7 @@ export class BimbinganService {
     });
 
     if (!pendaftaran) {
-      throw new NotFoundException(
-        "Tidak ada pendaftaran yang disetujui pada periode ini",
-      );
+      throw new NotFoundException("Tidak ada pendaftaran yang disetujui");
     }
 
     // Validate bimbingan data by its dosbim
@@ -119,17 +107,10 @@ export class BimbinganService {
     createDto: CreateBimbinganReqDto,
   ): Promise<CreateBimbinganResDto> {
     // Check if user registered in bimbingan
-    const currentPeriode = await this.konfigurasiRepository.findOne({
-      where: { key: process.env.KONF_PERIODE_KEY },
-    });
-
     const pendaftaran = await this.pendaftaranTesisRepository.findOne({
       where: {
         mahasiswa: { id: mahasiswaId },
         status: RegStatus.APPROVED,
-        topik: {
-          periode: currentPeriode.value,
-        },
       },
       relations: {
         mahasiswa: true,
@@ -139,9 +120,7 @@ export class BimbinganService {
     });
 
     if (!pendaftaran) {
-      throw new NotFoundException(
-        "Tidak ada pendaftaran yang disetujui pada periode ini",
-      );
+      throw new NotFoundException("Tidak ada pendaftaran yang disetujui");
     }
 
     if (dayjs(createDto.waktuBimbingan).isAfter(dayjs(new Date()).endOf("d")))
@@ -195,19 +174,13 @@ export class BimbinganService {
     user: AuthDto,
     bimbinganId: string,
   ): Promise<GetByBimbinganIdResDto> {
-    const currentPeriode = await this.konfigurasiRepository.findOne({
-      where: { key: process.env.KONF_PERIODE_KEY },
-    });
-
     const bimbinganQuery = this.bimbinganRepository
       .createQueryBuilder("bimbingan")
       .leftJoinAndSelect("bimbingan.pendaftaran", "pendaftaran")
       .leftJoinAndSelect("pendaftaran.dosenBimbingan", "dosenBimbingan")
       .leftJoinAndSelect("dosenBimbingan.dosen", "dosen")
       .leftJoinAndSelect("bimbingan.berkas", "berkas")
-      .leftJoin("pendaftaran.topik", "topik", "topik.periode = :periode", {
-        periode: currentPeriode.value,
-      })
+      .leftJoin("pendaftaran.topik", "topik")
       .leftJoinAndSelect("pendaftaran.mahasiswa", "mahasiswa")
       .where("bimbingan.id = :id", { id: bimbinganId });
     const bimbingan = await bimbinganQuery.getOne();

@@ -6,7 +6,6 @@ import {
   RegStatus,
 } from "../entities/pendaftaranTesis.entity";
 import { Pengguna } from "../entities/pengguna.entity";
-import { Konfigurasi } from "src/entities/konfigurasi.entity";
 import { Bimbingan } from "src/entities/bimbingan.entity";
 import {
   DashboardDto,
@@ -28,8 +27,6 @@ export class DashboardService {
     private pendaftaranTesisRepository: Repository<PendaftaranTesis>,
     @InjectRepository(Pengguna)
     private penggunaRepository: Repository<Pengguna>,
-    @InjectRepository(Konfigurasi)
-    private konfigurasiRepository: Repository<Konfigurasi>,
     @InjectRepository(Bimbingan)
     private bimbinganRepository: Repository<Bimbingan>,
     @InjectRepository(PendaftaranSidsem)
@@ -49,14 +46,6 @@ export class DashboardService {
     dosenId: string,
     search?: string,
   ): Promise<DashboardDto[]> {
-    const currentPeriode = await this.konfigurasiRepository.findOne({
-      where: { key: process.env.KONF_PERIODE_KEY },
-    });
-
-    if (!currentPeriode) {
-      throw new BadRequestException("Periode belum dikonfigurasi");
-    }
-
     let pendaftaranTesisQuery = this.pendaftaranTesisRepository
       .createQueryBuilder("pendaftaranTesis")
       .leftJoinAndSelect("pendaftaranTesis.mahasiswa", "mahasiswa")
@@ -71,8 +60,7 @@ export class DashboardService {
       )
       .andWhere("pendaftaranTesis.status = :status", {
         status: RegStatus.APPROVED,
-      })
-      .andWhere("topik.periode = :periode", { periode: currentPeriode.value });
+      });
 
     if (search) {
       pendaftaranTesisQuery = pendaftaranTesisQuery.andWhere(
@@ -112,15 +100,9 @@ export class DashboardService {
   async getStatisticsByJalurPilihan(
     dosenId: string,
   ): Promise<JalurStatisticDto[]> {
-    const [currentPeriode, dosen] = await Promise.all([
-      this.konfigurasiRepository.findOne({
-        where: { key: process.env.KONF_PERIODE_KEY },
-      }),
-      this.penggunaRepository.findOne({
-        where: { id: dosenId },
-      }),
-    ]);
-
+    const dosen = await this.penggunaRepository.findOne({
+      where: { id: dosenId },
+    });
     if (!dosen) {
       throw new BadRequestException("Dosen tidak ditemukan");
     }
@@ -129,9 +111,7 @@ export class DashboardService {
       .createQueryBuilder("pendaftaranTesis")
       .select("pendaftaranTesis.jalurPilihan", "jalurPilihan")
       .addSelect("COUNT(*)", "count")
-      .leftJoin("pendaftaranTesis.topik", "topik", "topik.periode = :periode", {
-        periode: currentPeriode.value,
-      })
+      .leftJoin("pendaftaranTesis.topik", "topik")
       .innerJoin(
         "pendaftaranTesis.dosenBimbingan",
         "dosenBimbingan",
@@ -152,10 +132,6 @@ export class DashboardService {
   async getDashboardMahasiswa(
     mahasiswaId: string,
   ): Promise<DashboardMahasiswaResDto> {
-    const currentPeriode = await this.konfigurasiRepository.findOne({
-      where: { key: process.env.KONF_PERIODE_KEY },
-    });
-
     const mahasiswaQuery = this.penggunaRepository
       .createQueryBuilder("pengguna")
       .select([
@@ -182,7 +158,6 @@ export class DashboardService {
       .leftJoinAndSelect("pendaftaranTesis.topik", "topik")
       .leftJoin("pendaftaranTesis.penerima", "penerima")
       .where("mahasiswa.id = :id", { id: mahasiswaId })
-      .andWhere("topik.periode = :periode", { periode: currentPeriode.value })
       .orderBy("pendaftaranTesis.waktuPengiriman", "DESC");
 
     const [mahasiswa, pendaftaranTesis] = await Promise.all([

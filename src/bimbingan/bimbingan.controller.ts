@@ -45,9 +45,7 @@ export class BimbinganController {
   constructor(private readonly bimbinganService: BimbinganService) {}
 
   @ApiOkResponse({ type: GetByMahasiswaIdResDto })
-  @ApiNotFoundResponse({
-    description: "Tidak ada pendaftaran pada periode sekarang",
-  })
+  @ApiNotFoundResponse({ description: "Tidak ada pendaftaran" })
   @Roles(RoleEnum.S2_PEMBIMBING, RoleEnum.ADMIN, RoleEnum.S2_TIM_TESIS)
   @Get("/mahasiswa/:mahasiswaId")
   async getByMahasiswaId(
@@ -61,9 +59,7 @@ export class BimbinganController {
   }
 
   @ApiOkResponse({ type: GetByMahasiswaIdResDto })
-  @ApiNotFoundResponse({
-    description: "Tidak ada pendaftaran pada periode sekarang",
-  })
+  @ApiNotFoundResponse({ description: "Tidak ada pendaftaran" })
   @Roles(RoleEnum.S2_MAHASISWA)
   @Get("/")
   async getOwnBimbingan(
@@ -80,9 +76,7 @@ export class BimbinganController {
     description:
       "Waktu bimbingan lebih dari hari ini atau bimbingan berikutnya sebelum waktu bimbingan yang dimasukkan",
   })
-  @ApiNotFoundResponse({
-    description: "Tidak ada pendaftaran pada periode sekarang",
-  })
+  @ApiNotFoundResponse({ description: "Tidak ada pendaftaran" })
   @Roles(RoleEnum.S2_MAHASISWA)
   @ApiBody({ type: CreateBimbinganReqDto })
   @Post("/")
@@ -94,9 +88,7 @@ export class BimbinganController {
   }
 
   @ApiOkResponse({ type: UpdateStatusResDto })
-  @ApiNotFoundResponse({
-    description: "Bimbingan tidak ditemukan",
-  })
+  @ApiNotFoundResponse({ description: "Bimbingan tidak ditemukan" })
   @ApiForbiddenResponse({
     description: "Anda tidak memiliki akses untuk mengubah status bimbingan",
   })
@@ -111,9 +103,7 @@ export class BimbinganController {
   }
 
   @ApiOkResponse({ type: GetByBimbinganIdResDto })
-  @ApiNotFoundResponse({
-    description: "Bimbingan tidak ditemukan",
-  })
+  @ApiNotFoundResponse({ description: "Bimbingan tidak ditemukan" })
   @Roles(RoleEnum.S2_PEMBIMBING, RoleEnum.ADMIN)
   @Get("/:bimbinganId")
   async getByBimbinganId(
