@@ -35,36 +35,6 @@ class EnvironmentVariables {
   FE_URL: string;
 
   @IsString()
-  KONF_PERIODE_KEY: string;
-
-  @IsString()
-  KONF_MIN_BIMBINGAN_KEY: string;
-
-  @IsString()
-  KONF_AWAL_PENDAFTARAN_KEY: string;
-
-  @IsString()
-  KONF_AKHIR_PENDAFTARAN_KEY: string;
-
-  @IsString()
-  KONF_AWAL_SEMPRO_KEY: string;
-
-  @IsString()
-  KONF_AKHIR_SEMPRO_KEY: string;
-
-  @IsString()
-  KONF_AWAL_SEM_TESIS_KEY: string;
-
-  @IsString()
-  KONF_AKHIR_SEM_TESIS_KEY: string;
-
-  @IsString()
-  KONF_AWAL_SIDANG_KEY: string;
-
-  @IsString()
-  KONF_AKHIR_SIDANG_KEY: string;
-
-  @IsString()
   COOKIE_NAME: string;
 }
 
