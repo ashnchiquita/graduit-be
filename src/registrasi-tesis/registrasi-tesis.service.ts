@@ -139,6 +139,7 @@ export class RegistrasiTesisService {
       .addSelect("topik.judul")
       .addSelect("penerima.id")
       .addSelect("penerima.nama")
+      .addSelect("penerima.kontak")
       .addSelect("dosenBimbingan")
       .addSelect("dosen.id")
       .addSelect("dosen.nama")
