@@ -5,24 +5,18 @@ import {
   ApiPropertyOptional,
 } from "@nestjs/swagger";
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { MahasiswaKelas } from "./mahasiswaKelas.entity";
-import { PengajarKelas } from "./pengajarKelas.entity";
 import { PendaftaranTesis } from "./pendaftaranTesis.entity";
-import { SubmisiTugas } from "./submisiTugas.entity";
 
 export enum RoleEnum {
   ADMIN = "ADMIN",
-  TU = "TU",
   S2_MAHASISWA = "S2_MAHASISWA",
   S2_PEMBIMBING = "S2_PEMBIMBING",
   S2_PENGUJI = "S2_PENGUJI",
   S2_TIM_TESIS = "S2_TIM_TESIS",
-  S2_KULIAH = "S2_KULIAH",
   S1_MAHASISWA = "S1_MAHASISWA",
   S1_PEMBIMBING = "S1_PEMBIMBING",
   S1_PENGUJI = "S1_PENGUJI",
   S1_TIM_TA = "S1_TIM_TA",
-  S1_KULIAH = "S1_KULIAH",
 }
 
 @Entity()
@@ -56,19 +50,15 @@ export class Pengguna {
   })
   roles: RoleEnum[];
 
-  @OneToMany(() => MahasiswaKelas, (mahasiswaKelas) => mahasiswaKelas.mahasiswa)
-  mahasiswaKelas: MahasiswaKelas[];
-
-  @OneToMany(() => PengajarKelas, (pengajarKelas) => pengajarKelas.pengajar)
-  pengajarKelas: PengajarKelas[];
   @ApiPropertyOptional()
   @IsString()
   @Column({ type: "text", nullable: true })
   kontak: string;
 
+  @ApiHideProperty()
+  @Column({ type: "boolean", default: true })
+  aktif: boolean;
+
   @OneToMany(() => PendaftaranTesis, (pendaftaran) => pendaftaran.mahasiswa)
   pendaftaranTesis: PendaftaranTesis[];
-
-  @OneToMany(() => SubmisiTugas, (submisiTugas) => submisiTugas.mahasiswa)
-  submisiTugas: SubmisiTugas[];
 }

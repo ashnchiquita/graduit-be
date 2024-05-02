@@ -26,8 +26,7 @@ export class KonfigurasiController {
   async updateKonfigurasi(
     @Body() data: KonfigurasiArrDto,
   ): Promise<UpdateKonfigurasiResDto> {
-    await this.konfigurasiService.updateKonfigurasi(data);
-    return { message: "success" };
+    return await this.konfigurasiService.updateKonfigurasi(data);
   }
 
   @ApiOkResponse({ type: KonfigurasiArrDto })
