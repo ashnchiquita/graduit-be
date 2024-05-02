@@ -59,7 +59,7 @@ export class AlokasiTopikController {
   @Roles(RoleEnum.S2_TIM_TESIS, RoleEnum.ADMIN)
   @Get("/:id")
   async getById(@Param() params: TopikParamDto) {
-    const res = await this.alokasiTopikService.findById(params.id);
+    const res = await this.alokasiTopikService.findActiveTopikById(params.id);
     if (!res) throw new NotFoundException();
     return res as OmittedTopik;
   }
@@ -71,10 +71,12 @@ export class AlokasiTopikController {
     @Query()
     query: TopikQueryDto,
   ) {
-    return await this.alokasiTopikService.findAllCreatedByPembimbing({
-      page: query.page || 1,
-      ...query,
-    });
+    return await this.alokasiTopikService.findAllActiveTopikCreatedByPembimbing(
+      {
+        page: query.page || 1,
+        ...query,
+      },
+    );
   }
 
   @Roles(RoleEnum.S2_TIM_TESIS, RoleEnum.ADMIN)

@@ -30,7 +30,7 @@ export class AlokasiTopikService {
     return { ids: ids.map(({ id }) => id) };
   }
 
-  async findById(id: string) {
+  async findActiveTopikById(id: string) {
     return await this.topikRepo.findOne({
       select: {
         id: true,
@@ -45,6 +45,7 @@ export class AlokasiTopikService {
       },
       where: {
         id,
+        aktif: true,
       },
       relations: {
         pengaju: true,
@@ -52,7 +53,7 @@ export class AlokasiTopikService {
     });
   }
 
-  async findAllCreatedByPembimbing(options: {
+  async findAllActiveTopikCreatedByPembimbing(options: {
     page: number;
     limit?: number;
     search?: string;
@@ -71,6 +72,7 @@ export class AlokasiTopikService {
         },
       },
       where: {
+        aktif: true,
         pengaju: {
           id: options.idPembimbing || undefined,
           roles: ArrayContains([RoleEnum.S2_PEMBIMBING]),
@@ -130,10 +132,10 @@ export class AlokasiTopikService {
   }
 
   async update(id: string, updateDto: UpdateTopikDto) {
-    return await this.topikRepo.update(id, updateDto);
+    return await this.topikRepo.update({ id, aktif: true }, updateDto);
   }
 
   async remove(id: string) {
-    return await this.topikRepo.delete({ id }); // TODO: cascade?
+    return await this.topikRepo.update({ id }, { aktif: false });
   }
 }

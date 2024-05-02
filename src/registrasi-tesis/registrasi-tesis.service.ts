@@ -79,8 +79,14 @@ export class RegistrasiTesisService {
       throw new NotFoundException("Penerima not found.");
     }
 
-    if (topicRegistrationDto.idTopik && !topik) {
-      throw new NotFoundException("Topic not found.");
+    if (topicRegistrationDto.idTopik) {
+      if (!topik) {
+        throw new NotFoundException("Topic not found.");
+      }
+
+      if (!topik.aktif) {
+        throw new BadRequestException("Topic is not active.");
+      }
     }
 
     if (lastPendaftaran && lastPendaftaran.status !== RegStatus.REJECTED) {
