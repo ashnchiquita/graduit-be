@@ -18,6 +18,7 @@ import { validate } from "./env.validation";
 import { BerkasBimbingan } from "./entities/berkasBimbingan.entity";
 import { PendaftaranSidsem } from "./entities/pendaftaranSidsem";
 import { DosenBimbinganModule } from "./dosen-bimbingan/dosen-bimbingan.module";
+import { PenggunaModule } from "./pengguna/pengguna.module";
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { DosenBimbinganModule } from "./dosen-bimbingan/dosen-bimbingan.module";
     DashboardModule,
     BimbinganModule,
     DosenBimbinganModule,
+    PenggunaModule,
   ],
   controllers: [AppController],
   providers: [AppService],

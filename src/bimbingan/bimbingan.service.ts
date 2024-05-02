@@ -24,6 +24,7 @@ import {
   UpdateStatusResDto,
 } from "./bimbingan.dto";
 import { BerkasBimbingan } from "src/entities/berkasBimbingan.entity";
+import { PenggunaService } from "src/pengguna/pengguna.service";
 
 @Injectable()
 export class BimbinganService {
@@ -36,12 +37,15 @@ export class BimbinganService {
     private dosenBimbinganRepository: Repository<DosenBimbingan>,
     @InjectRepository(BerkasBimbingan)
     private berkasBimbinganRepository: Repository<BerkasBimbingan>,
+    private penggunaService: PenggunaService,
   ) {}
 
   async getByMahasiswaId(
     mahasiswaId: string,
     user: AuthDto,
   ): Promise<GetByMahasiswaIdResDto> {
+    await this.penggunaService.isMahasiswaAktifOrFail(mahasiswaId);
+
     const pendaftaran = await this.pendaftaranTesisRepository.findOne({
       where: {
         mahasiswa: { id: mahasiswaId },
@@ -159,7 +163,7 @@ export class BimbinganService {
     user: AuthDto,
     dto: UpdateStatusDto,
   ): Promise<UpdateStatusResDto> {
-    const bimbingan = await this.getByBimbinganId(user, dto.bimbinganId);
+    const bimbingan = await this.getByBimbinganId(user, dto.bimbinganId); // already check if mahasiswa is aktif
 
     await this.bimbinganRepository.update(bimbingan.id, {
       disahkan: dto.status,
@@ -187,6 +191,10 @@ export class BimbinganService {
 
     if (!bimbingan) {
       throw new NotFoundException("Bimbingan tidak ditemukan");
+    }
+
+    if (!bimbingan.pendaftaran.mahasiswa.aktif) {
+      throw new BadRequestException("Bimbingan milik mahasiswa tidak aktif");
     }
 
     if (

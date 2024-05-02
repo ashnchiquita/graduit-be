@@ -25,6 +25,7 @@ import {
   UpdatePembimbingBodyDto,
   UpdateStatusBodyDto,
 } from "./registrasi-tesis.dto";
+import { PenggunaService } from "src/pengguna/pengguna.service";
 
 @Injectable()
 export class RegistrasiTesisService {
@@ -38,6 +39,7 @@ export class RegistrasiTesisService {
     @InjectRepository(DosenBimbingan)
     private dosenBimbinganRepository: Repository<DosenBimbingan>,
     private dataSource: DataSource,
+    private penggunaService: PenggunaService,
   ) {}
 
   async createTopicRegistration(
@@ -124,6 +126,8 @@ export class RegistrasiTesisService {
     isNewestOnly: boolean,
     idPenerima?: string,
   ) {
+    await this.penggunaService.isMahasiswaAktifOrFail(mahasiswaId);
+
     const baseQuery = this.pendaftaranTesisRepository
       .createQueryBuilder("pt")
       .select("pt.id")
@@ -208,56 +212,33 @@ export class RegistrasiTesisService {
         "latest",
         "latest.latest_mahasiswaId = pt.mahasiswaId AND pt.waktuPengiriman = latest.latestPengiriman",
       )
-      .innerJoinAndSelect("pt.topik", "topik");
+      .innerJoin("pt.mahasiswa", "mahasiswa")
+      .where("mahasiswa.aktif = true");
 
     if (options.idPenerima) {
-      baseQuery.where("pt.penerimaId = :idPenerima", {
+      baseQuery.andWhere("pt.penerimaId = :idPenerima", {
         idPenerima: options.idPenerima,
       });
 
       totalMahasiswa = baseQuery.getCount();
     }
 
-    let totalDiterima: Promise<number>;
-    let totalProses: Promise<number>;
-    let totalDitolak: Promise<number>;
+    const totalDiterima = baseQuery
+      .clone()
+      .andWhere("pt.status = :status", { status: RegStatus.APPROVED })
+      .getCount();
 
-    if (options.idPenerima) {
-      // where used
-      totalDiterima = baseQuery
-        .clone()
-        .andWhere("pt.status = :status", { status: RegStatus.APPROVED })
-        .getCount();
+    const totalProses = baseQuery
+      .clone()
+      .andWhere("pt.status IN (:...status)", {
+        status: [RegStatus.NOT_ASSIGNED, RegStatus.INTERVIEW],
+      })
+      .getCount();
 
-      totalProses = baseQuery
-        .clone()
-        .andWhere("pt.status IN (:...status)", {
-          status: [RegStatus.NOT_ASSIGNED, RegStatus.INTERVIEW],
-        })
-        .getCount();
-
-      totalDitolak = baseQuery
-        .clone()
-        .andWhere("pt.status = :status", { status: RegStatus.REJECTED })
-        .getCount();
-    } else {
-      totalDiterima = baseQuery
-        .clone()
-        .where("pt.status = :status", { status: RegStatus.APPROVED })
-        .getCount();
-
-      totalProses = baseQuery
-        .clone()
-        .where("pt.status IN (:...status)", {
-          status: [RegStatus.NOT_ASSIGNED, RegStatus.INTERVIEW],
-        })
-        .getCount();
-
-      totalDitolak = baseQuery
-        .clone()
-        .where("pt.status = :status", { status: RegStatus.REJECTED })
-        .getCount();
-    }
+    const totalDitolak = baseQuery
+      .clone()
+      .andWhere("pt.status = :status", { status: RegStatus.REJECTED })
+      .getCount();
 
     const [total, diterima, proses, ditolak] = await Promise.all([
       totalMahasiswa,
@@ -311,45 +292,32 @@ export class RegistrasiTesisService {
     );
 
     baseQuery
-      .innerJoinAndSelect("pt.topik", "topik")
       .innerJoinAndSelect("pt.penerima", "penerima")
-      .innerJoinAndSelect("pt.mahasiswa", "mahasiswa");
+      .innerJoinAndSelect("pt.mahasiswa", "mahasiswa")
+      .where("mahasiswa.aktif = true");
 
-    let whereUsed = false;
     if (options.idPenerima) {
-      baseQuery.where("pt.penerimaId = :idPenerima", {
+      baseQuery.andWhere("pt.penerimaId = :idPenerima", {
         idPenerima: options.idPenerima,
       });
-
-      whereUsed = true;
     }
 
     if (options.search) {
-      const bracket = new Brackets((qb) =>
-        qb
-          .where("mahasiswa.nama ILIKE :search", {
-            search: `%${options.search}%`,
-          })
-          .orWhere("mahasiswa.nim ILIKE :search", {
-            search: `%${options.search}%`,
-          }),
+      baseQuery.andWhere(
+        new Brackets((qb) =>
+          qb
+            .where("mahasiswa.nama ILIKE :search", {
+              search: `%${options.search}%`,
+            })
+            .orWhere("mahasiswa.nim ILIKE :search", {
+              search: `%${options.search}%`,
+            }),
+        ),
       );
-
-      if (whereUsed) {
-        baseQuery.andWhere(bracket);
-      } else {
-        baseQuery.where(bracket);
-        whereUsed = true;
-      }
     }
 
     if (options.status) {
-      if (whereUsed) {
-        baseQuery.andWhere("pt.status = :status", { status: options.status });
-      } else {
-        baseQuery.where("pt.status = :status", { status: options.status });
-        whereUsed = true;
-      }
+      baseQuery.andWhere("pt.status = :status", { status: options.status });
     }
 
     if (options.order_by) {
@@ -444,6 +412,8 @@ export class RegistrasiTesisService {
     dto: UpdateInterviewBodyDto,
     idPenerima?: string,
   ) {
+    await this.penggunaService.isMahasiswaAktifOrFail(mahasiswaId);
+
     const minDate = new Date();
     minDate.setDate(minDate.getDate() + 2);
 
@@ -486,6 +456,8 @@ export class RegistrasiTesisService {
     dto: UpdateStatusBodyDto,
     idPenerima?: string,
   ) {
+    await this.penggunaService.isMahasiswaAktifOrFail(mahasiswaId);
+
     const newestReg = await this.getNewestRegByMhsOrFail(mahasiswaId);
 
     if (newestReg && idPenerima && newestReg.penerima.id !== idPenerima) {
@@ -531,6 +503,8 @@ export class RegistrasiTesisService {
     mahasiswaId: string,
     { pembimbing_ids: dosen_ids }: UpdatePembimbingBodyDto,
   ) {
+    await this.penggunaService.isMahasiswaAktifOrFail(mahasiswaId);
+
     const newestReg = await this.getNewestRegByMhsOrFail(mahasiswaId);
 
     if (newestReg.status !== RegStatus.APPROVED)

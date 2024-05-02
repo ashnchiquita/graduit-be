@@ -41,6 +41,7 @@ export class DashboardService {
           dosenId,
         },
       )
+      .where("mahasiswa.aktif = true")
       .andWhere("pendaftaranTesis.status = :status", {
         status: RegStatus.APPROVED,
       });
@@ -94,7 +95,7 @@ export class DashboardService {
       .createQueryBuilder("pendaftaranTesis")
       .select("pendaftaranTesis.jalurPilihan", "jalurPilihan")
       .addSelect("COUNT(*)", "count")
-      .leftJoin("pendaftaranTesis.topik", "topik")
+      .leftJoin("pendaftaranTesis.mahasiswa", "mahasiswa")
       .innerJoin(
         "pendaftaranTesis.dosenBimbingan",
         "dosenBimbingan",
@@ -103,6 +104,7 @@ export class DashboardService {
           dosenId,
         },
       )
+      .where("mahasiswa.aktif = true")
       .andWhere("pendaftaranTesis.status = :status", {
         status: RegStatus.APPROVED,
       })

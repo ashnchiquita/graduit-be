@@ -55,6 +55,10 @@ export class Pengguna {
   @Column({ type: "text", nullable: true })
   kontak: string;
 
+  @ApiHideProperty()
+  @Column({ type: "boolean", default: true })
+  aktif: boolean;
+
   @OneToMany(() => PendaftaranTesis, (pendaftaran) => pendaftaran.mahasiswa)
   pendaftaranTesis: PendaftaranTesis[];
 }

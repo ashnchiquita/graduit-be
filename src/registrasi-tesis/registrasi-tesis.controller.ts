@@ -52,7 +52,7 @@ export class RegistrasiTesisController {
   ) {}
 
   @ApiOperation({
-    summary: "Create new registration. Roles: S2_MAHASISWA, ADMIN",
+    summary: "Create new registration. Roles: S2_MAHASISWA",
   })
   @ApiCreatedResponse({ type: IdDto })
   @ApiNotFoundResponse({ description: "Penerima atau topik tidak ditemukan" })
@@ -61,7 +61,7 @@ export class RegistrasiTesisController {
       "Mahasiswa sedang memiliki pendaftaran aktif atau judul dan deskripsi topik baru tidak ada",
   })
   @UseGuards(CustomAuthGuard, RolesGuard)
-  @Roles(RoleEnum.S2_MAHASISWA, RoleEnum.ADMIN)
+  @Roles(RoleEnum.S2_MAHASISWA)
   @Post()
   async createTopicRegistration(
     @Body() topicRegistrationDto: RegDto,

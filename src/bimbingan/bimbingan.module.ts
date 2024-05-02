@@ -6,6 +6,9 @@ import { Bimbingan } from "src/entities/bimbingan.entity";
 import { PendaftaranTesis } from "src/entities/pendaftaranTesis.entity";
 import { DosenBimbingan } from "src/entities/dosenBimbingan.entity";
 import { BerkasBimbingan } from "src/entities/berkasBimbingan.entity";
+import { PenggunaModule } from "src/pengguna/pengguna.module";
+import { PenggunaService } from "src/pengguna/pengguna.service";
+import { Pengguna } from "src/entities/pengguna.entity";
 
 @Module({
   imports: [
@@ -14,10 +17,12 @@ import { BerkasBimbingan } from "src/entities/berkasBimbingan.entity";
       PendaftaranTesis,
       DosenBimbingan,
       BerkasBimbingan,
+      Pengguna,
     ]),
+    PenggunaModule,
   ],
   controllers: [BimbinganController],
-  providers: [BimbinganService],
+  providers: [BimbinganService, PenggunaService],
   exports: [BimbinganService],
 })
 export class BimbinganModule {}
