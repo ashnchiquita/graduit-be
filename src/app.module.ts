@@ -19,6 +19,8 @@ import { BerkasBimbingan } from "./entities/berkasBimbingan.entity";
 import { PendaftaranSidsem } from "./entities/pendaftaranSidsem";
 import { DosenBimbinganModule } from "./dosen-bimbingan/dosen-bimbingan.module";
 import { PenggunaModule } from "./pengguna/pengguna.module";
+import { KonfigurasiModule } from "./konfigurasi/konfigurasi.module";
+import { Konfigurasi } from "./entities/konfigurasi.entity";
 
 @Module({
   imports: [
@@ -38,6 +40,7 @@ import { PenggunaModule } from "./pengguna/pengguna.module";
         PendaftaranSidsem,
         Topik,
         DosenBimbingan,
+        Konfigurasi,
         PendaftaranTesis,
         PengujiSidsem,
       ],
@@ -50,6 +53,7 @@ import { PenggunaModule } from "./pengguna/pengguna.module";
     BimbinganModule,
     DosenBimbinganModule,
     PenggunaModule,
+    KonfigurasiModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -25,6 +25,7 @@ async function bootstrap() {
     .addTag("Bimbingan")
     .addTag("Dashboard")
     .addTag("Dosen Bimbingan")
+    .addTag("Konfigurasi")
     .addTag("Registrasi Tesis")
     .addCookieAuth(process.env.COOKIE_NAME)
     .addBearerAuth()
