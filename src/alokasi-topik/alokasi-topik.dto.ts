@@ -81,7 +81,7 @@ export class createBulkRespDto {
   ids: string[];
 }
 
-export class CreateRespDto {
+export class TopikIdRespDto {
   @ApiProperty()
   id: string;
 }

@@ -5,7 +5,7 @@ import { Topik } from "src/entities/topik.entity";
 import { ArrayContains, Like, Repository } from "typeorm";
 import {
   CreateBulkTopikDto,
-  CreateRespDto,
+  TopikIdRespDto,
   CreateTopikDto,
   GetAllRespDto,
   UpdateTopikDto,
@@ -16,7 +16,7 @@ import {
 export class AlokasiTopikService {
   constructor(@InjectRepository(Topik) private topikRepo: Repository<Topik>) {}
 
-  async create(createDto: CreateTopikDto): Promise<CreateRespDto> {
+  async create(createDto: CreateTopikDto): Promise<TopikIdRespDto> {
     const ids = (await this.topikRepo.insert(createDto)).identifiers;
 
     return { id: ids[0].id };
@@ -131,11 +131,15 @@ export class AlokasiTopikService {
     }
   }
 
-  async update(id: string, updateDto: UpdateTopikDto) {
-    return await this.topikRepo.update({ id, aktif: true }, updateDto);
+  async update(id: string, updateDto: UpdateTopikDto, idPengaju?: string) {
+    const findOpt = idPengaju
+      ? { id, idPengaju, aktif: true }
+      : { id, aktif: true };
+    return await this.topikRepo.update(findOpt, updateDto);
   }
 
-  async remove(id: string) {
-    return await this.topikRepo.update({ id }, { aktif: false });
+  async remove(id: string, idPengaju?: string) {
+    const findOpt = idPengaju ? { id, idPengaju } : { id };
+    return await this.topikRepo.update(findOpt, { aktif: false });
   }
 }
