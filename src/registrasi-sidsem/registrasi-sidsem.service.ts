@@ -3,7 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { DosenBimbingan } from "src/entities/dosenBimbingan.entity";
 import { PendaftaranSidsem } from "src/entities/pendaftaranSidsem";
 import { PengujiSidsem } from "src/entities/pengujiSidsem.entity";
-import { Like, Repository } from "typeorm";
+import { Brackets, Repository } from "typeorm";
 import {
   GetAllPengajuanSidangItemDto,
   GetAllPengajuanSidangReqQueryDto,
@@ -27,43 +27,58 @@ export class RegistrasiSidsemService {
   async findAll(
     query: GetAllPengajuanSidangReqQueryDto,
   ): Promise<GetAllPengajuanSidangRespDto> {
-    const [queryData, total] = await this.pendaftaranSidsemRepo.findAndCount({
-      select: {
-        id: true,
-        tipe: true,
-        jadwal: true,
-        ruangan: true,
-        pendaftaranTesis: {
-          id: true,
-          mahasiswa: {
-            nama: true,
-            nim: true,
-          },
-        },
-      },
-      relations: {
-        pendaftaranTesis: {
-          mahasiswa: true,
-        },
-      },
-      take: query.limit || undefined,
-      skip: (query.page - 1) * query.limit || undefined,
-      where: {
-        tipe: query.jenisSidang,
-        pendaftaranTesis: {
-          mahasiswa: [
-            { nim: Like(`%${query.search ?? ""}%`) },
-            { nama: Like(`%${query.search ?? ""}%`) },
-          ],
-        },
-      },
-    });
+    const baseQuery = this.pendaftaranSidsemRepo
+      .createQueryBuilder("ps")
+      .innerJoinAndSelect(
+        (qb) =>
+          qb
+            .select([
+              "ps.pendaftaranTesisId AS latest_pendaftaranTesisId",
+              "ps.tipe AS latest_tipe",
+              "MAX(ps.waktuPengiriman) AS latestPengiriman",
+            ])
+            .from(PendaftaranSidsem, "ps")
+            .groupBy("ps.pendaftaranTesisId")
+            .addGroupBy("ps.tipe"),
+        "latest",
+        "latest.latest_pendaftaranTesisId = ps.pendaftaranTesisId AND latest.latest_tipe = ps.tipe AND ps.waktuPengiriman = latest.latestPengiriman",
+      )
+      .innerJoinAndSelect("ps.pendaftaranTesis", "pt")
+      .innerJoinAndSelect("pt.mahasiswa", "mahasiswa")
+      .where("ps.status = 'APPROVED'");
+
+    if (query.search) {
+      baseQuery.andWhere(
+        new Brackets((qb) =>
+          qb
+            .where("mahasiswa.nama ILIKE :search", {
+              search: `%${query.search}%`,
+            })
+            .orWhere("mahasiswa.nim ILIKE :search", {
+              search: `%${query.search}%`,
+            }),
+        ),
+      );
+    }
+
+    if (query.jenisSidang) {
+      baseQuery.andWhere("ps.jenisSidang = :jenisSidang", {
+        jenisSidang: query.jenisSidang,
+      });
+    }
+
+    if (query.limit) {
+      baseQuery.take(query.limit);
+      baseQuery.skip((query.page - 1) * query.limit);
+    }
+
+    const [queryData, total] = await baseQuery.getManyAndCount();
 
     const data: GetAllPengajuanSidangItemDto[] = queryData.map((res) => ({
       idPengajuanSidsem: res.id,
       nimMahasiswa: res.pendaftaranTesis.mahasiswa.nim,
       namaMahasiswa: res.pendaftaranTesis.mahasiswa.nama,
-      jadwalSidang: res.jadwal.toISOString(),
+      jadwalSidang: !!res.jadwal ? res.jadwal.toISOString() : null,
       jenisSidang: res.tipe,
       ruangan: res.ruangan,
     }));
