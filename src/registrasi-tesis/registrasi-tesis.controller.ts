@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   ForbiddenException,
@@ -24,7 +23,6 @@ import {
 import { Request } from "express";
 import { AuthDto } from "src/auth/auth.dto";
 import { RoleEnum } from "src/entities/pengguna.entity";
-import { KonfigurasiService } from "src/konfigurasi/konfigurasi.service";
 import { CustomAuthGuard } from "src/middlewares/custom-auth.guard";
 import { Roles } from "src/middlewares/roles.decorator";
 import { RolesGuard } from "src/middlewares/roles.guard";
@@ -51,11 +49,10 @@ import { RegistrasiTesisService } from "./registrasi-tesis.service";
 export class RegistrasiTesisController {
   constructor(
     private readonly registrasiTesisService: RegistrasiTesisService,
-    private readonly konfService: KonfigurasiService,
   ) {}
 
   @ApiOperation({
-    summary: "Create new registration. Roles: S2_MAHASISWA, ADMIN",
+    summary: "Create new registration. Roles: S2_MAHASISWA",
   })
   @ApiCreatedResponse({ type: IdDto })
   @ApiNotFoundResponse({ description: "Penerima atau topik tidak ditemukan" })
@@ -64,7 +61,7 @@ export class RegistrasiTesisController {
       "Mahasiswa sedang memiliki pendaftaran aktif atau judul dan deskripsi topik baru tidak ada",
   })
   @UseGuards(CustomAuthGuard, RolesGuard)
-  @Roles(RoleEnum.S2_MAHASISWA, RoleEnum.ADMIN)
+  @Roles(RoleEnum.S2_MAHASISWA)
   @Post()
   async createTopicRegistration(
     @Body() topicRegistrationDto: RegDto,
@@ -72,18 +69,9 @@ export class RegistrasiTesisController {
   ): Promise<IdDto> {
     const { id } = req.user as AuthDto;
 
-    const periode = await this.konfService.getKonfigurasiByKey(
-      process.env.KONF_PERIODE_KEY,
-    );
-
-    if (!periode) {
-      throw new BadRequestException("Periode belum dikonfigurasi.");
-    }
-
     return this.registrasiTesisService.createTopicRegistration(
       id,
       topicRegistrationDto,
-      periode,
     );
   }
 
@@ -108,17 +96,8 @@ export class RegistrasiTesisController {
       }
     }
 
-    const periode = await this.konfService.getKonfigurasiByKey(
-      process.env.KONF_PERIODE_KEY,
-    );
-
-    if (!periode) {
-      throw new BadRequestException("Periode belum dikonfigurasi.");
-    }
-
     return this.registrasiTesisService.findByUserId(
       params.mahasiswaId,
-      periode,
       false,
       undefined,
     );
@@ -147,17 +126,8 @@ export class RegistrasiTesisController {
       idPenerima = id;
     }
 
-    const periode = await this.konfService.getKonfigurasiByKey(
-      process.env.KONF_PERIODE_KEY,
-    );
-
-    if (!periode) {
-      throw new BadRequestException("Periode belum dikonfigurasi.");
-    }
-
     const res = await this.registrasiTesisService.findByUserId(
       params.mahasiswaId,
-      periode,
       true,
       idPenerima,
     );
@@ -180,12 +150,7 @@ export class RegistrasiTesisController {
       throw new ForbiddenException();
     }
 
-    const periode = await this.konfService.getKonfigurasiByKey(
-      process.env.KONF_PERIODE_KEY,
-    );
-
     return this.registrasiTesisService.getRegsStatistics({
-      periode,
       idPenerima: query.view == RoleEnum.S2_PEMBIMBING ? idPenerima : undefined,
     });
   }
@@ -211,20 +176,11 @@ export class RegistrasiTesisController {
       throw new ForbiddenException();
     }
 
-    const periode = await this.konfService.getKonfigurasiByKey(
-      process.env.KONF_PERIODE_KEY,
-    );
-
-    if (!periode) {
-      throw new BadRequestException("Periode belum dikonfigurasi.");
-    }
-
     return await this.registrasiTesisService.findAllRegs({
       ...query,
       page: query.page || 1,
       idPenerima:
         query.view === RoleEnum.S2_PEMBIMBING ? idPenerima : undefined,
-      periode,
     });
   }
 
@@ -241,14 +197,6 @@ export class RegistrasiTesisController {
     @Body() body: UpdateInterviewBodyDto,
     @Req() req: Request,
   ) {
-    const periode = await this.konfService.getKonfigurasiByKey(
-      process.env.KONF_PERIODE_KEY,
-    );
-
-    if (!periode) {
-      throw new BadRequestException("Periode belum dikonfigurasi.");
-    }
-
     const { id, roles } = req.user as AuthDto;
     let idPenerima = undefined;
 
@@ -262,7 +210,6 @@ export class RegistrasiTesisController {
 
     return await this.registrasiTesisService.updateInterviewDate(
       params.mhsId,
-      periode,
       body,
       idPenerima,
     );
@@ -281,14 +228,6 @@ export class RegistrasiTesisController {
     @Body() body: UpdateStatusBodyDto,
     @Req() req: Request,
   ) {
-    const periode = await this.konfService.getKonfigurasiByKey(
-      process.env.KONF_PERIODE_KEY,
-    );
-
-    if (!periode) {
-      throw new BadRequestException("Periode belum dikonfigurasi.");
-    }
-
     const { id, roles } = req.user as AuthDto;
     let idPenerima = undefined;
 
@@ -302,7 +241,6 @@ export class RegistrasiTesisController {
 
     return await this.registrasiTesisService.updateStatus(
       params.mhsId,
-      periode,
       body,
       idPenerima,
     );
@@ -320,17 +258,8 @@ export class RegistrasiTesisController {
     @Param() params: UpdateByMhsParamsDto,
     @Body() body: UpdatePembimbingBodyDto,
   ) {
-    const periode = await this.konfService.getKonfigurasiByKey(
-      process.env.KONF_PERIODE_KEY,
-    );
-
-    if (!periode) {
-      throw new BadRequestException("Periode belum dikonfigurasi.");
-    }
-
     return await this.registrasiTesisService.updatePembimbingList(
       params.mhsId,
-      periode,
       body,
     );
   }

@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiHideProperty, ApiProperty } from "@nestjs/swagger";
 import {
   Column,
   Entity,
@@ -31,7 +31,7 @@ export class Topik {
   @Column({ nullable: true })
   idPengaju: string;
 
-  @ApiProperty()
-  @Column({ type: "text" })
-  periode: string;
+  @ApiHideProperty()
+  @Column({ type: "boolean", default: true })
+  aktif: boolean;
 }

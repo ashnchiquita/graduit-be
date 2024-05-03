@@ -13,7 +13,6 @@ import { Roles } from "src/middlewares/roles.decorator";
 import { RolesGuard } from "src/middlewares/roles.guard";
 import {
   DashboardDto,
-  DashboardMahasiswaResDto,
   GetDashboardDosbimQueryDto,
   GetDashboardTimTesisReqQueryDto,
   GetDashboardTimTesisRespDto,
@@ -47,18 +46,6 @@ export class DashboardController {
   @Get("/dosbim/statistics")
   async getStatisticsByJalurPilihan(@Req() request: Request) {
     return this.dashboardService.getStatisticsByJalurPilihan(
-      (request.user as AuthDto).id,
-    );
-  }
-
-  @UseGuards(CustomAuthGuard, RolesGuard)
-  @Roles(RoleEnum.S2_MAHASISWA)
-  @ApiOkResponse({ type: DashboardMahasiswaResDto })
-  @Get("/mahasiswa")
-  async getDashboardMahasiswa(
-    @Req() request: Request,
-  ): Promise<DashboardMahasiswaResDto> {
-    return this.dashboardService.getDashboardMahasiswa(
       (request.user as AuthDto).id,
     );
   }

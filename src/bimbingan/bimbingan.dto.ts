@@ -33,7 +33,6 @@ class PickedTopikBimbingan extends PickType(Topik, [
   "judul",
   "deskripsi",
   "idPengaju",
-  "periode",
 ] as const) {}
 
 export class GetByMahasiswaIdResDto {

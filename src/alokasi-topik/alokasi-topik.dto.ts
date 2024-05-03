@@ -61,7 +61,7 @@ export class TopikQueryDto {
   idPembimbing?: string;
 }
 
-export class PengajuDto extends OmitType(Pengguna, ["nim"] as const) {}
+export class PengajuDto extends OmitType(Pengguna, ["nim", "aktif"] as const) {}
 
 export class OmittedTopik extends OmitType(Topik, ["idPengaju"] as const) {
   @ApiProperty({ type: PengajuDto })
@@ -81,7 +81,7 @@ export class createBulkRespDto {
   ids: string[];
 }
 
-export class CreateRespDto {
+export class TopikIdRespDto {
   @ApiProperty()
   id: string;
 }
