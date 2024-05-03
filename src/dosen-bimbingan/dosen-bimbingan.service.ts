@@ -16,6 +16,7 @@ export class DosenBimbinganService {
         id: true,
         nama: true,
         email: true,
+        keahlian: true,
       },
       where: {
         roles: ArrayContains([RoleEnum.S2_PEMBIMBING]),
