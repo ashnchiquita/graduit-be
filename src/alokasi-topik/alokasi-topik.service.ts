@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { RoleEnum } from "src/entities/pengguna.entity";
 import { Topik } from "src/entities/topik.entity";
-import { ArrayContains, Like, Repository } from "typeorm";
+import { ArrayContains, ILike, Repository } from "typeorm";
 import {
   CreateBulkTopikDto,
   TopikIdRespDto,
@@ -77,7 +77,7 @@ export class AlokasiTopikService {
           id: options.idPembimbing || undefined,
           roles: ArrayContains([RoleEnum.S2_PEMBIMBING]),
         },
-        judul: Like(`%${options.search || ""}%`),
+        judul: ILike(`%${options.search || ""}%`),
       },
       relations: {
         pengaju: true,
