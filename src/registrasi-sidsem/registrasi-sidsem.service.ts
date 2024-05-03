@@ -44,7 +44,8 @@ export class RegistrasiSidsemService {
         "latest.latest_pendaftaranTesisId = ps.pendaftaranTesisId AND latest.latest_tipe = ps.tipe AND ps.waktuPengiriman = latest.latestPengiriman",
       )
       .innerJoinAndSelect("ps.pendaftaranTesis", "pt")
-      .innerJoinAndSelect("pt.mahasiswa", "mahasiswa");
+      .innerJoinAndSelect("pt.mahasiswa", "mahasiswa")
+      .orderBy("ps.waktuPengiriman", "DESC");
 
     if (query.search) {
       baseQuery.andWhere(
