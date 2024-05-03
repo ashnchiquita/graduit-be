@@ -34,7 +34,11 @@ export class PendaftaranSidsem {
   tipe: TipeSidsemEnum;
 
   @ApiProperty()
-  @Column({ type: "enum", enum: SidsemStatus })
+  @Column({
+    type: "enum",
+    enum: SidsemStatus,
+    default: SidsemStatus.NOT_ASSIGNED,
+  })
   status: SidsemStatus;
 
   @ApiProperty()
