@@ -9,11 +9,18 @@ import { PendaftaranTesis } from "./pendaftaranTesis.entity";
 // import { Ruangan } from "./ruangan.entity";
 import { ApiProperty } from "@nestjs/swagger";
 import { PengujiSidsem } from "./pengujiSidsem.entity";
+import { BerkasSidsem } from "./berkasSidsem.entity";
 
 export enum TipeSidsemEnum {
   SEMINAR_1 = "SEMINAR_1",
   SEMINAR_2 = "SEMINAR_2",
   SIDANG = "SIDANG",
+}
+
+export enum SidsemStatus {
+  NOT_ASSIGNED = "NOT_ASSIGNED",
+  REJECTED = "REJECTED",
+  APPROVED = "APPROVED",
 }
 
 @Entity()
@@ -27,31 +34,23 @@ export class PendaftaranSidsem {
   tipe: TipeSidsemEnum;
 
   @ApiProperty()
-  @Column({ type: "boolean", default: false })
-  ditolak: boolean;
-
-  @ApiProperty()
-  @Column({ type: "boolean", nullable: true })
-  lulus: boolean;
+  @Column({ type: "enum", enum: SidsemStatus })
+  status: SidsemStatus;
 
   @ApiProperty()
   @Column({ type: "timestamptz", nullable: true })
-  waktuMulai: Date;
+  jadwal: Date;
 
   @ApiProperty()
-  @Column({ type: "timestamptz", nullable: true })
-  waktuSelesai: Date;
+  @Column({ type: "text" })
+  judulSidsem: string;
 
   @ApiProperty()
-  @Column({ type: "text", nullable: true })
-  linkw2m: string;
+  @Column({ type: "text" })
+  deskripsiSidsem: string;
 
   @ManyToOne(() => PendaftaranTesis, (pendaftaranTesis) => pendaftaranTesis.id)
   pendaftaranTesis: PendaftaranTesis;
-
-  // @ApiProperty({ type: Ruangan, nullable: true })
-  // @ManyToOne(() => Ruangan, (ruangan) => ruangan.id)
-  // ruangan: Ruangan;
 
   @ApiProperty()
   @Column({ type: "text", nullable: true })
@@ -59,4 +58,18 @@ export class PendaftaranSidsem {
 
   @OneToMany(() => PengujiSidsem, (pengujiSidsem) => pengujiSidsem.sidsem)
   penguji: PengujiSidsem[];
+
+  @ApiProperty({ type: [BerkasSidsem] })
+  @OneToMany(
+    () => BerkasSidsem,
+    (berkasSidsem) => berkasSidsem.pendaftaranSidsem,
+    {
+      cascade: true,
+    },
+  )
+  berkasSidsem: BerkasSidsem[];
+
+  @ApiProperty()
+  @Column({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
+  waktuPengiriman: Date;
 }

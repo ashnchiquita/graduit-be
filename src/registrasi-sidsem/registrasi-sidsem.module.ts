@@ -7,8 +7,8 @@ import { PendaftaranTesis } from "src/entities/pendaftaranTesis.entity";
 import { Pengguna } from "src/entities/pengguna.entity";
 import { PengujiSidsem } from "src/entities/pengujiSidsem.entity";
 import { CustomStrategy } from "src/middlewares/custom.strategy";
-import { AlokasiRuanganController } from "./alokasi-ruangan.controller";
-import { AlokasiRuanganService } from "./alokasi-ruangan.service";
+import { RegistrasiSidsemController } from "./registrasi-sidsem.controller";
+import { RegistrasiSidsemService } from "./registrasi-sidsem.service";
 
 @Module({
   imports: [
@@ -21,7 +21,7 @@ import { AlokasiRuanganService } from "./alokasi-ruangan.service";
     ]),
     AuthModule,
   ],
-  controllers: [AlokasiRuanganController],
-  providers: [AlokasiRuanganService, CustomStrategy],
+  controllers: [RegistrasiSidsemController],
+  providers: [RegistrasiSidsemService, CustomStrategy],
 })
-export class AlokasiRuanganModule {}
+export class RegistrasiSidsemModule {}

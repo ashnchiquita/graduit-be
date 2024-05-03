@@ -22,8 +22,8 @@ import {
   GetOnePengajuanSidangRespDto,
   UpdateAlokasiRuanganReqDto,
   UpdateAlokasiRuanganRespDto,
-} from "./alokasi-ruangan.dto";
-import { AlokasiRuanganService } from "./alokasi-ruangan.service";
+} from "./registrasi-sidsem.dto";
+import { RegistrasiSidsemService } from "./registrasi-sidsem.service";
 import { HIGH_AUTHORITY_ROLES } from "src/helper/roles";
 
 @ApiTags("Alokasi Ruangan")
@@ -32,14 +32,14 @@ import { HIGH_AUTHORITY_ROLES } from "src/helper/roles";
 @UseGuards(CustomAuthGuard, RolesGuard)
 @Roles(...HIGH_AUTHORITY_ROLES)
 @Controller("alokasi-ruangan")
-export class AlokasiRuanganController {
-  constructor(private readonly alokasiRuanganService: AlokasiRuanganService) {}
+export class RegistrasiSidsemController {
+  constructor(private readonly regisSidsemService: RegistrasiSidsemService) {}
   @ApiOkResponse({ type: GetAllPengajuanSidangRespDto })
   @Get()
   async findAll(
     @Query() query: GetAllPengajuanSidangReqQueryDto,
   ): Promise<GetAllPengajuanSidangRespDto> {
-    return this.alokasiRuanganService.findAll(query);
+    return this.regisSidsemService.findAll(query);
   }
 
   @ApiOkResponse({ type: GetOnePengajuanSidangRespDto })
@@ -47,7 +47,7 @@ export class AlokasiRuanganController {
   async findOne(
     @Param("id") id: string,
   ): Promise<GetOnePengajuanSidangRespDto> {
-    return this.alokasiRuanganService.findOne(id);
+    return this.regisSidsemService.findOne(id);
   }
 
   @ApiOkResponse({ type: UpdateAlokasiRuanganRespDto })
@@ -56,6 +56,6 @@ export class AlokasiRuanganController {
     @Param("id") id: string,
     @Body() updateAlokasiRuanganDto: UpdateAlokasiRuanganReqDto,
   ): Promise<UpdateAlokasiRuanganRespDto> {
-    return this.alokasiRuanganService.update(id, updateAlokasiRuanganDto);
+    return this.regisSidsemService.update(id, updateAlokasiRuanganDto);
   }
 }

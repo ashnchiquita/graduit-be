@@ -10,7 +10,7 @@ import { PendaftaranTesis } from "./entities/pendaftaranTesis.entity";
 import { PengujiSidsem } from "./entities/pengujiSidsem.entity";
 import { RegistrasiTesisModule } from "./registrasi-tesis/registrasi-tesis.module";
 import { ConfigModule } from "@nestjs/config";
-import { AlokasiRuanganModule } from "./alokasi-ruangan/alokasi-ruangan.module";
+import { RegistrasiSidsemModule } from "./registrasi-sidsem/registrasi-sidsem.module";
 import { AlokasiTopikModule } from "./alokasi-topik/alokasi-topik.module";
 import { AuthModule } from "./auth/auth.module";
 import { BimbinganModule } from "./bimbingan/bimbingan.module";
@@ -22,6 +22,7 @@ import { PenggunaModule } from "./pengguna/pengguna.module";
 import { KonfigurasiModule } from "./konfigurasi/konfigurasi.module";
 import { Konfigurasi } from "./entities/konfigurasi.entity";
 import { DashboardModule } from "./dashboard/dashboard.module";
+import { BerkasSidsem } from "./entities/berkasSidsem.entity";
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { DashboardModule } from "./dashboard/dashboard.module";
         Konfigurasi,
         PendaftaranTesis,
         PengujiSidsem,
+        BerkasSidsem,
       ],
       synchronize: true,
     }),
@@ -53,7 +55,7 @@ import { DashboardModule } from "./dashboard/dashboard.module";
     DashboardModule,
     BimbinganModule,
     DosenBimbinganModule,
-    AlokasiRuanganModule,
+    RegistrasiSidsemModule,
     PenggunaModule,
     KonfigurasiModule,
   ],

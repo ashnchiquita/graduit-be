@@ -3,7 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { DosenBimbingan } from "src/entities/dosenBimbingan.entity";
 import { PendaftaranSidsem } from "src/entities/pendaftaranSidsem";
 import { PengujiSidsem } from "src/entities/pengujiSidsem.entity";
-import { IsNull, Like, Repository } from "typeorm";
+import { Like, Repository } from "typeorm";
 import {
   GetAllPengajuanSidangItemDto,
   GetAllPengajuanSidangReqQueryDto,
@@ -11,10 +11,10 @@ import {
   GetOnePengajuanSidangRespDto,
   UpdateAlokasiRuanganReqDto,
   UpdateAlokasiRuanganRespDto,
-} from "./alokasi-ruangan.dto";
+} from "./registrasi-sidsem.dto";
 
 @Injectable()
-export class AlokasiRuanganService {
+export class RegistrasiSidsemService {
   constructor(
     @InjectRepository(PendaftaranSidsem)
     private pendaftaranSidsemRepo: Repository<PendaftaranSidsem>,
@@ -30,9 +30,8 @@ export class AlokasiRuanganService {
     const [queryData, total] = await this.pendaftaranSidsemRepo.findAndCount({
       select: {
         id: true,
-        waktuMulai: true,
         tipe: true,
-        lulus: true,
+        jadwal: true,
         ruangan: true,
         pendaftaranTesis: {
           id: true,
@@ -51,7 +50,6 @@ export class AlokasiRuanganService {
       skip: (query.page - 1) * query.limit || undefined,
       where: {
         tipe: query.jenisSidang,
-        lulus: IsNull(),
         pendaftaranTesis: {
           mahasiswa: [
             { nim: Like(`%${query.search ?? ""}%`) },
@@ -65,7 +63,7 @@ export class AlokasiRuanganService {
       idPengajuanSidsem: res.id,
       nimMahasiswa: res.pendaftaranTesis.mahasiswa.nim,
       namaMahasiswa: res.pendaftaranTesis.mahasiswa.nama,
-      jadwalSidang: res.waktuMulai.toISOString(),
+      jadwalSidang: res.jadwal.toISOString(),
       jenisSidang: res.tipe,
       ruangan: res.ruangan,
     }));
@@ -77,7 +75,7 @@ export class AlokasiRuanganService {
     const sidsemQueryData = await this.pendaftaranSidsemRepo.findOne({
       select: {
         id: true,
-        waktuMulai: true,
+        jadwal: true,
         tipe: true,
         ruangan: true,
         pendaftaranTesis: {
@@ -144,7 +142,7 @@ export class AlokasiRuanganService {
       idPengajuanSidsem: sidsemQueryData.id,
       nimMahasiswa: sidsemQueryData.pendaftaranTesis.mahasiswa.nim,
       namaMahasiswa: sidsemQueryData.pendaftaranTesis.mahasiswa.nama,
-      jadwalSidang: sidsemQueryData.waktuMulai.toISOString(),
+      jadwalSidang: sidsemQueryData.jadwal.toISOString(),
       jenisSidang: sidsemQueryData.tipe,
       ruangan: sidsemQueryData.ruangan,
       emailMahasiswa: sidsemQueryData.pendaftaranTesis.mahasiswa.email,
@@ -165,7 +163,7 @@ export class AlokasiRuanganService {
     const pendaftaranSidsem = await this.pendaftaranSidsemRepo.findOne({
       select: {
         id: true,
-        waktuMulai: true,
+        jadwal: true,
         tipe: true,
         pendaftaranTesis: {
           id: true,
@@ -198,7 +196,7 @@ export class AlokasiRuanganService {
 
     return {
       idPengajuanSidsem: pendaftaranSidsem.id,
-      jadwalSidang: pendaftaranSidsem.waktuMulai.toISOString(),
+      jadwalSidang: pendaftaranSidsem.jadwal.toISOString(),
       jenisSidang: pendaftaranSidsem.tipe,
       namaMahasiswa: pendaftaranSidsem.pendaftaranTesis.mahasiswa.nama,
       nimMahasiswa: pendaftaranSidsem.pendaftaranTesis.mahasiswa.nim,
