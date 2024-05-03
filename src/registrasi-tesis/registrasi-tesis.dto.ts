@@ -18,23 +18,26 @@ import { Pengguna, RoleEnum } from "src/entities/pengguna.entity";
 export class RegDto {
   @IsUUID()
   @ApiProperty()
-  idMahasiswa: string;
-
-  @IsUUID()
-  @ApiProperty()
   idPenerima: string;
 
-  @IsString()
-  @ApiProperty()
-  judulTopik: string;
-
-  @IsString()
-  @ApiProperty()
-  deskripsi: string;
+  @IsUUID()
+  @IsOptional()
+  @ApiPropertyOptional()
+  idTopik?: string;
 
   @IsEnum(JalurEnum)
   @ApiProperty({ enum: JalurEnum })
   jalurPilihan: JalurEnum;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional()
+  judulTopik?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional()
+  deskripsiTopik?: string;
 }
 
 export class RegByMhsParamDto {
@@ -168,7 +171,11 @@ export class UpdatePembimbingBodyDto {
 class DosenPembimbingDto extends PickType(Pengguna, [
   "id",
   "nama",
-  "kontak",
+  "kontakWhatsApp",
+  "kontakMsTeams",
+  "kontakEmail",
+  "kontakTelp",
+  "kontakLainnya",
 ] as const) {}
 
 export class GetByIdRespDto extends PickType(PendaftaranTesis, [

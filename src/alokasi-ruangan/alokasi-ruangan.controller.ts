@@ -13,7 +13,6 @@ import {
   ApiOkResponse,
   ApiTags,
 } from "@nestjs/swagger";
-import { RoleEnum } from "src/entities/pengguna.entity";
 import { CustomAuthGuard } from "src/middlewares/custom-auth.guard";
 import { Roles } from "src/middlewares/roles.decorator";
 import { RolesGuard } from "src/middlewares/roles.guard";
@@ -25,12 +24,13 @@ import {
   UpdateAlokasiRuanganRespDto,
 } from "./alokasi-ruangan.dto";
 import { AlokasiRuanganService } from "./alokasi-ruangan.service";
+import { HIGH_AUTHORITY_ROLES } from "src/helper/roles";
 
 @ApiTags("Alokasi Ruangan")
 @ApiBearerAuth()
 @ApiCookieAuth()
 @UseGuards(CustomAuthGuard, RolesGuard)
-@Roles(RoleEnum.ADMIN, RoleEnum.TU)
+@Roles(...HIGH_AUTHORITY_ROLES)
 @Controller("alokasi-ruangan")
 export class AlokasiRuanganController {
   constructor(private readonly alokasiRuanganService: AlokasiRuanganService) {}

@@ -14,4 +14,5 @@ export class GetDosbimResDto extends PickType(Pengguna, [
   "id",
   "email",
   "nama",
+  "keahlian",
 ] as const) {}
