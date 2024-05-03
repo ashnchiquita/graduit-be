@@ -171,7 +171,11 @@ export class UpdatePembimbingBodyDto {
 class DosenPembimbingDto extends PickType(Pengguna, [
   "id",
   "nama",
-  "kontak",
+  "kontakWhatsApp",
+  "kontakMsTeams",
+  "kontakEmail",
+  "kontakTelp",
+  "kontakLainnya",
 ] as const) {}
 
 export class GetByIdRespDto extends PickType(PendaftaranTesis, [

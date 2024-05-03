@@ -136,20 +136,30 @@ export class RegistrasiTesisService {
 
     const baseQuery = this.pendaftaranTesisRepository
       .createQueryBuilder("pt")
-      .select("pt.id")
-      .addSelect("pt.jadwalInterview")
-      .addSelect("pt.status")
-      .addSelect("pt.jalurPilihan")
-      .addSelect("pt.waktuPengiriman")
-      .addSelect("topik.judul")
-      .addSelect("topik.deskripsi")
-      .addSelect("penerima.id")
-      .addSelect("penerima.nama")
-      .addSelect("penerima.kontak")
-      .addSelect("dosenBimbingan")
-      .addSelect("dosen.id")
-      .addSelect("dosen.nama")
-      .addSelect("dosen.kontak")
+      .select([
+        "pt.id",
+        "pt.jadwalInterview",
+        "pt.status",
+        "pt.jalurPilihan",
+        "pt.waktuPengiriman",
+        "topik.judul",
+        "topik.deskripsi",
+        "penerima.id",
+        "penerima.nama",
+        "penerima.kontakWhatsApp",
+        "penerima.kontakMsTeams",
+        "penerima.kontakEmail",
+        "penerima.kontakTelp",
+        "penerima.kontakLainnya",
+        "dosenBimbingan",
+        "dosen.id",
+        "dosen.nama",
+        "dosen.kontakWhatsApp",
+        "dosen.kontakMsTeams",
+        "dosen.kontakEmail",
+        "dosen.kontakTelp",
+        "dosen.kontakLainnya",
+      ])
       .leftJoin("pt.topik", "topik")
       .leftJoin("pt.penerima", "penerima")
       .leftJoin("pt.dosenBimbingan", "dosenBimbingan")

@@ -1,4 +1,3 @@
-import { IsString } from "@nestjs/class-validator";
 import {
   ApiHideProperty,
   ApiProperty,
@@ -6,6 +5,7 @@ import {
 } from "@nestjs/swagger";
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { PendaftaranTesis } from "./pendaftaranTesis.entity";
+import { DosenBimbingan } from "./dosenBimbingan.entity";
 
 export enum RoleEnum {
   ADMIN = "ADMIN",
@@ -51,9 +51,28 @@ export class Pengguna {
   roles: RoleEnum[];
 
   @ApiPropertyOptional()
-  @IsString()
   @Column({ type: "text", nullable: true })
-  kontak: string;
+  kontakWhatsApp: string;
+
+  @ApiPropertyOptional()
+  @Column({ type: "text", nullable: true })
+  kontakMsTeams: string;
+
+  @ApiPropertyOptional()
+  @Column({ type: "text", nullable: true })
+  kontakEmail: string;
+
+  @ApiPropertyOptional()
+  @Column({ type: "text", nullable: true })
+  kontakTelp: string;
+
+  @ApiPropertyOptional()
+  @Column({ type: "text", nullable: true })
+  kontakLainnya: string;
+
+  @ApiPropertyOptional()
+  @Column({ type: "text", nullable: true })
+  keahlian: string;
 
   @ApiHideProperty()
   @Column({ type: "boolean", default: true })
@@ -61,4 +80,7 @@ export class Pengguna {
 
   @OneToMany(() => PendaftaranTesis, (pendaftaran) => pendaftaran.mahasiswa)
   pendaftaranTesis: PendaftaranTesis[];
+
+  @OneToMany(() => DosenBimbingan, (dosen) => dosen.dosen)
+  dosenBimbingan: DosenBimbingan[];
 }
