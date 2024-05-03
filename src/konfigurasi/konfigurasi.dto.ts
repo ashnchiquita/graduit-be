@@ -1,24 +1,19 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsString, ValidateNested } from "class-validator";
+import { ValidateNested } from "class-validator";
+import {
+  Konfigurasi,
+  KonfigurasiKeyEnum,
+} from "src/entities/konfigurasi.entity";
 
-export class KonfigurasiDto {
-  @ApiProperty()
-  @IsString()
-  key: string;
-
-  @ApiProperty()
-  @IsString()
-  value: string;
-}
 export class KonfigurasiArrDto {
-  @ApiProperty({ type: [KonfigurasiDto] })
+  @ApiProperty({ type: [Konfigurasi] })
   @ValidateNested({ each: true })
-  @Type(() => KonfigurasiDto)
-  data: KonfigurasiDto[];
+  @Type(() => Konfigurasi)
+  data: Konfigurasi[];
 }
 
 export class UpdateKonfigurasiResDto {
-  @ApiProperty()
-  message: string;
+  @ApiProperty({ enum: KonfigurasiKeyEnum, isArray: true })
+  keys: KonfigurasiKeyEnum[];
 }

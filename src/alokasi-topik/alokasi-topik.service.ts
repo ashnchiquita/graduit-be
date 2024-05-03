@@ -16,34 +16,26 @@ import {
 export class AlokasiTopikService {
   constructor(@InjectRepository(Topik) private topikRepo: Repository<Topik>) {}
 
-  async create(
-    createDto: CreateTopikDto & { periode: string },
-  ): Promise<TopikIdRespDto> {
+  async create(createDto: CreateTopikDto): Promise<TopikIdRespDto> {
     const ids = (await this.topikRepo.insert(createDto)).identifiers;
 
     return { id: ids[0].id };
   }
 
-  async createBulk(
-    createDto: CreateBulkTopikDto,
-    periode: string,
-  ): Promise<createBulkRespDto> {
+  async createBulk(createDto: CreateBulkTopikDto): Promise<createBulkRespDto> {
     const ids = (
-      await this.topikRepo.insert(
-        createDto.data.map((dto) => ({ ...dto, periode })),
-      )
+      await this.topikRepo.insert(createDto.data.map((dto) => ({ ...dto })))
     ).identifiers;
 
     return { ids: ids.map(({ id }) => id) };
   }
 
-  async findById(id: string, periode: string) {
+  async findActiveTopikById(id: string) {
     return await this.topikRepo.findOne({
       select: {
         id: true,
         judul: true,
         deskripsi: true,
-        periode: true,
         pengaju: {
           id: true,
           nama: true,
@@ -53,7 +45,7 @@ export class AlokasiTopikService {
       },
       where: {
         id,
-        periode,
+        aktif: true,
       },
       relations: {
         pengaju: true,
@@ -61,19 +53,17 @@ export class AlokasiTopikService {
     });
   }
 
-  async findAllCreatedByPembimbing(options: {
+  async findAllActiveTopikCreatedByPembimbing(options: {
     page: number;
     limit?: number;
     search?: string;
     idPembimbing?: string;
-    periode: string;
   }): Promise<GetAllRespDto> {
     const dataQuery = this.topikRepo.find({
       select: {
         id: true,
         judul: true,
         deskripsi: true,
-        periode: true,
         pengaju: {
           id: true,
           nama: true,
@@ -82,7 +72,7 @@ export class AlokasiTopikService {
         },
       },
       where: {
-        periode: options.periode,
+        aktif: true,
         pengaju: {
           id: options.idPembimbing || undefined,
           roles: ArrayContains([RoleEnum.S2_PEMBIMBING]),
@@ -107,8 +97,7 @@ export class AlokasiTopikService {
         .createQueryBuilder("topik")
         .select("topik.id")
         .innerJoinAndSelect("topik.pengaju", "pengaju")
-        .where("topik.periode = :periode", { periode: options.periode })
-        .andWhere("pengaju.roles @> :role", {
+        .where("pengaju.roles @> :role", {
           role: [RoleEnum.S2_PEMBIMBING],
         });
 
@@ -142,18 +131,15 @@ export class AlokasiTopikService {
     }
   }
 
-  async update(
-    id: string,
-    updateDto: UpdateTopikDto,
-    periode: string,
-    idPengaju?: string,
-  ) {
-    const findOpt = idPengaju ? { id, periode, idPengaju } : { id, periode };
+  async update(id: string, updateDto: UpdateTopikDto, idPengaju?: string) {
+    const findOpt = idPengaju
+      ? { id, idPengaju, aktif: true }
+      : { id, aktif: true };
     return await this.topikRepo.update(findOpt, updateDto);
   }
 
-  async remove(id: string, periode: string, idPengaju?: string) {
-    const findOpt = idPengaju ? { id, periode, idPengaju } : { id, periode };
-    return await this.topikRepo.delete(findOpt);
+  async remove(id: string, idPengaju?: string) {
+    const findOpt = idPengaju ? { id, idPengaju } : { id };
+    return await this.topikRepo.update(findOpt, { aktif: false });
   }
 }

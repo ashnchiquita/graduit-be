@@ -21,7 +21,6 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 import { RoleEnum } from "src/entities/pengguna.entity";
-import { KonfigurasiService } from "src/konfigurasi/konfigurasi.service";
 import { CustomAuthGuard } from "src/middlewares/custom-auth.guard";
 import { Roles } from "src/middlewares/roles.decorator";
 import { RolesGuard } from "src/middlewares/roles.guard";
@@ -47,10 +46,7 @@ import { HIGH_AUTHORITY_ROLES, isHighAuthority } from "src/helper/roles";
 @Controller("alokasi-topik")
 @UseGuards(CustomAuthGuard, RolesGuard)
 export class AlokasiTopikController {
-  constructor(
-    private alokasiTopikService: AlokasiTopikService,
-    private konfService: KonfigurasiService,
-  ) {}
+  constructor(private alokasiTopikService: AlokasiTopikService) {}
 
   @ApiOperation({
     summary: "Create new topik. Roles: S2_TIM_TESIS, ADMIN, S2_PEMBIMBING",
@@ -62,15 +58,13 @@ export class AlokasiTopikController {
     @Body() createDto: CreateTopikDto,
     @Req() req: Request,
   ): Promise<TopikIdRespDto> {
-    const periode = await this.konfService.getPeriodeOrFail();
-
     const { roles, id } = req.user as AuthDto;
     // user only has S2_PEMBIMBING role
     if (!isHighAuthority(roles) && createDto.idPengaju !== id) {
       throw new BadRequestException("Pengaju ID harus sama dengan user ID");
     }
 
-    return await this.alokasiTopikService.create({ ...createDto, periode });
+    return await this.alokasiTopikService.create(createDto);
   }
 
   @ApiOperation({
@@ -80,9 +74,7 @@ export class AlokasiTopikController {
   @Roles(...HIGH_AUTHORITY_ROLES)
   @Post("/bulk")
   async createBulk(@Body() createDto: CreateBulkTopikDto) {
-    const periode = await this.konfService.getPeriodeOrFail();
-
-    return await this.alokasiTopikService.createBulk(createDto, periode);
+    return await this.alokasiTopikService.createBulk(createDto);
   }
 
   @ApiOperation({
@@ -93,9 +85,7 @@ export class AlokasiTopikController {
   @Roles(...HIGH_AUTHORITY_ROLES, RoleEnum.S2_PEMBIMBING, RoleEnum.S2_MAHASISWA)
   @Get("/:id")
   async getById(@Param() params: TopikParamDto) {
-    const periode = await this.konfService.getPeriodeOrFail();
-
-    const res = await this.alokasiTopikService.findById(params.id, periode);
+    const res = await this.alokasiTopikService.findActiveTopikById(params.id);
     if (!res) throw new NotFoundException();
     return res as OmittedTopik;
   }
@@ -111,13 +101,12 @@ export class AlokasiTopikController {
     @Query()
     query: TopikQueryDto,
   ) {
-    const periode = await this.konfService.getPeriodeOrFail();
-
-    return await this.alokasiTopikService.findAllCreatedByPembimbing({
-      page: query.page || 1,
-      ...query,
-      periode,
-    });
+    return await this.alokasiTopikService.findAllActiveTopikCreatedByPembimbing(
+      {
+        ...query,
+        page: query.page || 1,
+      },
+    );
   }
 
   @ApiOperation({
@@ -131,8 +120,6 @@ export class AlokasiTopikController {
     @Body() updateDto: UpdateTopikDto,
     @Req() req: Request,
   ): Promise<TopikIdRespDto> {
-    const periode = await this.konfService.getPeriodeOrFail();
-
     let idPengaju = undefined;
     const { roles, id } = req.user as AuthDto;
     // user only has S2_PEMBIMBING role
@@ -146,7 +133,6 @@ export class AlokasiTopikController {
     const res = await this.alokasiTopikService.update(
       params.id,
       updateDto,
-      periode,
       idPengaju,
     );
     if (!res.affected)
@@ -169,8 +155,6 @@ export class AlokasiTopikController {
     @Param() params: TopikParamDto,
     @Req() req: Request,
   ): Promise<TopikIdRespDto> {
-    const periode = await this.konfService.getPeriodeOrFail();
-
     let idPengaju = undefined;
     const { roles, id } = req.user as AuthDto;
     // user only has S2_PEMBIMBING role
@@ -178,11 +162,7 @@ export class AlokasiTopikController {
       idPengaju = id;
     }
 
-    const res = await this.alokasiTopikService.remove(
-      params.id,
-      periode,
-      idPengaju,
-    );
+    const res = await this.alokasiTopikService.remove(params.id, idPengaju);
     if (!res.affected)
       throw new NotFoundException(
         "Topik tidak ditemukan di antara topik yang dapat Anda akses",

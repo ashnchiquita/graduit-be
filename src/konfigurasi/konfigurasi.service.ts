@@ -1,8 +1,11 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Konfigurasi } from "src/entities/konfigurasi.entity";
+import {
+  Konfigurasi,
+  KonfigurasiKeyEnum,
+} from "src/entities/konfigurasi.entity";
 import { Repository } from "typeorm";
-import { KonfigurasiArrDto } from "./konfigurasi.dto";
+import { KonfigurasiArrDto, UpdateKonfigurasiResDto } from "./konfigurasi.dto";
 
 @Injectable()
 export class KonfigurasiService {
@@ -11,16 +14,25 @@ export class KonfigurasiService {
     private konfigurasiRepository: Repository<Konfigurasi>,
   ) {}
 
-  async updateKonfigurasi({ data }: KonfigurasiArrDto) {
-    return await this.konfigurasiRepository.upsert(data, ["key"]);
+  async updateKonfigurasi({
+    data,
+  }: KonfigurasiArrDto): Promise<UpdateKonfigurasiResDto> {
+    await this.konfigurasiRepository.upsert(data, ["key"]);
+    const res = {
+      keys: data.map((d) => d.key),
+    };
+    return res;
   }
 
   async getKonfigurasi(): Promise<KonfigurasiArrDto> {
     const data = await this.konfigurasiRepository.find();
+
     return { data };
   }
 
-  async getKonfigurasiByKey(key: string): Promise<string | undefined> {
+  async getKonfigurasiByKey(
+    key: KonfigurasiKeyEnum,
+  ): Promise<string | undefined> {
     const data = await this.konfigurasiRepository.findOne({
       where: {
         key,
@@ -28,17 +40,5 @@ export class KonfigurasiService {
     });
 
     return data?.value;
-  }
-
-  async getPeriodeOrFail() {
-    const currPeriod = await this.getKonfigurasiByKey(
-      process.env.KONF_PERIODE_KEY,
-    );
-
-    if (!currPeriod) {
-      throw new BadRequestException("Periode belum dikonfigurasi");
-    }
-
-    return currPeriod;
   }
 }
