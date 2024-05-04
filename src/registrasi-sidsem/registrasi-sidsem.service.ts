@@ -332,6 +332,8 @@ export class RegistrasiSidsemService {
       deskripsiTopik: latest.pendaftaranTesis.topik.deskripsi,
       status: latest.status,
       berkasSidsem: latest.berkasSidsem,
+      judulSidsem: latest.judulSidsem,
+      deskripsiSidsem: latest.deskripsiSidsem,
       dosenPembimbing: latest.pendaftaranTesis.dosenBimbingan.map(
         ({ dosen: { nama } }) => nama,
       ),

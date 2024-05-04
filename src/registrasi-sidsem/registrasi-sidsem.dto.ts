@@ -121,6 +121,12 @@ export class GetOnePengajuanSidangRespDto extends GetAllPengajuanSidangItemDto {
   dosenPembimbing: string[];
   @ApiProperty({ type: [String] })
   dosenPenguji: string[];
+
+  @ApiProperty()
+  judulSidsem: string;
+
+  @ApiProperty()
+  deskripsiSidsem: string;
 }
 
 class BerkasSidsemWithoutId extends OmitType(BerkasSidsem, ["id"] as const) {}
