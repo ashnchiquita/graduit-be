@@ -25,8 +25,10 @@ async function bootstrap() {
     .addTag("Bimbingan")
     .addTag("Dashboard")
     .addTag("Dosen Bimbingan")
+    .addTag("Dosen Penguji")
     .addTag("Konfigurasi")
     .addTag("Registrasi Tesis")
+    .addTag("Registrasi Sidang Seminar")
     .addCookieAuth(process.env.COOKIE_NAME)
     .addBearerAuth()
     .build();

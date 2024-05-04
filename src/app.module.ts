@@ -23,6 +23,7 @@ import { KonfigurasiModule } from "./konfigurasi/konfigurasi.module";
 import { Konfigurasi } from "./entities/konfigurasi.entity";
 import { DashboardModule } from "./dashboard/dashboard.module";
 import { BerkasSidsem } from "./entities/berkasSidsem.entity";
+import { DosenPengujiModule } from "./dosen-penguji/dosen-penguji.module";
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { BerkasSidsem } from "./entities/berkasSidsem.entity";
     RegistrasiSidsemModule,
     PenggunaModule,
     KonfigurasiModule,
+    DosenPengujiModule,
   ],
   controllers: [AppController],
   providers: [AppService],
