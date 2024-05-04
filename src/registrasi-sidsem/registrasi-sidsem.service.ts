@@ -27,6 +27,9 @@ import { RegStatus } from "src/entities/pendaftaranTesis.entity";
 import { RegistrasiTesisService } from "src/registrasi-tesis/registrasi-tesis.service";
 import { BerkasSidsem } from "src/entities/berkasSidsem.entity";
 import { Pengguna, RoleEnum } from "src/entities/pengguna.entity";
+import { KonfigurasiService } from "src/konfigurasi/konfigurasi.service";
+import { KonfigurasiKeyEnum } from "src/entities/konfigurasi.entity";
+import * as dayjs from "dayjs";
 
 @Injectable()
 export class RegistrasiSidsemService {
@@ -41,6 +44,7 @@ export class RegistrasiSidsemService {
     private berkasSidsemRepo: Repository<BerkasSidsem>,
     private regTesisService: RegistrasiTesisService,
     private dataSource: DataSource,
+    private konfService: KonfigurasiService,
   ) {}
 
   private async getLatestPendaftaranSidsem(mhsId: string) {
@@ -84,10 +88,52 @@ export class RegistrasiSidsemService {
       .getOne();
   }
 
+  konfKeysMapping = {
+    [TipeSidsemEnum.SEMINAR_1]: {
+      start: KonfigurasiKeyEnum.AWAL_SEMPRO,
+      end: KonfigurasiKeyEnum.AKHIR_SEMPRO,
+    },
+    [TipeSidsemEnum.SEMINAR_2]: {
+      start: KonfigurasiKeyEnum.AWAL_SEM_TESIS,
+      end: KonfigurasiKeyEnum.AKHIR_SEM_TESIS,
+    },
+    [TipeSidsemEnum.SIDANG]: {
+      start: KonfigurasiKeyEnum.AWAL_SIDANG,
+      end: KonfigurasiKeyEnum.AKHIR_SIDANG,
+    },
+  };
+
+  private async getSidsemKonfOrFail(tipe: TipeSidsemEnum) {
+    const mapping = this.konfKeysMapping[tipe];
+    const [start, end] = await Promise.all([
+      this.konfService.getKonfigurasiByKey(mapping.start),
+      this.konfService.getKonfigurasiByKey(mapping.end),
+    ]);
+
+    if (!start || !end) {
+      throw new BadRequestException(
+        `Sidang seminar bertipe ${tipe} belum dikonfigurasi`,
+      );
+    }
+
+    return { start: new Date(start), end: new Date(end) };
+  }
+
   async create(
     mhsId: string,
     dto: CreatePengajuanSidsemDto,
   ): Promise<PengajuanSidsemIdDto> {
+    const { start, end } = await this.getSidsemKonfOrFail(dto.tipe);
+
+    if (
+      dayjs(new Date()).isBefore(dayjs(start).startOf("d")) ||
+      dayjs(new Date()).isAfter(dayjs(end).endOf("d"))
+    ) {
+      throw new BadRequestException(
+        "Sidang seminar belum dibuka atau sudah ditutup",
+      );
+    }
+
     const regTesis = await this.regTesisService.getNewestRegByMhsOrFail(mhsId);
 
     if (regTesis.status !== RegStatus.APPROVED) {

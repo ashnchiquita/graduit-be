@@ -14,6 +14,9 @@ import { BerkasSidsem } from "src/entities/berkasSidsem.entity";
 import { Topik } from "src/entities/topik.entity";
 import { PenggunaModule } from "src/pengguna/pengguna.module";
 import { PengujiSidsem } from "src/entities/pengujiSidsem.entity";
+import { KonfigurasiModule } from "src/konfigurasi/konfigurasi.module";
+import { KonfigurasiService } from "src/konfigurasi/konfigurasi.service";
+import { Konfigurasi } from "src/entities/konfigurasi.entity";
 
 @Module({
   imports: [
@@ -25,12 +28,19 @@ import { PengujiSidsem } from "src/entities/pengujiSidsem.entity";
       BerkasSidsem,
       Topik,
       PengujiSidsem,
+      Konfigurasi,
     ]),
     AuthModule,
     RegistrasiTesisModule,
     PenggunaModule,
+    KonfigurasiModule,
   ],
   controllers: [RegistrasiSidsemController],
-  providers: [RegistrasiSidsemService, CustomStrategy, RegistrasiTesisService],
+  providers: [
+    RegistrasiSidsemService,
+    CustomStrategy,
+    RegistrasiTesisService,
+    KonfigurasiService,
+  ],
 })
 export class RegistrasiSidsemModule {}
