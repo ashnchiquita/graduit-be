@@ -1,17 +1,31 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { DosenBimbingan } from "src/entities/dosenBimbingan.entity";
-import { PendaftaranSidsem } from "src/entities/pendaftaranSidsem";
-import { PengujiSidsem } from "src/entities/pengujiSidsem.entity";
-import { Brackets, Repository } from "typeorm";
 import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import {
+  cmpTipeSidsem,
+  PendaftaranSidsem,
+  SidsemStatus,
+  TipeSidsemEnum,
+} from "src/entities/pendaftaranSidsem";
+import { PengujiSidsem } from "src/entities/pengujiSidsem.entity";
+import { DataSource, In, Repository, Brackets } from "typeorm";
+import {
+  CreatePengajuanSidsemDto,
   GetAllPengajuanSidangItemDto,
   GetAllPengajuanSidangReqQueryDto,
   GetAllPengajuanSidangRespDto,
   GetOnePengajuanSidangRespDto,
-  UpdateAlokasiRuanganReqDto,
-  UpdateAlokasiRuanganRespDto,
+  PengajuanSidsemIdDto,
+  UpdateSidsemDetailDto,
 } from "./registrasi-sidsem.dto";
+import { RegStatus } from "src/entities/pendaftaranTesis.entity";
+import { RegistrasiTesisService } from "src/registrasi-tesis/registrasi-tesis.service";
+import { BerkasSidsem } from "src/entities/berkasSidsem.entity";
+import { Pengguna, RoleEnum } from "src/entities/pengguna.entity";
 
 @Injectable()
 export class RegistrasiSidsemService {
@@ -20,32 +34,158 @@ export class RegistrasiSidsemService {
     private pendaftaranSidsemRepo: Repository<PendaftaranSidsem>,
     @InjectRepository(PengujiSidsem)
     private pengujiSidsemRepo: Repository<PengujiSidsem>,
-    @InjectRepository(DosenBimbingan)
-    private dosenBimbinganRepo: Repository<DosenBimbingan>,
+    @InjectRepository(Pengguna)
+    private penggunaRepo: Repository<Pengguna>,
+    @InjectRepository(BerkasSidsem)
+    private berkasSidsemRepo: Repository<BerkasSidsem>,
+    private regTesisService: RegistrasiTesisService,
+    private dataSource: DataSource,
   ) {}
+
+  private async getLatestPendaftaranSidsem(mhsId: string) {
+    return await this.pendaftaranSidsemRepo
+      .createQueryBuilder("ps")
+      .select([
+        "ps.id",
+        "ps.tipe",
+        "ps.jadwal",
+        "ps.ruangan",
+        "ps.status",
+        "ps.judulSidsem",
+        "ps.deskripsiSidsem",
+        "berkasSidsem",
+        "pt.id",
+        "pt.jalurPilihan",
+        "mahasiswa.id",
+        "mahasiswa.nim",
+        "mahasiswa.nama",
+        "mahasiswa.email",
+        "topik.judul",
+        "topik.deskripsi",
+        "dosenBimbingan.id",
+        "dosen.id",
+        "dosen.nama",
+        "penguji.id",
+        "dosenPenguji.id",
+        "dosenPenguji.nama",
+      ])
+      .leftJoin("ps.penguji", "penguji")
+      .leftJoin("ps.berkasSidsem", "berkasSidsem")
+      .leftJoin("penguji.dosen", "dosenPenguji")
+      .leftJoin("ps.pendaftaranTesis", "pt")
+      .leftJoin("pt.mahasiswa", "mahasiswa")
+      .leftJoin("pt.topik", "topik")
+      .leftJoin("pt.dosenBimbingan", "dosenBimbingan")
+      .leftJoin("dosenBimbingan.dosen", "dosen")
+      .where("pt.mahasiswaId = :mhsId", { mhsId })
+      .andWhere("mahasiswa.aktif = true")
+      .orderBy("ps.waktuPengiriman", "DESC")
+      .getOne();
+  }
+
+  async create(
+    mhsId: string,
+    dto: CreatePengajuanSidsemDto,
+  ): Promise<PengajuanSidsemIdDto> {
+    const regTesis = await this.regTesisService.getNewestRegByMhsOrFail(mhsId);
+
+    if (regTesis.status !== RegStatus.APPROVED) {
+      throw new BadRequestException(
+        "Mahasiswa belum diterima sebagai mahasiswa tesis.",
+      );
+    }
+
+    // Check if mahasiswa already has pending registration
+    const lastPendaftaran = await this.getLatestPendaftaranSidsem(mhsId);
+    if (lastPendaftaran) {
+      const delta = cmpTipeSidsem(dto.tipe, lastPendaftaran.tipe);
+
+      if (
+        (delta !== 0 && delta !== 1) ||
+        (delta === 0 && lastPendaftaran.status !== SidsemStatus.REJECTED) ||
+        (delta === 1 && lastPendaftaran.status !== SidsemStatus.APPROVED)
+      ) {
+        {
+          throw new BadRequestException("Tipe sidsem invalid");
+        }
+      }
+    } else {
+      if (dto.tipe !== TipeSidsemEnum.SEMINAR_1) {
+        throw new BadRequestException("Tipe sidsem invalid");
+      }
+    }
+
+    const berkasSidsem = dto.berkasSidsem.map((berkasSubmisiTugas) =>
+      this.berkasSidsemRepo.create(berkasSubmisiTugas),
+    );
+
+    // Create new registration
+    const createdRegistration = this.pendaftaranSidsemRepo.create({
+      ...dto,
+      pendaftaranTesis: regTesis,
+      berkasSidsem,
+    });
+
+    await this.pendaftaranSidsemRepo.save(createdRegistration);
+
+    return {
+      id: createdRegistration.id,
+    };
+  }
 
   async findAll(
     query: GetAllPengajuanSidangReqQueryDto,
+    idPembimbing?: string,
+    idPenguji?: string,
   ): Promise<GetAllPengajuanSidangRespDto> {
     const baseQuery = this.pendaftaranSidsemRepo
       .createQueryBuilder("ps")
+      .select([
+        "ps.id",
+        "ps.tipe",
+        "ps.status",
+        "pt.id",
+        "mahasiswa.id",
+        "mahasiswa.nim",
+        "mahasiswa.nama",
+        "dosenBimbingan.id",
+        "dosen.id",
+        "dosen.nama",
+        "berkasSidsem",
+      ])
       .innerJoinAndSelect(
         (qb) =>
           qb
             .select([
               "ps.pendaftaranTesisId AS latest_pendaftaranTesisId",
-              "ps.tipe AS latest_tipe",
               "MAX(ps.waktuPengiriman) AS latestPengiriman",
             ])
             .from(PendaftaranSidsem, "ps")
-            .groupBy("ps.pendaftaranTesisId")
-            .addGroupBy("ps.tipe"),
+            .groupBy("ps.pendaftaranTesisId"),
         "latest",
-        "latest.latest_pendaftaranTesisId = ps.pendaftaranTesisId AND latest.latest_tipe = ps.tipe AND ps.waktuPengiriman = latest.latestPengiriman",
+        "latest.latest_pendaftaranTesisId = ps.pendaftaranTesisId AND ps.waktuPengiriman = latest.latestPengiriman",
       )
-      .innerJoinAndSelect("ps.pendaftaranTesis", "pt")
-      .innerJoinAndSelect("pt.mahasiswa", "mahasiswa")
+      .innerJoin("ps.pendaftaranTesis", "pt")
+      .innerJoin("ps.berkasSidsem", "berkasSidsem")
+      .innerJoin("pt.dosenBimbingan", "dosenBimbingan")
+      .innerJoin("dosenBimbingan.dosen", "dosen")
+      .innerJoin("pt.mahasiswa", "mahasiswa")
+      .where("mahasiswa.aktif = true")
       .orderBy("ps.waktuPengiriman", "DESC");
+
+    if (idPembimbing) {
+      baseQuery.andWhere("dosenBimbingan.dosenId = :idPembimbing", {
+        idPembimbing,
+      });
+    }
+
+    if (idPenguji) {
+      baseQuery
+        .innerJoin("ps.penguji", "penguji")
+        .andWhere("penguji.idDosen = :idPenguji", {
+          idPenguji,
+        });
+    }
 
     if (query.search) {
       baseQuery.andWhere(
@@ -76,146 +216,151 @@ export class RegistrasiSidsemService {
 
     const data: GetAllPengajuanSidangItemDto[] = queryData.map((res) => ({
       idPengajuanSidsem: res.id,
+      idMahasiswa: res.pendaftaranTesis.mahasiswa.id,
       nimMahasiswa: res.pendaftaranTesis.mahasiswa.nim,
       namaMahasiswa: res.pendaftaranTesis.mahasiswa.nama,
       jadwalSidang: !!res.jadwal ? res.jadwal.toISOString() : null,
       jenisSidang: res.tipe,
       ruangan: res.ruangan,
+      status: res.status,
+      dosenPembimbing: res.pendaftaranTesis.dosenBimbingan.map(
+        (dosen) => dosen.dosen.nama,
+      ),
+      berkasSidsem: res.berkasSidsem,
     }));
 
     return { data, total };
   }
 
-  async findOne(id: string): Promise<GetOnePengajuanSidangRespDto> {
-    const sidsemQueryData = await this.pendaftaranSidsemRepo.findOne({
-      select: {
-        id: true,
-        jadwal: true,
-        tipe: true,
-        ruangan: true,
-        pendaftaranTesis: {
-          id: true,
-          mahasiswa: {
-            nim: true,
-            nama: true,
-            email: true,
-          },
-          jalurPilihan: true,
-          topik: {
-            judul: true,
-            deskripsi: true,
-          },
-        },
-      },
-      relations: {
-        pendaftaranTesis: {
-          mahasiswa: true,
-          topik: true,
-        },
-      },
-      where: {
-        id,
-      },
-    });
+  async findOne(mhsId: string): Promise<GetOnePengajuanSidangRespDto> {
+    const latest = await this.getLatestPendaftaranSidsem(mhsId);
 
-    if (sidsemQueryData === null)
-      throw new BadRequestException(
-        "Pendaftaran sidang with given id does not exist",
-      );
-
-    const pengujiQueryData = await this.pengujiSidsemRepo.find({
-      select: {
-        dosen: {
-          nama: true,
-        },
-      },
-      relations: {
-        dosen: true,
-      },
-      where: {
-        sidsem: {
-          id,
-        },
-      },
-    });
-
-    const pembimbingQueryData = await this.dosenBimbinganRepo.find({
-      select: {
-        dosen: {
-          nama: true,
-        },
-      },
-      relations: {
-        dosen: true,
-      },
-      where: {
-        idPendaftaran: sidsemQueryData.pendaftaranTesis.id,
-      },
-    });
+    if (!latest) {
+      throw new NotFoundException("Pendaftaran sidsem tidak ditemukan");
+    }
 
     const data: GetOnePengajuanSidangRespDto = {
-      idPengajuanSidsem: sidsemQueryData.id,
-      nimMahasiswa: sidsemQueryData.pendaftaranTesis.mahasiswa.nim,
-      namaMahasiswa: sidsemQueryData.pendaftaranTesis.mahasiswa.nama,
-      jadwalSidang: sidsemQueryData.jadwal.toISOString(),
-      jenisSidang: sidsemQueryData.tipe,
-      ruangan: sidsemQueryData.ruangan,
-      emailMahasiswa: sidsemQueryData.pendaftaranTesis.mahasiswa.email,
-      jalurPilihan: sidsemQueryData.pendaftaranTesis.jalurPilihan,
-      judulTopik: sidsemQueryData.pendaftaranTesis.topik.judul,
-      deskripsiTopik: sidsemQueryData.pendaftaranTesis.topik.deskripsi,
-      dosenPembimbing: pembimbingQueryData.map(({ dosen: { nama } }) => nama),
-      dosenPenguji: pengujiQueryData.map(({ dosen: { nama } }) => nama),
+      idPengajuanSidsem: latest.id,
+      idMahasiswa: latest.pendaftaranTesis.mahasiswa.id,
+      nimMahasiswa: latest.pendaftaranTesis.mahasiswa.nim,
+      namaMahasiswa: latest.pendaftaranTesis.mahasiswa.nama,
+      emailMahasiswa: latest.pendaftaranTesis.mahasiswa.email,
+      jadwalSidang: latest.jadwal ? latest.jadwal.toISOString() : null,
+      jenisSidang: latest.tipe,
+      ruangan: latest.ruangan,
+      jalurPilihan: latest.pendaftaranTesis.jalurPilihan,
+      judulTopik: latest.pendaftaranTesis.topik.judul,
+      deskripsiTopik: latest.pendaftaranTesis.topik.deskripsi,
+      status: latest.status,
+      berkasSidsem: latest.berkasSidsem,
+      dosenPembimbing: latest.pendaftaranTesis.dosenBimbingan.map(
+        ({ dosen: { nama } }) => nama,
+      ),
+      dosenPenguji: latest.penguji.map(({ dosen: { nama } }) => nama),
     };
 
     return data;
   }
 
-  async update(
-    id: string,
-    updateAlokasiRuanganDto: UpdateAlokasiRuanganReqDto,
-  ): Promise<UpdateAlokasiRuanganRespDto> {
-    const pendaftaranSidsem = await this.pendaftaranSidsemRepo.findOne({
-      select: {
-        id: true,
-        jadwal: true,
-        tipe: true,
-        pendaftaranTesis: {
-          id: true,
-          mahasiswa: {
-            nama: true,
-            nim: true,
-          },
-        },
-      },
-      relations: {
-        pendaftaranTesis: {
-          mahasiswa: true,
-        },
-      },
-      where: {
-        id,
-      },
+  async updateStatus(
+    mhsId: string,
+    status: SidsemStatus.REJECTED | SidsemStatus.APPROVED,
+  ): Promise<PengajuanSidsemIdDto> {
+    const latest = await this.getLatestPendaftaranSidsem(mhsId);
+
+    if (!latest || latest.status !== SidsemStatus.NOT_ASSIGNED) {
+      throw new BadRequestException(
+        "Pendaftaran sidsem yang pending tidak ditemukan",
+      );
+    }
+
+    await this.pendaftaranSidsemRepo.update(latest.id, {
+      status,
     });
 
-    if (pendaftaranSidsem === null)
+    return { id: latest.id } as PengajuanSidsemIdDto;
+  }
+
+  async updateDetail(
+    mhsId: string,
+    updateDto: UpdateSidsemDetailDto,
+  ): Promise<PengajuanSidsemIdDto> {
+    const latest = await this.getLatestPendaftaranSidsem(mhsId);
+
+    if (!latest || latest.status !== SidsemStatus.APPROVED) {
       throw new BadRequestException(
-        "Pendaftaran sidang/seminar with diven id does not exist",
+        "Pendaftaran sidsem yang disetujui tidak ditemukan",
+      );
+    }
+
+    if (updateDto.dosenPengujiIds) {
+      const newPengujiList = await this.penggunaRepo.findBy({
+        id: In(updateDto.dosenPengujiIds),
+      });
+
+      if (
+        newPengujiList.length !== updateDto.dosenPengujiIds.length ||
+        newPengujiList.some(
+          (dosen) => !dosen.roles.includes(RoleEnum.S2_PENGUJI),
+        )
+      )
+        throw new BadRequestException(
+          "Dosen id list contains invalid user ids",
+        );
+
+      const currentPenguji = await this.pengujiSidsemRepo.findBy({
+        idSidsem: latest.id,
+      });
+
+      const newPengujiIds = newPengujiList.map((dosen) => dosen.id);
+      const currentPengujiIds = currentPenguji.map(
+        (currentPembimbing) => currentPembimbing.idDosen,
       );
 
-    pendaftaranSidsem.ruangan =
-      updateAlokasiRuanganDto.ruangan === ""
-        ? null
-        : updateAlokasiRuanganDto.ruangan;
-    await this.pendaftaranSidsemRepo.save(pendaftaranSidsem);
+      const idsToBeAdded = newPengujiIds.filter(
+        (newId) => !currentPengujiIds.includes(newId),
+      );
 
-    return {
-      idPengajuanSidsem: pendaftaranSidsem.id,
-      jadwalSidang: pendaftaranSidsem.jadwal.toISOString(),
-      jenisSidang: pendaftaranSidsem.tipe,
-      namaMahasiswa: pendaftaranSidsem.pendaftaranTesis.mahasiswa.nama,
-      nimMahasiswa: pendaftaranSidsem.pendaftaranTesis.mahasiswa.nim,
-      ruangan: pendaftaranSidsem.ruangan,
-    };
+      const idsToBeDeleted = currentPengujiIds.filter(
+        (newId) => !newPengujiIds.includes(newId),
+      );
+
+      const queryRunner = this.dataSource.createQueryRunner();
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+
+      try {
+        await queryRunner.manager.insert(
+          PengujiSidsem,
+          idsToBeAdded.map((idDosen) => ({ sidsem: latest, idDosen })),
+        );
+        await queryRunner.manager.delete(PengujiSidsem, {
+          idDosen: In(idsToBeDeleted),
+        });
+
+        if (updateDto.ruangan || updateDto.jadwal) {
+          await queryRunner.manager.update(PendaftaranSidsem, latest.id, {
+            ruangan: updateDto.ruangan,
+            jadwal: updateDto.jadwal,
+          });
+        }
+
+        await queryRunner.commitTransaction();
+      } catch (err) {
+        await queryRunner.rollbackTransaction();
+
+        console.error(err);
+
+        throw new InternalServerErrorException();
+      } finally {
+        await queryRunner.release();
+      }
+    } else {
+      await this.pendaftaranSidsemRepo.update(latest.id, {
+        ...updateDto,
+      });
+    }
+
+    return { id: latest.id } as PengajuanSidsemIdDto;
   }
 }

@@ -1,6 +1,26 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsEnum, IsNumberString, IsOptional, IsString } from "class-validator";
-import { TipeSidsemEnum } from "src/entities/pendaftaranSidsem";
+import {
+  ApiProperty,
+  ApiPropertyOptional,
+  OmitType,
+  PickType,
+} from "@nestjs/swagger";
+import { Type } from "class-transformer";
+import {
+  ArrayNotEmpty,
+  IsDateString,
+  IsEnum,
+  IsNumberString,
+  IsOptional,
+  IsString,
+  IsUUID,
+  ValidateNested,
+} from "class-validator";
+import { BerkasSidsem } from "src/entities/berkasSidsem.entity";
+import {
+  PendaftaranSidsem,
+  SidsemStatus,
+  TipeSidsemEnum,
+} from "src/entities/pendaftaranSidsem";
 import { JalurEnum } from "src/entities/pendaftaranTesis.entity";
 
 export class GetAllPengajuanSidangReqQueryDto {
@@ -30,6 +50,9 @@ export class GetAllPengajuanSidangItemDto {
   idPengajuanSidsem: string;
 
   @ApiProperty()
+  idMahasiswa: string;
+
+  @ApiProperty()
   nimMahasiswa: string;
 
   @ApiProperty()
@@ -43,6 +66,15 @@ export class GetAllPengajuanSidangItemDto {
 
   @ApiProperty({ nullable: true })
   ruangan: string | null;
+
+  @ApiProperty({ enum: SidsemStatus })
+  status: SidsemStatus;
+
+  @ApiProperty({ type: [String] })
+  dosenPembimbing: string[];
+
+  @ApiProperty({ type: [BerkasSidsem] })
+  berkasSidsem: BerkasSidsem[];
 }
 
 export class GetAllPengajuanSidangRespDto {
@@ -68,12 +100,51 @@ export class GetOnePengajuanSidangRespDto extends GetAllPengajuanSidangItemDto {
   dosenPenguji: string[];
 }
 
-export class UpdateAlokasiRuanganReqDto {
-  @IsString()
-  @ApiProperty({
-    description: "Can send empty string, will update DB to set as null",
-  })
-  ruangan: string;
+export class UpdateAlokasiRuanganRespDto extends GetAllPengajuanSidangItemDto {}
+
+class BerkasSidsemWithoutId extends OmitType(BerkasSidsem, ["id"] as const) {}
+
+export class CreatePengajuanSidsemDto extends PickType(PendaftaranSidsem, [
+  "judulSidsem",
+  "deskripsiSidsem",
+  "tipe",
+]) {
+  @ApiProperty({ type: [BerkasSidsemWithoutId] })
+  @ValidateNested({ each: true })
+  @ArrayNotEmpty()
+  @Type(() => BerkasSidsemWithoutId)
+  berkasSidsem: BerkasSidsemWithoutId[];
 }
 
-export class UpdateAlokasiRuanganRespDto extends GetAllPengajuanSidangItemDto {}
+export class PengajuanSidsemIdDto extends PickType(PendaftaranSidsem, [
+  "id",
+] as const) {}
+
+export class UpdateSidsemDetailDto {
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  ruangan?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
+  jadwal?: Date;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID("all", { each: true })
+  dosenPengujiIds?: string[];
+}
+
+export class SidsemMhsIdParamDto {
+  @IsUUID()
+  @ApiProperty()
+  mhsId: string;
+}
+
+export class UpdateSidsemStatusDto {
+  @IsEnum([SidsemStatus.APPROVED, SidsemStatus.REJECTED])
+  @ApiProperty({ enum: [SidsemStatus.APPROVED, SidsemStatus.REJECTED] })
+  status: SidsemStatus.APPROVED | SidsemStatus.REJECTED;
+}
