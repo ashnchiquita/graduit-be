@@ -372,6 +372,12 @@ export class RegistrasiSidsemService {
       );
     }
 
+    if (updateDto.jadwal) {
+      if (dayjs(updateDto.jadwal).isBefore(dayjs(new Date()).endOf("d"))) {
+        throw new BadRequestException("Jadwal sidang tidak valid");
+      }
+    }
+
     if (updateDto.dosenPengujiIds) {
       const newPengujiList = await this.penggunaRepo.findBy({
         id: In(updateDto.dosenPengujiIds),

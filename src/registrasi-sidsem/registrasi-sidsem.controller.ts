@@ -50,6 +50,9 @@ import {
 export class RegistrasiSidsemController {
   constructor(private readonly regisSidsemService: RegistrasiSidsemService) {}
 
+  @ApiOperation({
+    summary: "Create new sidang seminar registration. Roles: S2_MAHASISWA",
+  })
   @ApiCreatedResponse({ type: PengajuanSidsemIdDto })
   @Roles(RoleEnum.S2_MAHASISWA)
   @Post()
@@ -58,6 +61,10 @@ export class RegistrasiSidsemController {
     return this.regisSidsemService.create(id, dto);
   }
 
+  @ApiOperation({
+    summary:
+      "Get all newest sidang seminar registration per mhs. Roles: ADMIN, S2_TIM_TESIS, S2_PEMBIMBING, S2_PENGUJI",
+  })
   @ApiOkResponse({ type: GetAllPengajuanSidangRespDto })
   @Roles(...HIGH_AUTHORITY_ROLES, ...DOSEN)
   @Get()
@@ -78,6 +85,10 @@ export class RegistrasiSidsemController {
     );
   }
 
+  @ApiOperation({
+    summary:
+      "Get newest sidang seminar registration per mhs. Roles: ADMIN, S2_TIM_TESIS, S2_PEMBIMBING, S2_PENGUJI, S2_MAHASISWA",
+  })
   @ApiOkResponse({ type: GetOnePengajuanSidangRespDto })
   @Roles(...HIGH_AUTHORITY_ROLES, ...DOSEN, RoleEnum.S2_MAHASISWA)
   @Get("/mahasiswa/:mhsId")
