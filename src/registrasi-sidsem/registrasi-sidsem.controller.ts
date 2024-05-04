@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  ForbiddenException,
   Get,
   Param,
   Patch,
@@ -32,7 +33,12 @@ import { RegistrasiSidsemService } from "./registrasi-sidsem.service";
 import { Request } from "express";
 import { AuthDto } from "src/auth/auth.dto";
 import { RoleEnum } from "src/entities/pengguna.entity";
-import { HIGH_AUTHORITY_ROLES } from "src/helper/roles";
+import {
+  DOSEN,
+  HIGH_AUTHORITY_ROLES,
+  isDosen,
+  isHighAuthority,
+} from "src/helper/roles";
 
 @ApiTags("Registrasi Sidang Seminar")
 @ApiBearerAuth()
@@ -51,19 +57,53 @@ export class RegistrasiSidsemController {
   }
 
   @ApiOkResponse({ type: GetAllPengajuanSidangRespDto })
+  @Roles(...HIGH_AUTHORITY_ROLES, ...DOSEN)
   @Get()
-  async findAll(@Query() query: GetAllPengajuanSidangReqQueryDto) {
-    return this.regisSidsemService.findAll(query);
+  async findAll(
+    @Req() req: Request,
+    @Query() query: GetAllPengajuanSidangReqQueryDto,
+  ) {
+    const { id, roles } = req.user as AuthDto;
+
+    if (!roles.includes(query.view)) {
+      throw new ForbiddenException();
+    }
+
+    return this.regisSidsemService.findAll(
+      query,
+      query.view === RoleEnum.S2_PEMBIMBING ? id : undefined,
+      query.view === RoleEnum.S2_PENGUJI ? id : undefined,
+    );
   }
 
-  @ApiOperation({
-    summary: "Update status sidang seminar. Roles: ADMIN, S2_TIM_TESIS",
-  })
   @ApiOkResponse({ type: PengajuanSidsemIdDto })
-  // @Roles(...HIGH_AUTHORITY_ROLES)
+  @Roles(...HIGH_AUTHORITY_ROLES, ...DOSEN, RoleEnum.S2_MAHASISWA)
   @Get("/mahasiswa/:mhsId")
-  async findOne(@Param() param: SidsemMhsIdParamDto) {
-    return this.regisSidsemService.findOne(param.mhsId);
+  async findOne(@Req() req: Request, @Param() param: SidsemMhsIdParamDto) {
+    let idPenguji = undefined;
+    let idPembimbing = undefined;
+
+    const { roles, id } = req.user as AuthDto;
+
+    if (!isHighAuthority(roles)) {
+      if (roles.includes(RoleEnum.S2_PEMBIMBING)) {
+        idPembimbing = id;
+      }
+
+      if (roles.includes(RoleEnum.S2_PENGUJI)) {
+        idPenguji = id;
+      }
+
+      if (!isDosen(roles) && id !== param.mhsId) {
+        // user is mahasiswa
+        throw new ForbiddenException("Ini bukan data Anda.");
+      }
+    }
+    return this.regisSidsemService.findOne(
+      param.mhsId,
+      idPembimbing,
+      idPenguji,
+    );
   }
 
   @ApiOperation({

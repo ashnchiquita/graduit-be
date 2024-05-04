@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -232,11 +233,41 @@ export class RegistrasiSidsemService {
     return { data, total };
   }
 
-  async findOne(mhsId: string): Promise<GetOnePengajuanSidangRespDto> {
+  async findOne(
+    mhsId: string,
+    idPembimbing?: string,
+    idPenguji?: string,
+  ): Promise<GetOnePengajuanSidangRespDto> {
     const latest = await this.getLatestPendaftaranSidsem(mhsId);
 
     if (!latest) {
       throw new NotFoundException("Pendaftaran sidsem tidak ditemukan");
+    }
+
+    function isPembimbing() {
+      return latest.pendaftaranTesis.dosenBimbingan.some(
+        ({ dosen: { id } }) => id === idPembimbing,
+      );
+    }
+
+    function isPenguji() {
+      return latest.penguji.some(({ dosen: { id } }) => id === idPenguji);
+    }
+
+    if (idPembimbing && idPenguji) {
+      if (!isPembimbing() && !isPenguji()) {
+        throw new ForbiddenException(
+          "Anda tidak terdaftar sebagai pembimbing atau penguji",
+        );
+      }
+    } else if (idPembimbing) {
+      if (!isPembimbing()) {
+        throw new ForbiddenException("Anda tidak terdaftar sebagai pembimbing");
+      }
+    } else if (idPenguji) {
+      if (!isPenguji()) {
+        throw new ForbiddenException("Anda tidak terdaftar sebagai penguji");
+      }
     }
 
     const data: GetOnePengajuanSidangRespDto = {

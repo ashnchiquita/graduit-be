@@ -22,8 +22,31 @@ import {
   TipeSidsemEnum,
 } from "src/entities/pendaftaranSidsem";
 import { JalurEnum } from "src/entities/pendaftaranTesis.entity";
+import { RoleEnum } from "src/entities/pengguna.entity";
 
-export class GetAllPengajuanSidangReqQueryDto {
+export class SidsemViewQueryDto {
+  @IsEnum([
+    RoleEnum.S2_PEMBIMBING,
+    RoleEnum.ADMIN,
+    RoleEnum.S2_TIM_TESIS,
+    RoleEnum.S2_PENGUJI,
+  ])
+  @ApiProperty({
+    enum: [
+      RoleEnum.S2_PEMBIMBING,
+      RoleEnum.ADMIN,
+      RoleEnum.S2_TIM_TESIS,
+      RoleEnum.S2_PENGUJI,
+    ],
+  })
+  view:
+    | RoleEnum.S2_PEMBIMBING
+    | RoleEnum.ADMIN
+    | RoleEnum.S2_TIM_TESIS
+    | RoleEnum.S2_PENGUJI;
+}
+
+export class GetAllPengajuanSidangReqQueryDto extends SidsemViewQueryDto {
   @ApiPropertyOptional()
   @IsString()
   @IsOptional()
@@ -99,8 +122,6 @@ export class GetOnePengajuanSidangRespDto extends GetAllPengajuanSidangItemDto {
   @ApiProperty({ isArray: true })
   dosenPenguji: string[];
 }
-
-export class UpdateAlokasiRuanganRespDto extends GetAllPengajuanSidangItemDto {}
 
 class BerkasSidsemWithoutId extends OmitType(BerkasSidsem, ["id"] as const) {}
 
