@@ -373,7 +373,7 @@ export class RegistrasiTesisService {
     return resData;
   }
 
-  private async getNewestRegByMhsOrFail(mahasiswaId: string) {
+  async getNewestRegByMhsOrFail(mahasiswaId: string) {
     const mahasiswa = await this.penggunaRepository.findOne({
       select: {
         id: true,
@@ -381,11 +381,14 @@ export class RegistrasiTesisService {
       },
       where: {
         id: mahasiswaId,
+        aktif: true,
       },
     });
 
     if (!mahasiswa || !mahasiswa.roles.includes(RoleEnum.S2_MAHASISWA))
-      throw new BadRequestException("No mahasiswa user with given id exists");
+      throw new BadRequestException(
+        "No active mahasiswa user with given id exists",
+      );
 
     const newestReg = await this.pendaftaranTesisRepository.findOne({
       select: {

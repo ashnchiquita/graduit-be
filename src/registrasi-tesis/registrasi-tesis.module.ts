@@ -24,5 +24,6 @@ import { PenggunaService } from "src/pengguna/pengguna.service";
   ],
   controllers: [RegistrasiTesisController],
   providers: [RegistrasiTesisService, CustomStrategy, PenggunaService],
+  exports: [RegistrasiTesisService],
 })
 export class RegistrasiTesisModule {}

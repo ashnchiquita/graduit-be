@@ -22,7 +22,7 @@ export class Topik {
   @Column({ type: "text" })
   deskripsi: string;
 
-  @ApiProperty({ type: Pengguna })
+  @ApiProperty({ type: () => Pengguna })
   @ManyToOne(() => Pengguna, (pengguna) => pengguna.id)
   @JoinColumn({ name: "idPengaju" })
   pengaju: Pengguna;
