@@ -13,6 +13,7 @@ import {
 import {
   ApiBearerAuth,
   ApiCookieAuth,
+  ApiCreatedResponse,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
@@ -24,6 +25,7 @@ import {
   CreatePengajuanSidsemDto,
   GetAllPengajuanSidangReqQueryDto,
   GetAllPengajuanSidangRespDto,
+  GetOnePengajuanSidangRespDto,
   PengajuanSidsemIdDto,
   SidsemMhsIdParamDto,
   UpdateSidsemDetailDto,
@@ -48,7 +50,7 @@ import {
 export class RegistrasiSidsemController {
   constructor(private readonly regisSidsemService: RegistrasiSidsemService) {}
 
-  @ApiOkResponse({ type: PengajuanSidsemIdDto })
+  @ApiCreatedResponse({ type: PengajuanSidsemIdDto })
   @Roles(RoleEnum.S2_MAHASISWA)
   @Post()
   async create(@Req() req: Request, @Body() dto: CreatePengajuanSidsemDto) {
@@ -76,7 +78,7 @@ export class RegistrasiSidsemController {
     );
   }
 
-  @ApiOkResponse({ type: PengajuanSidsemIdDto })
+  @ApiOkResponse({ type: GetOnePengajuanSidangRespDto })
   @Roles(...HIGH_AUTHORITY_ROLES, ...DOSEN, RoleEnum.S2_MAHASISWA)
   @Get("/mahasiswa/:mhsId")
   async findOne(@Req() req: Request, @Param() param: SidsemMhsIdParamDto) {

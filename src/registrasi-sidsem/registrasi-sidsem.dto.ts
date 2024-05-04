@@ -117,9 +117,9 @@ export class GetOnePengajuanSidangRespDto extends GetAllPengajuanSidangItemDto {
   judulTopik: string;
   @ApiProperty()
   deskripsiTopik: string;
-  @ApiProperty({ isArray: true })
+  @ApiProperty({ type: [String] })
   dosenPembimbing: string[];
-  @ApiProperty({ isArray: true })
+  @ApiProperty({ type: [String] })
   dosenPenguji: string[];
 }
 

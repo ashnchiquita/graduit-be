@@ -166,24 +166,26 @@ export class RegistrasiSidsemService {
         "latest",
         "latest.latest_pendaftaranTesisId = ps.pendaftaranTesisId AND ps.waktuPengiriman = latest.latestPengiriman",
       )
-      .innerJoin("ps.pendaftaranTesis", "pt")
-      .innerJoin("ps.berkasSidsem", "berkasSidsem")
-      .innerJoin("pt.dosenBimbingan", "dosenBimbingan")
-      .innerJoin("dosenBimbingan.dosen", "dosen")
-      .innerJoin("pt.mahasiswa", "mahasiswa")
+      .leftJoin("ps.pendaftaranTesis", "pt")
+      .leftJoin("ps.berkasSidsem", "berkasSidsem")
+      .leftJoin("pt.dosenBimbingan", "dosenBimbingan")
+      .leftJoin("dosenBimbingan.dosen", "dosen")
+      .leftJoin("pt.mahasiswa", "mahasiswa")
       .where("mahasiswa.aktif = true")
       .orderBy("ps.waktuPengiriman", "DESC");
 
     if (idPembimbing) {
-      baseQuery.andWhere("dosenBimbingan.dosenId = :idPembimbing", {
-        idPembimbing,
-      });
+      baseQuery
+        .innerJoin("pt.dosenBimbingan", "dosenBimbinganFilter")
+        .andWhere("dosenBimbinganFilter.idDosen = :idPembimbing", {
+          idPembimbing,
+        });
     }
 
     if (idPenguji) {
       baseQuery
-        .innerJoin("ps.penguji", "penguji")
-        .andWhere("penguji.idDosen = :idPenguji", {
+        .innerJoin("ps.penguji", "pengujiFilter")
+        .andWhere("pengujiFilter.idDosen = :idPenguji", {
           idPenguji,
         });
     }
