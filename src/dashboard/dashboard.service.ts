@@ -4,6 +4,7 @@ import { BimbinganService } from "src/bimbingan/bimbingan.service";
 import { DosenBimbingan } from "src/entities/dosenBimbingan.entity";
 import {
   PendaftaranSidsem,
+  SidsemStatus,
   TipeSidsemEnum,
 } from "src/entities/pendaftaranSidsem";
 import { ArrayContains, Brackets, In, Like, Repository } from "typeorm";
@@ -199,7 +200,7 @@ export class DashboardService {
       },
       where: {
         tipe: TipeSidsemEnum.SEMINAR_1,
-        ditolak: false,
+        status: SidsemStatus.APPROVED,
         pendaftaranTesis: {
           mahasiswaId: In(foundMahasiswa.map(({ id }) => id)),
         },
@@ -217,7 +218,7 @@ export class DashboardService {
       },
       where: {
         tipe: TipeSidsemEnum.SEMINAR_2,
-        ditolak: false,
+        status: SidsemStatus.APPROVED,
         pendaftaranTesis: {
           mahasiswaId: In(foundMahasiswa.map(({ id }) => id)),
         },
@@ -235,7 +236,7 @@ export class DashboardService {
       },
       where: {
         tipe: TipeSidsemEnum.SIDANG,
-        ditolak: false,
+        status: SidsemStatus.APPROVED,
         pendaftaranTesis: {
           mahasiswaId: In(foundMahasiswa.map(({ id }) => id)),
         },
