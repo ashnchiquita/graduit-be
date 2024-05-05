@@ -1,3 +1,4 @@
+import { ApiHideProperty, ApiProperty } from "@nestjs/swagger";
 import {
   Column,
   Entity,
@@ -6,7 +7,6 @@ import {
   PrimaryGeneratedColumn,
 } from "typeorm";
 import { Pengguna } from "./pengguna.entity";
-import { ApiHideProperty, ApiProperty } from "@nestjs/swagger";
 
 @Entity()
 export class Topik {
