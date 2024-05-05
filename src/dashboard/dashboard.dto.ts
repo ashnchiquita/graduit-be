@@ -79,6 +79,9 @@ export enum DashboardTimTesisStatusEnum {
 
 class GetDashboardTimTesisDataDto {
   @ApiProperty()
+  id_mahasiswa: string;
+
+  @ApiProperty()
   nim_mahasiswa: string;
 
   @ApiProperty()
