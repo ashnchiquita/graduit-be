@@ -145,10 +145,12 @@ export class DashboardService {
         {
           nim: Like(`%${query.search ?? ""}%`),
           roles: ArrayContains([RoleEnum.S2_MAHASISWA]),
+          aktif: true,
         },
         {
           nama: Like(`%${query.search ?? ""}%`),
           roles: ArrayContains([RoleEnum.S2_MAHASISWA]),
+          aktif: true,
         },
       ],
       order: {
@@ -284,12 +286,13 @@ export class DashboardService {
     });
 
     mhsSidangAccepted.forEach(({ pendaftaranTesis: { mahasiswaId } }) => {
-      mhsStatusMap[mahasiswaId].push(DashboardTimTesisStatusEnum.SEMINAR_2);
+      mhsStatusMap[mahasiswaId].push(DashboardTimTesisStatusEnum.SIDANG);
     });
 
     return {
       maxPage: !!query.limit ? Math.ceil(total / query.limit) : 1,
       data: foundMahasiswa.map(({ nim, id, nama }) => ({
+        id_mahasiswa: id,
         nim_mahasiswa: nim,
         nama_mahasiswa: nama,
         status: mhsStatusMap[id] ?? [],
