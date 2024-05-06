@@ -128,8 +128,13 @@ export class RegistrasiSidsemController {
   async updateStatus(
     @Param() param: SidsemMhsIdParamDto,
     @Body() updateDto: UpdateSidsemStatusDto,
+    @Req() req: Request,
   ) {
-    return this.regisSidsemService.updateStatus(param.mhsId, updateDto.status);
+    return this.regisSidsemService.updateStatus(
+      param.mhsId,
+      updateDto.status,
+      req,
+    );
   }
 
   @ApiOperation({
@@ -142,7 +147,8 @@ export class RegistrasiSidsemController {
   async updateDetail(
     @Param() param: SidsemMhsIdParamDto,
     @Body() updateDto: UpdateSidsemDetailDto,
+    @Req() req: Request,
   ) {
-    return this.regisSidsemService.updateDetail(param.mhsId, updateDto);
+    return this.regisSidsemService.updateDetail(param.mhsId, updateDto, req);
   }
 }

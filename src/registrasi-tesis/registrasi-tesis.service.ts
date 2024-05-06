@@ -26,6 +26,9 @@ import {
   UpdateStatusBodyDto,
 } from "./registrasi-tesis.dto";
 import { PenggunaService } from "src/pengguna/pengguna.service";
+import { HttpService } from "@nestjs/axios";
+import { Request } from "express";
+import { firstValueFrom } from "rxjs";
 
 @Injectable()
 export class RegistrasiTesisService {
@@ -40,6 +43,7 @@ export class RegistrasiTesisService {
     private dosenBimbinganRepository: Repository<DosenBimbingan>,
     private dataSource: DataSource,
     private penggunaService: PenggunaService,
+    private httpService: HttpService,
   ) {}
 
   async createTopicRegistration(
@@ -429,6 +433,7 @@ export class RegistrasiTesisService {
   async updateInterviewDate(
     mahasiswaId: string,
     dto: UpdateInterviewBodyDto,
+    req: Request,
     idPenerima?: string,
   ) {
     await this.penggunaService.isMahasiswaAktifOrFail(mahasiswaId);
@@ -462,10 +467,48 @@ export class RegistrasiTesisService {
 
     const newDate = new Date(dto.date);
 
-    await this.pendaftaranTesisRepository.update(
-      { id: newestReg.id },
-      { jadwalInterview: newDate, status: RegStatus.INTERVIEW },
+    let token = "";
+    if (req?.cookies?.[process.env.COOKIE_NAME]) {
+      token = req.cookies[process.env.COOKIE_NAME];
+    }
+    if (req.headers?.authorization) {
+      token = req.headers.authorization.slice(7);
+    }
+
+    const { data: notif } = await firstValueFrom(
+      this.httpService.post(
+        `${process.env.AUTH_SERVICE_URL}/notifikasi`,
+        {
+          title: "Jadwal interview pendaftaran Anda telah diubah",
+          description:
+            "Jadwal interview pendaftaran tesis Anda telah diubah. Silahkan periksa kembali data Anda untuk mengetahui lebih lanjut.",
+          penggunaId: mahasiswaId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      ),
     );
+
+    try {
+      await this.pendaftaranTesisRepository.update(
+        { id: newestReg.id },
+        { jadwalInterview: newDate, status: RegStatus.INTERVIEW },
+      );
+    } catch {
+      await firstValueFrom(
+        this.httpService.delete(
+          `${process.env.AUTH_SERVICE_URL}/notifikasi/${notif.id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        ),
+      );
+    }
 
     return { id: newestReg.id } as IdDto;
   }
@@ -473,6 +516,7 @@ export class RegistrasiTesisService {
   async updateStatus(
     mahasiswaId: string,
     dto: UpdateStatusBodyDto,
+    req: Request,
     idPenerima?: string,
   ) {
     await this.penggunaService.isMahasiswaAktifOrFail(mahasiswaId);
@@ -486,6 +530,30 @@ export class RegistrasiTesisService {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
+
+    let token = "";
+    if (req?.cookies?.[process.env.COOKIE_NAME]) {
+      token = req.cookies[process.env.COOKIE_NAME];
+    }
+    if (req.headers?.authorization) {
+      token = req.headers.authorization.slice(7);
+    }
+
+    const { data: notif } = await firstValueFrom(
+      this.httpService.post(
+        `${process.env.AUTH_SERVICE_URL}/notifikasi`,
+        {
+          title: `Pendaftaran tesis Anda ${dto.status === RegStatus.APPROVED ? "diterima" : "ditolak"}`,
+          description: `Pendaftaran tesis Anda ${dto.status === RegStatus.APPROVED ? "diterima" : "ditolak"}. Silahkan periksa kembali data Anda untuk mengetahui lebih lanjut.`,
+          penggunaId: mahasiswaId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      ),
+    );
 
     try {
       await queryRunner.manager.update(
@@ -510,6 +578,17 @@ export class RegistrasiTesisService {
     } catch (err) {
       await queryRunner.rollbackTransaction();
 
+      await firstValueFrom(
+        this.httpService.delete(
+          `${process.env.AUTH_SERVICE_URL}/notifikasi/${notif.id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        ),
+      );
+
       throw new InternalServerErrorException();
     } finally {
       await queryRunner.release();
@@ -521,6 +600,7 @@ export class RegistrasiTesisService {
   async updatePembimbingList(
     mahasiswaId: string,
     { pembimbing_ids: dosen_ids }: UpdatePembimbingBodyDto,
+    req: Request,
   ) {
     await this.penggunaService.isMahasiswaAktifOrFail(mahasiswaId);
 
@@ -564,6 +644,31 @@ export class RegistrasiTesisService {
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
+    let token = "";
+    if (req?.cookies?.[process.env.COOKIE_NAME]) {
+      token = req.cookies[process.env.COOKIE_NAME];
+    }
+    if (req.headers?.authorization) {
+      token = req.headers.authorization.slice(7);
+    }
+
+    const { data: notif } = await firstValueFrom(
+      this.httpService.post(
+        `${process.env.AUTH_SERVICE_URL}/notifikasi`,
+        {
+          title: "Dosen pembimbing Anda telah diubah",
+          description:
+            "Dosen pembimbing Anda telah diubah. Silahkan periksa kembali data Anda untuk mengetahui lebih lanjut.",
+          penggunaId: mahasiswaId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      ),
+    );
+
     try {
       await queryRunner.manager.insert(
         DosenBimbingan,
@@ -576,6 +681,17 @@ export class RegistrasiTesisService {
       await queryRunner.commitTransaction();
     } catch (err) {
       await queryRunner.rollbackTransaction();
+
+      await firstValueFrom(
+        this.httpService.delete(
+          `${process.env.AUTH_SERVICE_URL}/notifikasi/${notif.id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        ),
+      );
 
       throw new InternalServerErrorException();
     } finally {

@@ -30,6 +30,9 @@ import { Pengguna, RoleEnum } from "src/entities/pengguna.entity";
 import { KonfigurasiService } from "src/konfigurasi/konfigurasi.service";
 import { KonfigurasiKeyEnum } from "src/entities/konfigurasi.entity";
 import * as dayjs from "dayjs";
+import { HttpService } from "@nestjs/axios";
+import { Request } from "express";
+import { firstValueFrom } from "rxjs";
 
 @Injectable()
 export class RegistrasiSidsemService {
@@ -45,6 +48,7 @@ export class RegistrasiSidsemService {
     private regTesisService: RegistrasiTesisService,
     private dataSource: DataSource,
     private konfService: KonfigurasiService,
+    private httpService: HttpService,
   ) {}
 
   private async getLatestPendaftaranSidsem(mhsId: string) {
@@ -346,6 +350,7 @@ export class RegistrasiSidsemService {
   async updateStatus(
     mhsId: string,
     status: SidsemStatus.REJECTED | SidsemStatus.APPROVED,
+    req: Request,
   ): Promise<PengajuanSidsemIdDto> {
     const latest = await this.getLatestPendaftaranSidsem(mhsId);
 
@@ -355,9 +360,46 @@ export class RegistrasiSidsemService {
       );
     }
 
-    await this.pendaftaranSidsemRepo.update(latest.id, {
-      status,
-    });
+    let token = "";
+    if (req?.cookies?.[process.env.COOKIE_NAME]) {
+      token = req.cookies[process.env.COOKIE_NAME];
+    }
+    if (req.headers?.authorization) {
+      token = req.headers.authorization.slice(7);
+    }
+
+    const { data: notif } = await firstValueFrom(
+      this.httpService.post(
+        `${process.env.AUTH_SERVICE_URL}/notifikasi`,
+        {
+          title: `Pendaftaran ${latest.tipe.split("_").join(" ").toLowerCase()} Anda ${status === SidsemStatus.APPROVED ? "diterima" : "ditolak"}`,
+          description: `Pendaftaran tesis Anda ${status === SidsemStatus.APPROVED ? "diterima" : "ditolak"}. Silahkan periksa kembali data Anda untuk mengetahui lebih lanjut.`,
+          penggunaId: mhsId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      ),
+    );
+
+    try {
+      await this.pendaftaranSidsemRepo.update(latest.id, {
+        status,
+      });
+    } catch {
+      await firstValueFrom(
+        this.httpService.delete(
+          `${process.env.AUTH_SERVICE_URL}/notifikasi/${notif.id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        ),
+      );
+    }
 
     return { id: latest.id } as PengajuanSidsemIdDto;
   }
@@ -365,6 +407,7 @@ export class RegistrasiSidsemService {
   async updateDetail(
     mhsId: string,
     updateDto: UpdateSidsemDetailDto,
+    req: Request,
   ): Promise<PengajuanSidsemIdDto> {
     const latest = await this.getLatestPendaftaranSidsem(mhsId);
 
@@ -416,6 +459,30 @@ export class RegistrasiSidsemService {
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
+      let token = "";
+      if (req?.cookies?.[process.env.COOKIE_NAME]) {
+        token = req.cookies[process.env.COOKIE_NAME];
+      }
+      if (req.headers?.authorization) {
+        token = req.headers.authorization.slice(7);
+      }
+
+      const { data: notif } = await firstValueFrom(
+        this.httpService.post(
+          `${process.env.AUTH_SERVICE_URL}/notifikasi`,
+          {
+            title: `Detail pendaftaran ${latest.tipe.split("_").join(" ").toLowerCase()} Anda diubah`,
+            description: `Detail pendaftaran ${latest.tipe.split("_").join(" ").toLowerCase()} Anda diubah. Silahkan periksa kembali data Anda untuk mengetahui lebih lanjut.`,
+            penggunaId: mhsId,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        ),
+      );
+
       try {
         await queryRunner.manager.insert(
           PengujiSidsem,
@@ -436,7 +503,16 @@ export class RegistrasiSidsemService {
       } catch (err) {
         await queryRunner.rollbackTransaction();
 
-        console.error(err);
+        await firstValueFrom(
+          this.httpService.delete(
+            `${process.env.AUTH_SERVICE_URL}/notifikasi/${notif.id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          ),
+        );
 
         throw new InternalServerErrorException();
       } finally {

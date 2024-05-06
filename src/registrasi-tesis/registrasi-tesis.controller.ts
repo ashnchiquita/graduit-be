@@ -211,6 +211,7 @@ export class RegistrasiTesisController {
     return await this.registrasiTesisService.updateInterviewDate(
       params.mhsId,
       body,
+      req,
       idPenerima,
     );
   }
@@ -242,6 +243,7 @@ export class RegistrasiTesisController {
     return await this.registrasiTesisService.updateStatus(
       params.mhsId,
       body,
+      req,
       idPenerima,
     );
   }
@@ -257,10 +259,12 @@ export class RegistrasiTesisController {
   async updatePembimbingListByMhsId(
     @Param() params: UpdateByMhsParamsDto,
     @Body() body: UpdatePembimbingBodyDto,
+    @Req() req: Request,
   ) {
     return await this.registrasiTesisService.updatePembimbingList(
       params.mhsId,
       body,
+      req,
     );
   }
 }
