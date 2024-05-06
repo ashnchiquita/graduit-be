@@ -26,7 +26,7 @@ export class Pengguna {
   id: string;
 
   @ApiProperty()
-  @Column()
+  @Column({ type: "text", nullable: true })
   nama: string;
 
   @ApiProperty({ example: "13521999@mahasiswa.itb.ac.id" })

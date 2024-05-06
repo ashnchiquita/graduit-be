@@ -10,6 +10,7 @@ import { CustomStrategy } from "src/middlewares/custom.strategy";
 import { AuthModule } from "src/auth/auth.module";
 import { PenggunaModule } from "src/pengguna/pengguna.module";
 import { PenggunaService } from "src/pengguna/pengguna.service";
+import { HttpModule } from "@nestjs/axios";
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { PenggunaService } from "src/pengguna/pengguna.service";
     ]),
     AuthModule,
     PenggunaModule,
+    HttpModule,
   ],
   controllers: [RegistrasiTesisController],
   providers: [RegistrasiTesisService, CustomStrategy, PenggunaService],

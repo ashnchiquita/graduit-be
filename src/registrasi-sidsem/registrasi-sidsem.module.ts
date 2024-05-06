@@ -17,6 +17,7 @@ import { PengujiSidsem } from "src/entities/pengujiSidsem.entity";
 import { KonfigurasiModule } from "src/konfigurasi/konfigurasi.module";
 import { KonfigurasiService } from "src/konfigurasi/konfigurasi.service";
 import { Konfigurasi } from "src/entities/konfigurasi.entity";
+import { HttpModule } from "@nestjs/axios";
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { Konfigurasi } from "src/entities/konfigurasi.entity";
     RegistrasiTesisModule,
     PenggunaModule,
     KonfigurasiModule,
+    HttpModule,
   ],
   controllers: [RegistrasiSidsemController],
   providers: [
