@@ -6,24 +6,27 @@ import {
   PrimaryGeneratedColumn,
 } from "typeorm";
 import { Pengguna } from "./pengguna.entity";
-import { PendaftaranTesis } from "./pendaftaranTesis.entity";
+import { PendaftaranSidsem } from "./pendaftaranSidsem";
 
 @Entity()
-export class DosenBimbingan {
+export class PengujiSidsem {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @ManyToOne(() => PendaftaranTesis, (pendaftaranTesis) => pendaftaranTesis.id)
-  @JoinColumn({ name: "idPendaftaran" })
-  pendaftaran: PendaftaranTesis;
+  @ManyToOne(
+    () => PendaftaranSidsem,
+    (pendaftaranSidsem) => pendaftaranSidsem.id,
+  )
+  @JoinColumn({ name: "idSidsem" })
+  sidsem: PendaftaranSidsem;
 
-  @Column({ nullable: true })
-  idPendaftaran: string;
+  @Column()
+  idSidsem: string;
 
   @ManyToOne(() => Pengguna, (pengguna) => pengguna.id)
   @JoinColumn({ name: "idDosen" })
   dosen: Pengguna;
 
-  @Column({ nullable: true })
+  @Column()
   idDosen: string;
 }

@@ -1,0 +1,145 @@
+import { Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { RoleEnum } from "src/entities/pengguna.entity";
+import { Topik } from "src/entities/topik.entity";
+import { ArrayContains, ILike, Repository } from "typeorm";
+import {
+  CreateBulkTopikDto,
+  TopikIdRespDto,
+  CreateTopikDto,
+  GetAllRespDto,
+  UpdateTopikDto,
+  createBulkRespDto,
+} from "./alokasi-topik.dto";
+
+@Injectable()
+export class AlokasiTopikService {
+  constructor(@InjectRepository(Topik) private topikRepo: Repository<Topik>) {}
+
+  async create(createDto: CreateTopikDto): Promise<TopikIdRespDto> {
+    const ids = (await this.topikRepo.insert(createDto)).identifiers;
+
+    return { id: ids[0].id };
+  }
+
+  async createBulk(createDto: CreateBulkTopikDto): Promise<createBulkRespDto> {
+    const ids = (
+      await this.topikRepo.insert(createDto.data.map((dto) => ({ ...dto })))
+    ).identifiers;
+
+    return { ids: ids.map(({ id }) => id) };
+  }
+
+  async findActiveTopikById(id: string) {
+    return await this.topikRepo.findOne({
+      select: {
+        id: true,
+        judul: true,
+        deskripsi: true,
+        pengaju: {
+          id: true,
+          nama: true,
+          email: true,
+          roles: true,
+        },
+      },
+      where: {
+        id,
+        aktif: true,
+      },
+      relations: {
+        pengaju: true,
+      },
+    });
+  }
+
+  async findAllActiveTopikCreatedByPembimbing(options: {
+    page: number;
+    limit?: number;
+    search?: string;
+    idPembimbing?: string;
+  }): Promise<GetAllRespDto> {
+    const dataQuery = this.topikRepo.find({
+      select: {
+        id: true,
+        judul: true,
+        deskripsi: true,
+        pengaju: {
+          id: true,
+          nama: true,
+          email: true,
+          roles: true,
+        },
+      },
+      where: {
+        aktif: true,
+        pengaju: {
+          id: options.idPembimbing || undefined,
+          roles: ArrayContains([RoleEnum.S2_PEMBIMBING]),
+        },
+        judul: ILike(`%${options.search || ""}%`),
+      },
+      relations: {
+        pengaju: true,
+      },
+      order: {
+        pengaju: {
+          nama: "ASC",
+        },
+        judul: "ASC",
+      },
+      take: options.limit || undefined,
+      skip: options.limit ? (options.page - 1) * options.limit : 0,
+    });
+
+    if (options.limit) {
+      let countQuery = this.topikRepo
+        .createQueryBuilder("topik")
+        .select("topik.id")
+        .innerJoinAndSelect("topik.pengaju", "pengaju")
+        .where("pengaju.roles @> :role", {
+          role: [RoleEnum.S2_PEMBIMBING],
+        });
+
+      if (options.idPembimbing) {
+        countQuery = countQuery.andWhere("pengaju.id = :id", {
+          id: options.idPembimbing || undefined,
+        });
+      }
+
+      if (options.search) {
+        countQuery = countQuery.andWhere("topik.judul LIKE :search", {
+          search: `%${options.search || ""}%`,
+        });
+      }
+
+      const [count, data] = await Promise.all([
+        countQuery.getCount(),
+        dataQuery,
+      ]);
+
+      return {
+        maxPage: Math.ceil(count / options.limit),
+        data,
+      };
+    } else {
+      const data = await dataQuery;
+      return {
+        maxPage: data.length ? 1 : 0,
+        data,
+      };
+    }
+  }
+
+  async update(id: string, updateDto: UpdateTopikDto, idPengaju?: string) {
+    const findOpt = idPengaju
+      ? { id, idPengaju, aktif: true }
+      : { id, aktif: true };
+    return await this.topikRepo.update(findOpt, updateDto);
+  }
+
+  async remove(id: string, idPengaju?: string) {
+    const findOpt = idPengaju ? { id, idPengaju } : { id };
+    return await this.topikRepo.update(findOpt, { aktif: false });
+  }
+}

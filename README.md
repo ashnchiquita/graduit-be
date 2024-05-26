@@ -1,73 +1,154 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# PPL
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## Git branching
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Repository akan memiliki 2 branch utama, yaitu main dan development.
+Setiap pembuatan branch baru, buat branch baru dengan base development.
+Format: `<tipe>/<judul>`
 
-## Description
+List tipe:
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- Story, untuk fitur atau use case baru
+- Task, untuk bug fixing, performance improvement, refactor, dsb.
 
-## Installation
+Judul: gunakan kebab case
 
-```bash
-$ npm install
+Contoh:
+
+- story/api-attendance
+- story/page-attendance
+- task/improve-sql-performance-on-xxxx-method
+
+Setelah selesai, Merge Request ke development dan wajib minta review ke scrum master.
+
+## Code Styling & Repository
+
+Sangat dimohon untuk memperhatikan hal-hal berikut:
+
+1. Penamaan variabel, fungsi, dan kelas yang bermakna.
+2. Penyingkatan harus mudah ditebak dan masih terbaca.
+   - Misalkan, codeStylingAndRepository, terlalu panjang, disingkat menjadi: codeStyleNRepo.
+   - Yang Salah: csnr, cdStNrep.
+3. Membuat kelas, type, dan interface dengan pascal case (ClassName).
+4. Membuat fungsi dan variable dengan camel case (fungsiDanVariabel).
+5. Membuat folder dan file dengan kebab case (nama-folder).
+
+## Folder
+
+```
+src
+├ entities
+├ helper
+├ middlewares
+└ <nama-modul>
+  ├ <nama-modul>.controller.ts
+  ├ <nama-modul>.module.ts
+  ├ <nama-modul>.dto.ts
+  └ <nama-modul>.service.ts
+
 ```
 
-## Running the app
+Folder menggunakan sistem modul NestJS yang bisa dilihat di https://docs.nestjs.com/modules.
+Berikut merupakan penjelasan dasar dari setiap folder.
 
-```bash
-# development
-$ npm run start
+- `src/entities`
+  a. Berisi entity typeORM sesuai ERD yang ada di https://app.eraser.io/workspace/z0dwTFLk5F4reT6CYK7E.
+  b. Atribut entity (ex: title, description) bebas ditambahkan. Jika ada atribut yang diubah
+  atau dihapus, infokan ke yang lain karena mungkin berpengaruh ke pengerjaan sebelumnya.
+  c. Jika ingin menambahkan tabel atau relasi, diskusikan dengan yang lain.
+  d. Jika mengubah atribut atau tabel, update ERD agar sesuai.
+- `src/helper`
+  a. Berisi fungsi utility atau helper.
+- `src/middlewares`
+  a. Berisi midddleware aplikasi, bisa berupa guard atau interceptor.
+- `src/<nama-modul>/.module.ts`
+  a. Berisi konfigurasi dasar dari sebuah modul.
+- `src/<nama-modul>/.controller.ts`
+  a. Berisi controller yang akan melakukan mapping antara endpoint dengan handler-nya.
+- `src/<nama-modul>/.service.ts`
+  a. Berisi service yang akan menerima request dan menghasilkan response.
+- `src/<nama-modul>/.dto.ts`
+  a. Berisi data transfer object yang mendefinisikan struktur request ataupun response.
 
-# watch mode
-$ npm run start:dev
+## Semantic Commit Message
 
-# production mode
-$ npm run start:prod
-```
+- `feat`: (new feature for the user, not a new feature for build script)
+- `fix`: (bug fix for the user, not a fix to a build script)
+- `docs`: (changes to the documentation)
+- `style`: (formatting, missing semi colons, etc; no production code change)
+- `refactor`: (refactoring production code, eg. renaming a variable)
+- `test`: (adding missing tests, refactoring tests; no production code change)
+- `chore`: (updating grunt tasks etc; no production code change)
 
-## Test
+## Local Development Setup
 
-```bash
-# unit tests
-$ npm run test
+### Git
 
-# e2e tests
-$ npm run test:e2e
+Authorize ke github menggunakan SSH/ HTTPs. Referensi untuk SSH:
 
-# test coverage
-$ npm run test:cov
-```
+https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent
 
-## Support
+https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### Requirements
 
-## Stay in touch
+1. Node versi 21
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+### Instalasi Requirements
 
-## License
+1. Install node 21 melalui node version manager. Referensi: https://github.com/nvm-sh/nvm#installing-and-updating
 
-Nest is [MIT licensed](LICENSE).
+`nvm install lts/hydrogen`
+
+### Langkah-Langkah
+
+1. Clone repo `git clone git@gitlab.informatika.org:k-02-02/ppl-backend.git` atau `git clone https://gitlab.informatika.org/k-02-02/ppl-backend.git`
+2. Install dependencies `npm install`
+3. Sesuaikan env dengan file .env.example
+4. Jalankan local dev derver `npm run start:dev`
+
+## Techniques
+
+### Schema Validation
+
+Lakukan schema validation untuk **data yang masuk dari luar saat runtime (request body, params, dll)**. Tulis validasi di kelas DTO (buat kelas yang pendek boleh langsung pipe di controller). Dokumentasi:
+
+- [NestJS Validation](https://docs.nestjs.com/techniques/validation)
+- [Class Validator](https://www.npmjs.com/package/@nestjs/class-validator/v/0.13.1)
+
+> **NOTE** <br> Schema validation bersifat whitelist, artinya kalo ga kalian pasang validasinya gak bakal bisa diakses meskipun di runtime kalian tambahin.
+
+### API Documentation
+
+Dokumentasi API bisa diakses di [http://localhost:3000/api-docs](http://localhost:3000/api-docs). Yang esensial:
+| Decorator | Fungsi | Scope |
+| ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
+| `@ApiTags("nama-controller")` | Folder/grup API | Method / Controller |
+| `@ApiOperation({ summary: "summary" })` | Description | Method |
+| `@ApiResponse({ status: XXX, description: "desc", type: Type })` | Keterangan response API | Method / Controller |
+| `@ApiBody({ type: Type })` | Enforce body secara hardcode. Kalo bisa jangan pake ini karena harusnya autogenerate dari `@Body()`. Pake ini kalo kalian pake middleware yang ngepass bodynya ke middleware bukan ke handler | Method |
+| `@ApiCookieAuth()` | Auth pake cookie | Method / Controller |
+| `@ApiProperty({ example: "example", description: "desc" })` | Register property kelas | Model |
+| `@ApiHideProperty()` | Hide property kelas | Model |
+
+Langkahnya kurang lebih:
+
+1. Kalo buat tag baru, register tag nya di `src/main.ts` pake `.addTag("tag")`
+2. Di kelas yang jadi model transfer object (entity / dto), kasih decorator property
+3. Di bagian controller, kasih decorator sesuai kebutuhan auth, response, summary, dll
+
+Dokumentasi:
+
+- [NestJS OpenAPI](https://docs.nestjs.com/openapi/introduction)
+
+### Environment Variables
+
+Kalo nambahin environment variable, kalian harus:
+
+- Tambahin di `env.example`
+- Tambahin schema validation. Tulis validasi di `env.validation.ts`. Dokumentasi: [Class Validator](https://www.npmjs.com/package/@nestjs/class-validator/v/0.13.1)
+
+WARNING:
+
+- Sampe sekarang, `allowUnknown` masih di-set jadi `true`. Artinya kalian bisa aja masukin environment variable tanpa ngelakuin validasi skema. Masalahnya adalah kalo di-set ke `false`, environment variables bawaan lokal kalian kayak `USER`, `NODE_ENV` gitu-gitu jadi ke-restrict. Jadi tolong banget, pake environment variables yang emang udah ke-define aja di validasinya.
+- Semua yang diakses pake `process.env.` masih string ya valuenya, dia gak auto transform (meskipun udah pake `class-transformer`). Jadi konversi sesuai kebutuhan masing-masing, ini bener-bener cuman buat validasi skemanya aja.
