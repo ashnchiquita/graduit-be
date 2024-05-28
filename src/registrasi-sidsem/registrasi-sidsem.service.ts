@@ -1,3 +1,4 @@
+import { HttpService } from "@nestjs/axios";
 import {
   BadRequestException,
   ForbiddenException,
@@ -6,14 +7,23 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import * as dayjs from "dayjs";
+import { Request } from "express";
+import { firstValueFrom } from "rxjs";
+import { BerkasSidsem } from "src/entities/berkasSidsem.entity";
+import { KonfigurasiKeyEnum } from "src/entities/konfigurasi.entity";
 import {
-  cmpTipeSidsem,
   PendaftaranSidsem,
   SidsemStatus,
   TipeSidsemEnum,
+  cmpTipeSidsem,
 } from "src/entities/pendaftaranSidsem";
+import { RegStatus } from "src/entities/pendaftaranTesis.entity";
+import { Pengguna, RoleEnum } from "src/entities/pengguna.entity";
 import { PengujiSidsem } from "src/entities/pengujiSidsem.entity";
-import { DataSource, In, Repository, Brackets } from "typeorm";
+import { KonfigurasiService } from "src/konfigurasi/konfigurasi.service";
+import { RegistrasiTesisService } from "src/registrasi-tesis/registrasi-tesis.service";
+import { Brackets, DataSource, In, Repository } from "typeorm";
 import {
   CreatePengajuanSidsemDto,
   GetAllPengajuanSidangItemDto,
@@ -23,16 +33,6 @@ import {
   PengajuanSidsemIdDto,
   UpdateSidsemDetailDto,
 } from "./registrasi-sidsem.dto";
-import { RegStatus } from "src/entities/pendaftaranTesis.entity";
-import { RegistrasiTesisService } from "src/registrasi-tesis/registrasi-tesis.service";
-import { BerkasSidsem } from "src/entities/berkasSidsem.entity";
-import { Pengguna, RoleEnum } from "src/entities/pengguna.entity";
-import { KonfigurasiService } from "src/konfigurasi/konfigurasi.service";
-import { KonfigurasiKeyEnum } from "src/entities/konfigurasi.entity";
-import * as dayjs from "dayjs";
-import { HttpService } from "@nestjs/axios";
-import { Request } from "express";
-import { firstValueFrom } from "rxjs";
 
 @Injectable()
 export class RegistrasiSidsemService {
@@ -221,8 +221,7 @@ export class RegistrasiSidsemService {
       .leftJoin("pt.dosenBimbingan", "dosenBimbingan")
       .leftJoin("dosenBimbingan.dosen", "dosen")
       .leftJoin("pt.mahasiswa", "mahasiswa")
-      .where("mahasiswa.aktif = true")
-      .orderBy("ps.waktuPengiriman", "DESC");
+      .where("mahasiswa.aktif = true");
 
     if (idPembimbing) {
       baseQuery
@@ -255,14 +254,20 @@ export class RegistrasiSidsemService {
     }
 
     if (query.jenisSidang) {
-      baseQuery.andWhere("ps.jenisSidang = :jenisSidang", {
+      baseQuery.andWhere("ps.tipe = :jenisSidang", {
         jenisSidang: query.jenisSidang,
+      });
+    }
+
+    if (query.status) {
+      baseQuery.andWhere("ps.status = :status", {
+        status: query.status,
       });
     }
 
     if (query.limit) {
       baseQuery.take(query.limit);
-      baseQuery.skip((query.page - 1) * query.limit);
+      baseQuery.skip(((query.page ?? 1) - 1) * query.limit);
     }
 
     const [queryData, total] = await baseQuery.getManyAndCount();
@@ -276,9 +281,10 @@ export class RegistrasiSidsemService {
       jenisSidang: res.tipe,
       ruangan: res.ruangan,
       status: res.status,
-      dosenPembimbing: res.pendaftaranTesis.dosenBimbingan.map(
-        (dosen) => dosen.dosen.nama,
-      ),
+      dosenPembimbing: res.pendaftaranTesis.dosenBimbingan.map(({ dosen }) => ({
+        nama: dosen.nama,
+        id: dosen.id,
+      })),
       berkasSidsem: res.berkasSidsem,
     }));
 
@@ -339,9 +345,12 @@ export class RegistrasiSidsemService {
       judulSidsem: latest.judulSidsem,
       deskripsiSidsem: latest.deskripsiSidsem,
       dosenPembimbing: latest.pendaftaranTesis.dosenBimbingan.map(
-        ({ dosen: { nama } }) => nama,
+        ({ dosen: { nama, id } }) => ({ nama, id }),
       ),
-      dosenPenguji: latest.penguji.map(({ dosen: { nama } }) => nama),
+      dosenPenguji: latest.penguji.map(({ dosen: { nama, id } }) => ({
+        nama,
+        id,
+      })),
     };
 
     return data;
