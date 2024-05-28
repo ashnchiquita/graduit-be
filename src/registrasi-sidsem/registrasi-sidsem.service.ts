@@ -221,8 +221,7 @@ export class RegistrasiSidsemService {
       .leftJoin("pt.dosenBimbingan", "dosenBimbingan")
       .leftJoin("dosenBimbingan.dosen", "dosen")
       .leftJoin("pt.mahasiswa", "mahasiswa")
-      .where("mahasiswa.aktif = true")
-      .orderBy("ps.waktuPengiriman", "DESC");
+      .where("mahasiswa.aktif = true");
 
     if (idPembimbing) {
       baseQuery
@@ -268,7 +267,7 @@ export class RegistrasiSidsemService {
 
     if (query.limit) {
       baseQuery.take(query.limit);
-      baseQuery.skip((query.page - 1) * query.limit);
+      baseQuery.skip(((query.page ?? 1) - 1) * query.limit);
     }
 
     const [queryData, total] = await baseQuery.getManyAndCount();
