@@ -254,7 +254,7 @@ export class RegistrasiSidsemService {
     }
 
     if (query.jenisSidang) {
-      baseQuery.andWhere("ps.jenisSidang = :jenisSidang", {
+      baseQuery.andWhere("ps.tipe = :jenisSidang", {
         jenisSidang: query.jenisSidang,
       });
     }
