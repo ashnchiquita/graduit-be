@@ -281,9 +281,10 @@ export class RegistrasiSidsemService {
       jenisSidang: res.tipe,
       ruangan: res.ruangan,
       status: res.status,
-      dosenPembimbing: res.pendaftaranTesis.dosenBimbingan.map(
-        (dosen) => dosen.dosen.nama,
-      ),
+      dosenPembimbing: res.pendaftaranTesis.dosenBimbingan.map(({ dosen }) => ({
+        nama: dosen.nama,
+        id: dosen.id,
+      })),
       berkasSidsem: res.berkasSidsem,
     }));
 
@@ -344,9 +345,12 @@ export class RegistrasiSidsemService {
       judulSidsem: latest.judulSidsem,
       deskripsiSidsem: latest.deskripsiSidsem,
       dosenPembimbing: latest.pendaftaranTesis.dosenBimbingan.map(
-        ({ dosen: { nama } }) => nama,
+        ({ dosen: { nama, id } }) => ({ nama, id }),
       ),
-      dosenPenguji: latest.penguji.map(({ dosen: { nama } }) => nama),
+      dosenPenguji: latest.penguji.map(({ dosen: { nama, id } }) => ({
+        nama,
+        id,
+      })),
     };
 
     return data;

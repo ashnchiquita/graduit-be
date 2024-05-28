@@ -73,6 +73,14 @@ export class GetAllPengajuanSidangReqQueryDto extends SidsemViewQueryDto {
   limit?: number;
 }
 
+class NameAndId {
+  @ApiProperty()
+  id: string;
+
+  @ApiProperty()
+  nama: string;
+}
+
 export class GetAllPengajuanSidangItemDto {
   @ApiProperty({ example: "550e8400-e29b-41d4-a716-446655440000" })
   idPengajuanSidsem: string;
@@ -98,8 +106,8 @@ export class GetAllPengajuanSidangItemDto {
   @ApiProperty({ enum: SidsemStatus })
   status: SidsemStatus;
 
-  @ApiProperty({ type: [String] })
-  dosenPembimbing: string[];
+  @ApiProperty({ type: [NameAndId] })
+  dosenPembimbing: NameAndId[];
 
   @ApiProperty({ type: [BerkasSidsem] })
   berkasSidsem: BerkasSidsem[];
@@ -122,10 +130,10 @@ export class GetOnePengajuanSidangRespDto extends GetAllPengajuanSidangItemDto {
   judulTopik: string;
   @ApiProperty()
   deskripsiTopik: string;
-  @ApiProperty({ type: [String] })
-  dosenPembimbing: string[];
-  @ApiProperty({ type: [String] })
-  dosenPenguji: string[];
+  @ApiProperty({ type: [NameAndId] })
+  dosenPembimbing: NameAndId[];
+  @ApiProperty({ type: [NameAndId] })
+  dosenPenguji: NameAndId[];
 
   @ApiProperty()
   judulSidsem: string;
