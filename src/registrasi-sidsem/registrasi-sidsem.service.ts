@@ -1,3 +1,4 @@
+import { HttpService } from "@nestjs/axios";
 import {
   BadRequestException,
   ForbiddenException,
@@ -6,14 +7,23 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import * as dayjs from "dayjs";
+import { Request } from "express";
+import { firstValueFrom } from "rxjs";
+import { BerkasSidsem } from "src/entities/berkasSidsem.entity";
+import { KonfigurasiKeyEnum } from "src/entities/konfigurasi.entity";
 import {
-  cmpTipeSidsem,
   PendaftaranSidsem,
   SidsemStatus,
   TipeSidsemEnum,
+  cmpTipeSidsem,
 } from "src/entities/pendaftaranSidsem";
+import { RegStatus } from "src/entities/pendaftaranTesis.entity";
+import { Pengguna, RoleEnum } from "src/entities/pengguna.entity";
 import { PengujiSidsem } from "src/entities/pengujiSidsem.entity";
-import { DataSource, In, Repository, Brackets } from "typeorm";
+import { KonfigurasiService } from "src/konfigurasi/konfigurasi.service";
+import { RegistrasiTesisService } from "src/registrasi-tesis/registrasi-tesis.service";
+import { Brackets, DataSource, In, Repository } from "typeorm";
 import {
   CreatePengajuanSidsemDto,
   GetAllPengajuanSidangItemDto,
@@ -23,16 +33,6 @@ import {
   PengajuanSidsemIdDto,
   UpdateSidsemDetailDto,
 } from "./registrasi-sidsem.dto";
-import { RegStatus } from "src/entities/pendaftaranTesis.entity";
-import { RegistrasiTesisService } from "src/registrasi-tesis/registrasi-tesis.service";
-import { BerkasSidsem } from "src/entities/berkasSidsem.entity";
-import { Pengguna, RoleEnum } from "src/entities/pengguna.entity";
-import { KonfigurasiService } from "src/konfigurasi/konfigurasi.service";
-import { KonfigurasiKeyEnum } from "src/entities/konfigurasi.entity";
-import * as dayjs from "dayjs";
-import { HttpService } from "@nestjs/axios";
-import { Request } from "express";
-import { firstValueFrom } from "rxjs";
 
 @Injectable()
 export class RegistrasiSidsemService {
@@ -257,6 +257,12 @@ export class RegistrasiSidsemService {
     if (query.jenisSidang) {
       baseQuery.andWhere("ps.jenisSidang = :jenisSidang", {
         jenisSidang: query.jenisSidang,
+      });
+    }
+
+    if (query.status) {
+      baseQuery.andWhere("ps.status = :status", {
+        status: query.status,
       });
     }
 

@@ -57,6 +57,11 @@ export class GetAllPengajuanSidangReqQueryDto extends SidsemViewQueryDto {
   @IsOptional()
   jenisSidang?: TipeSidsemEnum;
 
+  @ApiPropertyOptional({ enum: SidsemStatus })
+  @IsEnum(SidsemStatus)
+  @IsOptional()
+  status?: SidsemStatus;
+
   @IsOptional()
   @IsNumberString()
   @ApiPropertyOptional({ description: "default: 1" })
