@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { BimbinganModule } from "src/bimbingan/bimbingan.module";
 import { DosenBimbingan } from "src/entities/dosenBimbingan.entity";
+import { Konfigurasi } from "src/entities/konfigurasi.entity";
 import { PendaftaranSidsem } from "src/entities/pendaftaranSidsem";
 import { PendaftaranTesis } from "../entities/pendaftaranTesis.entity";
 import { Pengguna } from "../entities/pengguna.entity";
@@ -15,6 +16,7 @@ import { DashboardService } from "./dashboard.service";
       Pengguna,
       PendaftaranSidsem,
       DosenBimbingan,
+      Konfigurasi,
     ]),
     BimbinganModule,
   ],

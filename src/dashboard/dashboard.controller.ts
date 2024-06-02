@@ -14,6 +14,7 @@ import { RolesGuard } from "src/middlewares/roles.guard";
 import {
   DashboardDto,
   GetDashboardDosbimQueryDto,
+  GetDashboardMahasiswaRespDto,
   GetDashboardTimTesisReqQueryDto,
   GetDashboardTimTesisRespDto,
   JalurStatisticDto,
@@ -58,5 +59,13 @@ export class DashboardController {
     @Query() query: GetDashboardTimTesisReqQueryDto,
   ): Promise<GetDashboardTimTesisRespDto> {
     return this.dashboardService.getDashboardTimTesis(query);
+  }
+
+  @UseGuards(CustomAuthGuard, RolesGuard)
+  @Roles(RoleEnum.S2_MAHASISWA)
+  @ApiOkResponse({ type: GetDashboardMahasiswaRespDto })
+  @Get("/mahasiswa")
+  async getDashboardMahasiswa(): Promise<GetDashboardMahasiswaRespDto> {
+    return this.dashboardService.getDashboardMahasiswa();
   }
 }

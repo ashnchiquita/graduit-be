@@ -1,7 +1,12 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import * as dayjs from "dayjs";
 import { BimbinganService } from "src/bimbingan/bimbingan.service";
 import { DosenBimbingan } from "src/entities/dosenBimbingan.entity";
+import {
+  Konfigurasi,
+  KonfigurasiKeyEnum,
+} from "src/entities/konfigurasi.entity";
 import {
   PendaftaranSidsem,
   SidsemStatus,
@@ -16,6 +21,7 @@ import { Pengguna, RoleEnum } from "../entities/pengguna.entity";
 import {
   DashboardDto,
   DashboardTimTesisStatusEnum,
+  GetDashboardMahasiswaRespDto,
   GetDashboardTimTesisReqQueryDto,
   GetDashboardTimTesisRespDto,
   JalurStatisticDto,
@@ -32,6 +38,8 @@ export class DashboardService {
     private dosenBimbinganRepository: Repository<DosenBimbingan>,
     @InjectRepository(PendaftaranSidsem)
     private pendaftaranSidsemRepository: Repository<PendaftaranSidsem>,
+    @InjectRepository(Konfigurasi)
+    private konfigurasiRepository: Repository<Konfigurasi>,
     private bimbinganService: BimbinganService,
   ) {}
 
@@ -299,5 +307,55 @@ export class DashboardService {
         dosen_pembimbing: dosbimMap[id] ?? [],
       })),
     };
+  }
+
+  async getDashboardMahasiswa(): Promise<GetDashboardMahasiswaRespDto> {
+    const [
+      awalSempro,
+      akhirSempro,
+      awalSemtes,
+      akhirSemtes,
+      awalSidang,
+      akhirSidang,
+    ] = await Promise.all([
+      this.konfigurasiRepository.findOne({
+        where: { key: KonfigurasiKeyEnum.AWAL_SEMPRO },
+      }),
+      this.konfigurasiRepository.findOne({
+        where: { key: KonfigurasiKeyEnum.AKHIR_SEMPRO },
+      }),
+      this.konfigurasiRepository.findOne({
+        where: { key: KonfigurasiKeyEnum.AWAL_SEM_TESIS },
+      }),
+      this.konfigurasiRepository.findOne({
+        where: { key: KonfigurasiKeyEnum.AKHIR_SEM_TESIS },
+      }),
+      this.konfigurasiRepository.findOne({
+        where: { key: KonfigurasiKeyEnum.AWAL_SIDANG },
+      }),
+      this.konfigurasiRepository.findOne({
+        where: { key: KonfigurasiKeyEnum.AKHIR_SIDANG },
+      }),
+    ]);
+
+    const isSemproPeriod =
+      awalSempro &&
+      akhirSempro &&
+      dayjs(awalSempro.value, "YYYY-mm-dd").startOf("day").isBefore(dayjs()) &&
+      dayjs(akhirSempro.value, "YYYY-mm-dd").endOf("day").isAfter(dayjs());
+
+    const isSemtesPeriod =
+      awalSemtes &&
+      akhirSemtes &&
+      dayjs(awalSemtes.value, "YYYY-mm-dd").startOf("day").isBefore(dayjs()) &&
+      dayjs(akhirSemtes.value, "YYYY-mm-dd").endOf("day").isAfter(dayjs());
+
+    const isSidangPeriod =
+      awalSidang &&
+      akhirSidang &&
+      dayjs(awalSidang.value, "YYYY-mm-dd").startOf("day").isBefore(dayjs()) &&
+      dayjs(akhirSidang.value, "YYYY-mm-dd").endOf("day").isAfter(dayjs());
+
+    return { isSemproPeriod, isSemtesPeriod, isSidangPeriod };
   }
 }
