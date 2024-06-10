@@ -101,3 +101,14 @@ export class GetDashboardTimTesisRespDto {
   @ApiProperty({ type: GetDashboardTimTesisDataDto })
   data: GetDashboardTimTesisDataDto[];
 }
+
+export class GetDashboardMahasiswaRespDto {
+  @ApiProperty()
+  isSemproPeriod: boolean;
+
+  @ApiProperty()
+  isSemtesPeriod: boolean;
+
+  @ApiProperty()
+  isSidangPeriod: boolean;
+}
