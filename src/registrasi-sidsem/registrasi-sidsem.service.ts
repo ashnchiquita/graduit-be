@@ -363,7 +363,7 @@ export class RegistrasiSidsemService {
   ): Promise<PengajuanSidsemIdDto> {
     const latest = await this.getLatestPendaftaranSidsem(mhsId);
 
-    if (!latest || latest.status !== SidsemStatus.NOT_ASSIGNED) {
+    if (!latest) {
       throw new BadRequestException(
         "Pendaftaran sidsem yang pending tidak ditemukan",
       );
